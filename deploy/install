@@ -1,0 +1,10 @@
+apt-get update
+apt-get -y install git
+
+cd /mnt
+git clone https://github.com/osmlab/to-fix.git
+cd /mnt/to-fix
+
+make install
+make load
+npm run serve
