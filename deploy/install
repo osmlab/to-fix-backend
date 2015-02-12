@@ -1,6 +1,8 @@
 apt-get update
 apt-get -y install git make
 
+mkdir -p $UploadPath
+
 cd /mnt
 git clone https://github.com/osmlab/to-fix.git
 cd /mnt/to-fix

@@ -1,5 +1,7 @@
-var hapi = require('hapi'),
-    pg = require('pg');
+var fs = require('fs'),
+    hapi = require('hapi'),
+    pg = require('pg'),
+    reformatCsv = require('./lib/reformat-csv');
 
 var user = process.env.DBUsername;
 var password = process.env.DBPassword;
@@ -43,10 +45,45 @@ server.route({
 server.route({
     method: 'POST',
     path: '/csv',
+    config: {
+        payload: {
+            maxBytes: 200000000,
+            output: 'stream',
+            parse: true,
+            allow: 'multipart/form-data'
+        }
+    },
     handler: function(request, reply) {
-        reply('gogo');
+        // reformatCsv(csv);
+
+        var data = request.payload;
+
+        if (data.file) {
+            var name = data.file.hapi.filename;
+            var path = (process.env.UploadPath || '/mnt/uploads');
+
+            if (path[path.length-1] !== '/') path = path + '/';
+
+            var file = fs.createWriteStream(path + name);
+            file.on('error', function (err) {
+                console.error(err);
+            });
+
+            data.file.pipe(file);
+
+            data.file.on('end', function (err) {
+                var ret = {
+                    filename: data.file.hapi.filename,
+                    headers: data.file.hapi.headers
+                };
+                reply(JSON.stringify(ret) + '\n');
+            });
+        }
+
     }
 });
+
+server.start();
 
 // soooo, we need server side user auth
     // in order to restrict uploads to specific users
@@ -58,3 +95,5 @@ server.route({
     // retructure into k/v, hash, full object as string
     // later we can pull special columns, latitude, longitude, _country
         // what does the editor geocoder do? ffforest?
+
+// curl -i -F name=something -F file=@with-cats.csv http://localhost:8000/csv
