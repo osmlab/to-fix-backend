@@ -1,5 +1,5 @@
 apt-get update
-apt-get -y install git make libpq-dev
+apt-get -y install git make
 
 mkdir -p $UploadPath
 
