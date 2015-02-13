@@ -54,15 +54,6 @@ server.route({
         }
     },
     handler: function(request, reply) {
-        // put the csv in $UploadPath
-        // validate csv
-            // just check the extension right now
-            // see how csv-parser fails on other stuff
-                // catch those errors
-        // make anything slightly suspicious fail
-
-        // reformatCsv(csv);
-
         var data = request.payload;
 
         if (data.file) {
@@ -77,27 +68,28 @@ server.route({
             var file = fs.createWriteStream(path + name);
 
             file.on('error', function (err) {
-                console.error(err);
-                reply('error');
+                reply('error' + err);
             });
 
             data.file.pipe(file);
 
             data.file.on('end', function (err) {
-                var ret = {
-                    filename: data.file.hapi.filename,
-                    headers: data.file.hapi.headers
-                };
-                reply(JSON.stringify(ret) + '\n');
+                // var ret = {
+                //     filename: data.file.hapi.filename,
+                //     headers: data.file.hapi.headers
+                // };
 
-                // now we reformat
                 reformatCsv(path, path + data.file.hapi.filename, function(err) {
-                    if (err) return console.log(err);
-                    console.log('done?');
+                    if (err) {
+                        fs.unlink(path + data.file.hapi.filename, function() {
+                            reply(err);
+                        });
+                    } else {
+                        return reply('successfully uploaded');
+                    }
                 });
             });
         }
-
     }
 });
 
