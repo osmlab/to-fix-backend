@@ -1,6 +1,7 @@
 var fs = require('fs'),
     hapi = require('hapi'),
     pg = require('pg'),
+    boom = require('boom'),
     reformatCsv = require('./lib/reformat-csv');
 
 var user = process.env.DBUsername;
@@ -60,7 +61,9 @@ server.route({
             var name = data.file.hapi.filename;
 
             // just looking at the extension for now
-            if (name.slice(-4) != '.csv') return reply('.csv files only');
+            if (name.slice(-4) != '.csv') {
+                return reply(boom.badRequest('.csv files only'));
+            }
 
             var path = (process.env.UploadPath || '/mnt/uploads');
             if (path[path.length-1] !== '/') path = path + '/';
@@ -68,7 +71,7 @@ server.route({
             var file = fs.createWriteStream(path + name);
 
             file.on('error', function (err) {
-                reply('error' + err);
+                reply(boom.badRequest(err.toString));
             });
 
             data.file.pipe(file);
@@ -82,12 +85,13 @@ server.route({
                 reformatCsv(path, path + data.file.hapi.filename, function(err) {
                     if (err) {
                         fs.unlink(path + data.file.hapi.filename, function() {
-                            reply(err);
+                            reply(boom.badRequest(err.toString()));
                         });
                     } else {
                         return reply('successfully uploaded');
                     }
                 });
+
             });
         }
     }
