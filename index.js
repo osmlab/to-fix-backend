@@ -71,7 +71,7 @@ server.route({
             var file = fs.createWriteStream(path + name);
 
             file.on('error', function (err) {
-                reply(boom.badRequest(err.toString()));
+                reply(boom.badRequest(err));
             });
 
             data.file.pipe(file);
@@ -80,7 +80,7 @@ server.route({
                 reformatCsv(path, path + name, function(err, filename) {
                     if (err) {
                         fs.unlink(path + name, function() {
-                            reply(boom.badRequest(err.toString()));
+                            reply(boom.badRequest(err));
                         });
                     } else {
                         // return reply('successfully uploaded');
@@ -90,24 +90,28 @@ server.route({
                         // if it doesn't just write it
                             // if it does, create a unique id, keep it there and make a process for renaming the table eventually
 
-                        pg.connect(conString, function(err, client, done) {
-                            // how do I create a temporary table in postgres?
-                            if (err) return console.log(err);
+                        console.log(conString);
 
-                            client.query('create table temp (key varchar(255), value text)');
-                            var stream = client.query(pg_copy.from("COPY temp FROM STDIN (format csv)"));
+                        pg.connect(conString, function(err, client, done) {
+                            if (err) return reply(boom.badRequest(err));
+
+                            client.query('create table if not exists temp (key varchar(255), value text);', function(err, results) {
+                                if (err) return reply(boom.badRequest(err));
+                            });
+
+                            var stream = client.query(pg_copy.from('COPY temp FROM STDIN (format csv);'));
 
                             var fileStream = fs.createReadStream(filename);
                             fileStream
                                 .on('error', function(err) {
-                                    console.log('error', err);
+                                    return reply(boom.badRequest(err));
                                 })
                                 .pipe(stream)
                                     .on('finish', function() {
-                                        console.log('finished');
+                                        return reply('ok');
                                     })
                                     .on('error', function(err) {
-                                        console.log('pipe error', err);
+                                        return reply(boom.badRequest(err));
                                     });
 
                         });
