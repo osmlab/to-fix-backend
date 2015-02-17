@@ -102,19 +102,18 @@ server.route({
                             var stream = client.query(pg_copy.from('COPY temp FROM STDIN (format csv);'));
 
                             var fileStream = fs.createReadStream(filename);
-                            fileStream
+
+                            fileStream.on('error', function(err) {
+                                return reply(boom.badRequest(err));
+                            }).pipe(stream)
+                                .on('finish', function() {
+                                    return reply('ok');
+                                })
                                 .on('error', function(err) {
                                     return reply(boom.badRequest(err));
-                                })
-                                .pipe(stream)
-                                    .on('finish', function() {
-                                        return reply('ok');
-                                    })
-                                    .on('error', function(err) {
-                                        return reply(boom.badRequest(err));
-                                    });
-
+                                });
                         });
+
                     }
                 });
             });
