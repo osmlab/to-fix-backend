@@ -2,6 +2,7 @@ var fs = require('fs'),
     hapi = require('hapi'),
     pg = require('pg'),
     boom = require('boom'),
+    pg_copy = require('pg-copy-streams'),
     reformatCsv = require('./lib/reformat-csv');
 
 var user = process.env.DBUsername;
@@ -30,7 +31,6 @@ server.route({
     method: 'GET',
     path:'/stuff',
     handler: function(request, reply) {
-        console.log(request, reply);
         reply('between the bars');
     }
 });
@@ -71,28 +71,50 @@ server.route({
             var file = fs.createWriteStream(path + name);
 
             file.on('error', function (err) {
-                reply(boom.badRequest(err.toString));
+                reply(boom.badRequest(err.toString()));
             });
 
             data.file.pipe(file);
 
             data.file.on('end', function (err) {
-                // var ret = {
-                //     filename: data.file.hapi.filename,
-                //     headers: data.file.hapi.headers
-                // };
-
-                reformatCsv(path, path + data.file.hapi.filename, function(err) {
+                reformatCsv(path, path + name, function(err, filename) {
                     if (err) {
-                        fs.unlink(path + data.file.hapi.filename, function() {
+                        fs.unlink(path + name, function() {
                             reply(boom.badRequest(err.toString()));
                         });
                     } else {
-                        return reply('successfully uploaded');
+                        // return reply('successfully uploaded');
+                        // COPY to postgres
+
+                        // check if the table already exists
+                        // if it doesn't just write it
+                            // if it does, create a unique id, keep it there and make a process for renaming the table eventually
+
+                        pg.connect(conString, function(err, client, done) {
+                            // how do I create a temporary table in postgres?
+                            if (err) return console.log(err);
+
+                            client.query('create table temp (key varchar(255), value text)');
+                            var stream = client.query(pg_copy.from("COPY temp FROM STDIN (format csv)"));
+
+                            var fileStream = fs.createReadStream(filename);
+                            fileStream
+                                .on('error', function(err) {
+                                    console.log('error', err);
+                                })
+                                .pipe(stream)
+                                    .on('finish', function() {
+                                        console.log('finished');
+                                    })
+                                    .on('error', function(err) {
+                                        console.log('pipe error', err);
+                                    });
+
+                        });
                     }
                 });
-
             });
+
         }
     }
 });
