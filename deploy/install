@@ -1,1 +1,4 @@
+set -e
+
 mkdir -p $UploadPath
+node index.js >> /var/log/application.log 2>&1
