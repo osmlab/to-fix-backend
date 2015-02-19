@@ -23,7 +23,6 @@ var conString = 'postgres://' +
 var server = new hapi.Server();
 
 server.connection({
-    host: 'localhost',
     port: 8000
 });
 
