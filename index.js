@@ -21,9 +21,10 @@ var conString = 'postgres://' +
     database;
 
 var server = new hapi.Server();
+var port = 8000;
 
 server.connection({
-    port: 8000
+    port: port
 });
 
 server.route({
@@ -49,8 +50,7 @@ server.route({
         payload: {
             maxBytes: 200000000,
             output: 'stream',
-            parse: true,
-            allow: 'multipart/form-data'
+            parse: true
         }
     },
     handler: function(request, reply) {
@@ -60,9 +60,7 @@ server.route({
             var name = data.file.hapi.filename;
 
             // just looking at the extension for now
-            if (name.slice(-4) != '.csv') {
-                return reply(boom.badRequest('.csv files only'));
-            }
+            if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
 
             var path = (process.env.UploadPath || '/mnt/uploads');
             if (path[path.length-1] !== '/') path = path + '/';
@@ -92,6 +90,7 @@ server.route({
                         console.log(conString);
 
                         pg.connect(conString, function(err, client, done) {
+                            // why does this not catch basic non-auth errors from rds?
                             if (err) return reply(boom.badRequest(err));
 
                             client.query('create table if not exists temp (key varchar(255), value text);', function(err, results) {
@@ -99,18 +98,19 @@ server.route({
                             });
 
                             var stream = client.query(pg_copy.from('COPY temp FROM STDIN (format csv);'));
-
                             var fileStream = fs.createReadStream(filename);
 
-                            fileStream.on('error', function(err) {
-                                return reply(boom.badRequest(err));
-                            }).pipe(stream)
-                                .on('finish', function() {
-                                    return reply('ok');
-                                })
+                            fileStream
                                 .on('error', function(err) {
                                     return reply(boom.badRequest(err));
-                                });
+                                })
+                                .pipe(stream)
+                                    .on('finish', function() {
+                                        return reply('ok');
+                                    })
+                                    .on('error', function(err) {
+                                        return reply(boom.badRequest(err));
+                                    });
                         });
 
                     }
@@ -121,7 +121,9 @@ server.route({
     }
 });
 
-server.start();
+server.start(function() {
+    console.log('started on port', port);
+});
 
 // soooo, we need server side user auth
     // in order to restrict uploads to specific users
