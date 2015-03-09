@@ -94,7 +94,10 @@ server.route({
                             if (err) return reply(boom.badRequest(err));
 
                             client.query('create table if not exists temp (key varchar(255), value text);', function(err, results) {
-                                if (err) return reply(boom.badRequest(err));
+                                if (err) {
+                                    client.end();
+                                    return reply(boom.badRequest(err));
+                                }
                             });
 
                             var stream = client.query(pg_copy.from('COPY temp FROM STDIN (format csv);'));
@@ -102,13 +105,16 @@ server.route({
 
                             fileStream
                                 .on('error', function(err) {
+                                    client.end();
                                     return reply(boom.badRequest(err));
                                 })
                                 .pipe(stream)
                                     .on('finish', function() {
+                                        client.end();
                                         return reply('ok');
                                     })
                                     .on('error', function(err) {
+                                        client.end();
                                         return reply(boom.badRequest(err));
                                     });
                         });
