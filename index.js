@@ -64,6 +64,11 @@ server.route({
         // err immeditately if not
 
         var data = request.payload;
+
+        if (!data.file ||
+            (!data.password || data.password === '') ||
+            (!data.name || data.name === '')) return reply(boom.badRequest('missing something'));
+
         if (data.password != uploadPassword) return reply(boom.unauthorized('invalid password'));
 
         if (data.file) {
@@ -142,16 +147,5 @@ server.route({
 server.start(function() {
     console.log('started on port', port);
 });
-
-// soooo, we need server side user auth
-    // in order to restrict uploads to specific users
-    // just use an env var for first pass?
-        // require a cooldown
-    // every POST must then
-
-// first pass, upload a csv
-    // retructure into k/v, hash, full object as string
-    // later we can pull special columns, latitude, longitude, _country
-        // what does the editor geocoder do? ffforest?
 
 // curl -i -F name=something -F file=@with-cats.csv http://localhost:8000/csv
