@@ -24,7 +24,10 @@ var server = new hapi.Server();
 var port = 8000;
 
 server.connection({
-    port: port
+    port: port,
+    routes: {
+        cors: true
+    }
 });
 
 server.route({
@@ -54,6 +57,9 @@ server.route({
         }
     },
     handler: function(request, reply) {
+        // confirm db config vars are set
+        // err immeditately if not
+
         var data = request.payload;
 
         if (data.file) {
