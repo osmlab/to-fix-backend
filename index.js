@@ -129,11 +129,16 @@ server.route({
                                     return closed ? null : reply(boom.badRequest(err));
                                 }
                                 setTimeout(function() {
-                                    // something wrong with pg-copy-streams
                                     // https://github.com/brianc/node-pg-copy-streams/issues/22
-                                    client.end();
+                                    client.query('alter table temp_' + internalName + ' rename to ' + internalName, function(err, results) {
+                                        if (err) {
+                                            client.end();
+                                            return reply(boom.badRequest(err));
+                                        }
+                                        client.end();
+                                        return reply('ok');
+                                    });
                                 }, 500);
-                                return reply('ok');
                             }
                         });
 
