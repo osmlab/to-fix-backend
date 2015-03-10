@@ -34,16 +34,18 @@ server.connection({
 });
 
 server.route({
-    method: 'GET',
-    path:'/stuff',
+    method: 'POST',
+    path:'/error/{error}',
     handler: function(request, reply) {
+        // get the next item from the table specified in {error}
+        // request.params.error
         reply('between the bars');
     }
 });
 
 server.route({
-    method: 'GET',
-    path: '/status',
+    method: 'POST',
+    path: '/fixed/{error}',
     handler: function(request, reply) {
         reply('ok');
     }
