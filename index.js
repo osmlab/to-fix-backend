@@ -80,14 +80,7 @@ server.route({
                             reply(boom.badRequest(err));
                         });
                     } else {
-                        // return reply('successfully uploaded');
-                        // COPY to postgres
-
-                        // check if the table already exists
-                        // if it doesn't just write it
-                            // if it does, create a unique id, keep it there and make a process for renaming the table eventually
-
-                        console.log(conString);
+                        var closed = 0;
 
                         pg.connect(conString, function(err, client, done) {
                             // why does this not catch basic non-auth errors from rds?
@@ -101,7 +94,7 @@ server.route({
                             });
 
                             var stream = client.query(pg_copy.from('COPY temp FROM STDIN (format csv);'));
-                            var fileStream = fs.createReadStream(filename);
+                            var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
 
                             fileStream
                                 .on('error', function(err) {
@@ -109,14 +102,22 @@ server.route({
                                     return reply(boom.badRequest(err));
                                 })
                                 .pipe(stream)
-                                    .on('finish', function() {
-                                        client.end();
-                                        return reply('ok');
-                                    })
-                                    .on('error', function(err) {
-                                        client.end();
-                                        return reply(boom.badRequest(err));
-                                    });
+                                    .on('finish', theend)
+                                    .on('error', theend);
+
+                            // do this because both will emit something, and reply twice errors
+                            function theend(err) {
+                                if (err) {
+                                    if (!closed) client.end();
+                                    closed = 1;
+                                    return closed ? null : reply(boom.badRequest(err));
+                                }
+                                setTimeout(function() {
+                                    // something wrong with pg-copy-streams
+                                    client.end();
+                                }, 500);
+                                return reply('ok');
+                            }
                         });
 
                     }
