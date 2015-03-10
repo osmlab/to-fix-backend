@@ -73,6 +73,7 @@ server.route({
 
         if (data.file) {
             var name = data.file.hapi.filename;
+            var internalName = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
 
             // just looking at the extension for now
             if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
@@ -101,14 +102,14 @@ server.route({
                             // why does this not catch basic non-auth errors from rds?
                             if (err) return reply(boom.badRequest(err));
 
-                            client.query('create table if not exists temp_' + name.split('.').join('') + ' (key varchar(255), value text);', function(err, results) {
+                            client.query('create table if not exists temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
                                 if (err) {
                                     client.end();
                                     return reply(boom.badRequest(err));
                                 }
                             });
 
-                            var stream = client.query(pg_copy.from('COPY temp_' + name.split('.').join('') + ' FROM STDIN (format csv);'));
+                            var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (format csv);'));
                             var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
 
                             fileStream
