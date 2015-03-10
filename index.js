@@ -10,6 +10,9 @@ var password = process.env.DBPassword;
 var address = process.env.DBAddress;
 var database = process.env.Database;
 
+// short term, to prevent the need from building out user authentication until later
+var uploadPassword = process.env.uploadPassword;
+
 // on RDS, how do I set a security group?
     // or whitelist this instance or something, somehow
     // this must not happen in the main app, probably in install somewhere
@@ -61,6 +64,7 @@ server.route({
         // err immeditately if not
 
         var data = request.payload;
+        if (data.password != uploadPassword) return reply(boom.unauthorized('invalid password'));
 
         if (data.file) {
             var name = data.file.hapi.filename;
@@ -120,6 +124,7 @@ server.route({
                                 }
                                 setTimeout(function() {
                                     // something wrong with pg-copy-streams
+                                    // https://github.com/brianc/node-pg-copy-streams/issues/22
                                     client.end();
                                 }, 500);
                                 return reply('ok');
