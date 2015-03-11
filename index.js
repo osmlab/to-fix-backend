@@ -13,6 +13,9 @@ var database = process.env.Database;
 // short term, to prevent the need from building out user authentication until later
 var uploadPassword = process.env.uploadPassword;
 
+// seconds to lock each item
+var lockPeriod = 600;
+
 // on RDS, how do I set a security group?
     // or whitelist this instance or something, somehow
     // this must not happen in the main app, probably in install somewhere
@@ -42,14 +45,17 @@ server.route({
 
         pg.connect(conString, function(err, client, done) {
             if (err) return console.log(err);
-            var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < 1 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
-            client.query(query, [Math.round(+new Date()/1000)], function(err, results) {
+
+            var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+            var now = Math.round(+new Date()/1000);
+            client.query(query, [now+lockPeriod, now], function(err, results) {
                 if (err) return console.log(err);
-                console.log(results);
+                return reply(JSON.stringify({
+                    key: results.rows[0].key,
+                    value: JSON.parse(results.rows[0].value.split('|').join('"'))
+                }));
             });
         });
-
-        return reply(request.params.error);
     }
 });
 
@@ -123,6 +129,8 @@ server.route({
 
                             var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (format csv);'));
                             var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
+
+                            // csv errors aren't being caught and surfaced very well, silent
 
                             fileStream
                                 .on('error', function(err) {
