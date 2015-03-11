@@ -38,8 +38,16 @@ server.route({
     path:'/error/{error}',
     handler: function(request, reply) {
         // get the next item from the table specified in {error}
-        // request.params.error
-        reply('between the bars');
+        console.log(request.params.error);
+
+        pg.connect(conString, function(err, client, done) {
+            if (err) return console.log(err);
+            client.query('UPDATE $1 x set unixtime=$2 from (select key, unixtime from $1 where unixtime < 1 limit 1) as sub where x.key=sub.key returning t.key, t.value;', [], function() {
+
+            });
+        });
+
+        return reply(request.params.error);
     }
 });
 
