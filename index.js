@@ -37,13 +37,15 @@ server.route({
     method: 'POST',
     path:'/error/{error}',
     handler: function(request, reply) {
-        // get the next item from the table specified in {error}
-        console.log(request.params.error);
+        // I know
+        var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
 
         pg.connect(conString, function(err, client, done) {
             if (err) return console.log(err);
-            client.query('UPDATE $1 x set unixtime=$2 from (select key, unixtime from $1 where unixtime < 1 limit 1) as sub where x.key=sub.key returning t.key, t.value;', [], function() {
-
+            var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < 1 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+            client.query(quick, [Math.round(+new Date()/1000)], function(err, results) {
+                if (err) return console.log(err);
+                console.log(results);
             });
         });
 
