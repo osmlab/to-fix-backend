@@ -13,6 +13,9 @@ var database = process.env.Database;
 // short term, to prevent the need from building out user authentication until later
 var uploadPassword = process.env.uploadPassword;
 
+// from the db connection
+var client, done;
+
 // seconds to lock each item
 var lockPeriod = 600;
 
@@ -42,19 +45,15 @@ server.route({
     handler: function(request, reply) {
         // I know
         var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-
-        pg.connect(conString, function(err, client, done) {
+        var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+        var now = Math.round(+new Date()/1000);
+        client.query(query, [now+lockPeriod, now], function(err, results) {
             if (err) return console.log(err);
-
-            var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
-            var now = Math.round(+new Date()/1000);
-            client.query(query, [now+lockPeriod, now], function(err, results) {
-                if (err) return console.log(err);
-                return reply(JSON.stringify({
-                    key: results.rows[0].key,
-                    value: JSON.parse(results.rows[0].value.split('|').join('"'))
-                }));
-            });
+            done();
+            return reply(JSON.stringify({
+                key: results.rows[0].key,
+                value: JSON.parse(results.rows[0].value.split('|').join('"'))
+            }));
         });
     }
 });
@@ -116,57 +115,54 @@ server.route({
                     } else {
                         var closed = 0;
 
-                        pg.connect(conString, function(err, client, done) {
-                            // why does this not catch basic non-auth errors from rds?
-                            if (err) return reply(boom.badRequest(err));
-
-                            client.query('create table temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
-                                if (err) {
-                                    client.end();
-                                    return reply(boom.badRequest(err));
-                                }
-                            });
-
-                            var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (format csv);'));
-                            var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
-
-                            // csv errors aren't being caught and surfaced very well, silent
-
-                            fileStream
-                                .on('error', function(err) {
-                                    client.end();
-                                    return reply(boom.badRequest(err));
-                                })
-                                .pipe(stream)
-                                    .on('finish', theend)
-                                    .on('error', theend);
-
-                            // do this because both will emit something, and reply twice errors
-                            function theend(err) {
-                                if (err) {
-                                    if (!closed) client.end();
-                                    closed = 1;
-                                    return closed ? null : reply(boom.badRequest(err));
-                                }
-                                setTimeout(function() {
-                                    // https://github.com/brianc/node-pg-copy-streams/issues/22
-                                    client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime integer default 0;', function(err, results) {
-                                        if (err) {
-                                            client.end();
-                                            return reply(boom.badRequest(err));
-                                        }
-                                        client.query('ALTER TABLE temp_' + internalName + ' RENAME TO ' + internalName, function(err, results) {
-                                            if (err) {
-                                                client.end();
-                                                return reply(boom.badRequest(err));
-                                            }
-                                            client.end();
-                                            return reply('ok');
-                                        });
-                                    });
-                                }, 500);
+                        client.query('create table temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
+                            if (err) {
+                                console.log('create temp');
+                                done();
+                                return reply(boom.badRequest(err));
                             }
                         });
+
+                        var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (format csv);'));
+                        var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
+
+                        // csv errors aren't being caught and surfaced very well, silent
+
+                        fileStream
+                            .on('error', function(err) {
+                                console.log('err here', err);
+                                done();
+                                return reply(boom.badRequest(err));
+                            })
+                            .pipe(stream)
+                                .on('finish', theend)
+                                .on('error', theend);
+
+                        // do this because both will emit something, and reply twice errors
+                        function theend(err) {
+                            if (err) {
+                                if (!closed) done();
+                                closed = 1;
+                                return closed ? null : reply(boom.badRequest(err));
+                            }
+                            setTimeout(function() {
+                                // https://github.com/brianc/node-pg-copy-streams/issues/22
+                                client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime integer default 0;', function(err, results) {
+                                    if (err) {
+                                        done();
+                                        return reply(boom.badRequest(err));
+                                    }
+                                    client.query('ALTER TABLE temp_' + internalName + ' RENAME TO ' + internalName, function(err, results) {
+                                        if (err) {
+                                            done();
+                                            return reply(boom.badRequest(err));
+                                        }
+                                        done();
+                                        return reply('ok');
+                                    });
+                                });
+                            }, 500);
+                        }
 
                     }
                 });
@@ -176,8 +172,14 @@ server.route({
     }
 });
 
-server.start(function() {
-    console.log('started on port', port);
+pg.connect(conString, function(err, c, d) {
+    if (err) return console.log(err);
+    console.log('connected to:', address);
+    client = c;
+    done = d;
+    server.start(function() {
+        console.log('server on port', port);
+    });
 });
 
 // curl -i -F name=something -F file=@with-cats.csv http://localhost:8000/csv
