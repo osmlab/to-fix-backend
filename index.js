@@ -114,7 +114,7 @@ server.route({
                             // why does this not catch basic non-auth errors from rds?
                             if (err) return reply(boom.badRequest(err));
 
-                            client.query('create table if not exists temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
+                            client.query('create table temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
                                 if (err) {
                                     client.end();
                                     return reply(boom.badRequest(err));
@@ -156,7 +156,6 @@ server.route({
                                             return reply('ok');
                                         });
                                     });
-
                                 }, 500);
                             }
                         });
