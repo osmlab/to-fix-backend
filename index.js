@@ -43,7 +43,7 @@ server.route({
         pg.connect(conString, function(err, client, done) {
             if (err) return console.log(err);
             var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < 1 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
-            client.query(quick, [Math.round(+new Date()/1000)], function(err, results) {
+            client.query(query, [Math.round(+new Date()/1000)], function(err, results) {
                 if (err) return console.log(err);
                 console.log(results);
             });
@@ -142,14 +142,21 @@ server.route({
                                 }
                                 setTimeout(function() {
                                     // https://github.com/brianc/node-pg-copy-streams/issues/22
-                                    client.query('alter table temp_' + internalName + ' rename to ' + internalName, function(err, results) {
+                                    client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime integer default 0;', function(err, results) {
                                         if (err) {
                                             client.end();
                                             return reply(boom.badRequest(err));
                                         }
-                                        client.end();
-                                        return reply('ok');
+                                        client.query('ALTER TABLE temp_' + internalName + ' RENAME TO ' + internalName, function(err, results) {
+                                            if (err) {
+                                                client.end();
+                                                return reply(boom.badRequest(err));
+                                            }
+                                            client.end();
+                                            return reply('ok');
+                                        });
                                     });
+
                                 }, 500);
                             }
                         });
