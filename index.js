@@ -40,6 +40,14 @@ server.connection({
 });
 
 server.route({
+    method: 'GET',
+    path: '/status',
+    handler: function(request, reply) {
+        reply({status: 'a ok'});
+    }
+});
+
+server.route({
     method: 'POST',
     path:'/error/{error}',
     handler: function(request, reply) {
