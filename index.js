@@ -19,10 +19,6 @@ var client, done;
 // seconds to lock each item
 var lockPeriod = 600;
 
-// on RDS, how do I set a security group?
-    // or whitelist this instance or something, somehow
-    // this must not happen in the main app, probably in install somewhere
-
 var conString = 'postgres://' +
     user + ':' +
     password + '@' +
@@ -57,7 +53,6 @@ server.route({
         var now = Math.round(+new Date()/1000);
         client.query(query, [now+lockPeriod, now], function(err, results) {
             if (err) return console.log(err);
-            done();
             return reply(JSON.stringify({
                 key: results.rows[0].key,
                 value: JSON.parse(results.rows[0].value.split('|').join('"'))
@@ -126,7 +121,6 @@ server.route({
                         client.query('create table temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
                             if (err) {
                                 console.log('create temp');
-                                done();
                                 return reply(boom.badRequest(err));
                             }
                         });
@@ -139,7 +133,6 @@ server.route({
                         fileStream
                             .on('error', function(err) {
                                 console.log('err here', err);
-                                done();
                                 return reply(boom.badRequest(err));
                             })
                             .pipe(stream)
@@ -149,20 +142,16 @@ server.route({
                         // do this because both will emit something, and reply twice errors
                         function theEnd(err) {
                             if (err) {
-                                if (!closed) done();
                                 closed = 1;
                                 return closed ? null : reply(boom.badRequest(err));
                             }
-                            done();
                             setTimeout(function() {
                                 // https://github.com/brianc/node-pg-copy-streams/issues/22
                                 client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime integer default 0;', function(err, results) {
                                     if (err) {
-                                        done();
                                         return reply(boom.badRequest(err));
                                     }
                                     client.query('ALTER TABLE temp_' + internalName + ' RENAME TO ' + internalName, function(err, results) {
-                                        done();
                                         if (err) return reply(boom.badRequest(err));
                                         return reply('ok');
                                     });
