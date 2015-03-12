@@ -16,8 +16,6 @@ echo "- installing node"
 apt-get install -y nodejs npm
 ln -s /usr/bin/nodejs /usr/bin/node
 
-pg_user='postgres'
-
 # play nicely with other users
 sh -c 'echo "
 local all postgres trust
@@ -27,6 +25,6 @@ host all all ::1/128 trust
 host replication postgres samenet trust
 " > /etc/postgresql/9.3/main/pg_hba.conf'
 
-sudo /etc/init.d/postgresql start
+sudo /etc/init.d/postgresql restart
 
 node index.js >> /var/log/application.log 2>&1
