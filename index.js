@@ -135,16 +135,17 @@ server.route({
                                 return reply(boom.badRequest(err));
                             })
                             .pipe(stream)
-                                .on('finish', theend)
-                                .on('error', theend);
+                                .on('finish', theEnd)
+                                .on('error', theEnd);
 
                         // do this because both will emit something, and reply twice errors
-                        function theend(err) {
+                        function theEnd(err) {
                             if (err) {
                                 if (!closed) done();
                                 closed = 1;
                                 return closed ? null : reply(boom.badRequest(err));
                             }
+                            done();
                             setTimeout(function() {
                                 // https://github.com/brianc/node-pg-copy-streams/issues/22
                                 client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime integer default 0;', function(err, results) {
@@ -153,11 +154,8 @@ server.route({
                                         return reply(boom.badRequest(err));
                                     }
                                     client.query('ALTER TABLE temp_' + internalName + ' RENAME TO ' + internalName, function(err, results) {
-                                        if (err) {
-                                            done();
-                                            return reply(boom.badRequest(err));
-                                        }
                                         done();
+                                        if (err) return reply(boom.badRequest(err));
                                         return reply('ok');
                                     });
                                 });
