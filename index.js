@@ -64,8 +64,19 @@ server.route({
 server.route({
     method: 'POST',
     path: '/fixed/{error}',
+    config: {
+        payload: {
+            output: 'data'
+        }
+    },
     handler: function(request, reply) {
-        reply('ok');
+        var payload = JSON.parse(request.payload);
+        var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = 'UPDATE ' + soWonderful + ' SET unixtime=1000000000 WHERE key=$1;';
+        client.query(query, [payload.state._id], function(err, results) {
+            if (err) console.log(err); return boom.badRequest(err);
+            return reply('ok');
+        });
     }
 });
 
