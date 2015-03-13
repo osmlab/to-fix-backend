@@ -165,9 +165,11 @@ server.route({
 
                                     client.query('CREATE TABLE ' + internalName + ' as select * from temp_' + internalName + ' order by random();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
-                                        reply('ok');
+                                        client.query('DROP table temp_outcsv;', function(err, results) {
+                                            if (err) return reply(boom.badRequest(err));
+                                            reply('ok');
+                                        });
                                     });
-
                                 });
                             }, 500);
                         }
