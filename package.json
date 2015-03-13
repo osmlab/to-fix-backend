@@ -12,9 +12,14 @@
   "dependencies": {
     "boom": "^2.6.1",
     "csv-parser": "^1.5.0",
+    "forever": "^0.14.1",
     "hapi": "^8.2.0",
     "pg": "^4.2.0",
     "pg-copy-streams": "^0.3.0"
+  },
+  "scripts": {
+    "start": "./node_modules/.bin/forever start index.js",
+    "stop": "./node_modules/.bin/forever stop index.js"
   },
   "engines": {
     "node": "0.10.x"
