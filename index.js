@@ -5,10 +5,11 @@ var fs = require('fs'),
     pg_copy = require('pg-copy-streams'),
     reformatCsv = require('./lib/reformat-csv');
 
-var user = process.env.DBUsername;
-var password = process.env.DBPassword;
-var address = process.env.DBAddress;
-var database = process.env.Database;
+var user = process.env.DBUsername || 'postgres';
+var password = process.env.DBPassword || '';
+var address = process.env.DBAddress || 'localhost';
+var database = process.env.Database || 'tofix';
+var path = process.env.UploadPath || '/mnt/uploads';
 
 // short term, to prevent the need from building out user authentication until later
 var uploadPassword = process.env.uploadPassword;
@@ -109,7 +110,6 @@ server.route({
             // just looking at the extension for now
             if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
 
-            var path = (process.env.UploadPath || '/mnt/uploads');
             if (path[path.length-1] !== '/') path = path + '/';
 
             var file = fs.createWriteStream(path + name);
