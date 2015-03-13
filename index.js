@@ -162,10 +162,12 @@ server.route({
                                     if (err) {
                                         return reply(boom.badRequest(err));
                                     }
-                                    client.query('ALTER TABLE temp_' + internalName + ' RENAME TO ' + internalName, function(err, results) {
+
+                                    client.query('CREATE TABLE ' + internalName + ' as select * from temp_' + internalName + ' order by random();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
-                                        return reply('ok');
+                                        reply('ok');
                                     });
+
                                 });
                             }, 500);
                         }
