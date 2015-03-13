@@ -165,7 +165,7 @@ server.route({
 
                                     client.query('CREATE TABLE ' + internalName + ' as select * from temp_' + internalName + ' order by random();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
-                                        client.query('DROP table temp_outcsv;', function(err, results) {
+                                        client.query('DROP table temp_' + internalName + ';', function(err, results) {
                                             if (err) return reply(boom.badRequest(err));
                                             reply('ok');
                                         });
