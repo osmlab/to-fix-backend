@@ -76,9 +76,10 @@ server.route({
     handler: function(request, reply) {
         var payload = JSON.parse(request.payload);
         var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'UPDATE ' + soWonderful + ' SET unixtime=1000000000 WHERE key=$1;';
+        // 2147483647 is int max
+        var query = 'UPDATE ' + soWonderful + ' SET unixtime=2147483647 WHERE key=$1;';
         client.query(query, [payload.state._id], function(err, results) {
-            if (err) console.log(err); return boom.badRequest(err);
+            if (err) return boom.badRequest(err);
             return reply('ok');
         });
     }
@@ -194,5 +195,3 @@ pg.connect(conString, function(err, c, d) {
         console.log('server on port', port);
     });
 });
-
-// curl -i -F name=something -F file=@with-cats.csv http://localhost:8000/csv
