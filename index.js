@@ -50,24 +50,24 @@ server.route({
 
 server.route({
     method: 'POST',
-    path: '/log/{task}',
+    path: '/track/{task}',
     handler: function(request, reply) {
         var table = request.params.task;
         var time = request.payload.time;
         var attributes = request.payload.attributes;
 
-        log(table, time, attributes, function(err, results) {
+        track(table, time, attributes, function(err, results) {
             if (err) return reply(boom.badRequest(err));
             return reply();
         });
     }
 });
 
-function log(table, time, attributes, callback) {
+function track(table, time, attributes, callback) {
     // validate time, is int, is within range
     time = time || Math.round(+new Date()/1000);
-    // sanitize table name;
-    var query = "INSERT into " + table + "_stats VALUES($1, $2);";
+    table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+    var query = 'INSERT into ' + table + '_stats VALUES($1, $2);';
 
     client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
         if (err) return callback(err);
