@@ -77,6 +77,28 @@ function track(table, time, attributes, callback) {
 
 server.route({
     method: 'GET',
+    path: '/count/{task}',
+    handler: function(request, reply) {
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();;
+
+        client.query('SELECT count(*) from ' + table + ';', function(err, results) {
+            if (err) return reply(boom.badRequest(err));
+            var total = results.rows[0].count;
+            client.query('SELECT count(*) from ' + table + ' where unixtime != 2147483647;', function(err, results) {
+                if (err) return reply(boom.badRequest(err));
+                var unfixed = results.rows[0].count;
+                reply({
+                    'total': total,
+                    'available': unfixed
+                });
+            });
+        });
+
+    }
+});
+
+server.route({
+    method: 'GET',
     path: '/track/{task}/{key}:{value}',
     handler: function(request, reply) {
         // future, add range param
