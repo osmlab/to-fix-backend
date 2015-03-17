@@ -77,15 +77,15 @@ function track(table, time, attributes, callback) {
 
 server.route({
     method: 'GET',
-    path: '/track/{task}/{attr}',
+    path: '/track/{task}/{key}:{value}',
     handler: function(request, reply) {
         // future, add range param
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var attr = request.params.attr.split(':');
-            // hstore key:value
+        var key = request.params.key;
+        var value = request.params.value;
         var query = 'SELECT time as unixtime, hstore_to_json_loose(attributes) as attributes from ' + table + '_stats where attributes->$1=$2 order by time ASC;';
 
-        client.query(query, [attr[0], attr[1]], function(err, results) {
+        client.query(query, [key, value], function(err, results) {
             if (err) return console.log(err);
             reply({
                 updated: Math.round(+new Date()/1000),
