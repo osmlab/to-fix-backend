@@ -48,8 +48,20 @@ server.route({
 });
 
 server.route({
+    method: 'GET',
+    path: '',
+    handler: function() {
+        // do lots of shit
+        // first wee need to log shit
+        // then we pull that shit out in order
+        // caching all along the way you idiot
+        reply('dododododo');
+    }
+});
+
+server.route({
     method: 'POST',
-    path:'/error/{error}',
+    path: '/error/{error}',
     handler: function(request, reply) {
         // I know
         var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
@@ -133,14 +145,14 @@ server.route({
                     } else {
                         var closed = 0;
 
-                        client.query('create table temp_' + internalName + ' (key varchar(255), value text);', function(err, results) {
+                        client.query('CREATE TABLE temp_' + internalName + ' (key VARCHAR(255) PRIMARY KEY, value TEXT);', function(err, results) {
                             if (err) {
                                 console.log('create temp');
                                 return reply(boom.badRequest(err));
                             }
                         });
 
-                        var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (format csv);'));
+                        var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (FORMAT CSV);'));
                         var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
 
                         // csv errors aren't being caught and surfaced very well, silent
@@ -162,17 +174,24 @@ server.route({
                             }
                             setTimeout(function() {
                                 // https://github.com/brianc/node-pg-copy-streams/issues/22
-                                client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime integer default 0;', function(err, results) {
+                                client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime INT DEFAULT 0;', function(err, results) {
                                     if (err) {
                                         return reply(boom.badRequest(err));
                                     }
 
-                                    client.query('CREATE TABLE ' + internalName + ' as select * from temp_' + internalName + ' order by random();', function(err, results) {
+                                    client.query('CREATE TABLE ' + internalName + ' as SELECT * FROM temp_' + internalName + ' ORDER BY RANDOM();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
-                                        client.query('DROP table temp_' + internalName + ';', function(err, results) {
+
+                                        client.query('CREATE TABLE ' + internalName + '_stats (time INT PRIMARY KEY, store HSTORE);', function(err, results) {
                                             if (err) return reply(boom.badRequest(err));
-                                            reply('ok');
+
+                                            client.query('DROP TABLE temp_' + internalName + ';', function(err, results) {
+                                                if (err) return reply(boom.badRequest(err));
+                                                reply('ok');
+                                            });
+
                                         });
+
                                     });
                                 });
                             }, 500);
