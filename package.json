@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "./index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
+    "stop": "./node_modules/.bin/forever stop index.js"
   },
   "author": "",
   "license": "BSD",
@@ -15,11 +15,8 @@
     "forever": "^0.14.1",
     "hapi": "^8.2.0",
     "pg": "^4.2.0",
-    "pg-copy-streams": "^0.3.0"
-  },
-  "scripts": {
-    "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
-    "stop": "./node_modules/.bin/forever stop index.js"
+    "pg-copy-streams": "^0.3.0",
+    "pg-hstore": "^2.3.1"
   },
   "engines": {
     "node": "0.10.x"

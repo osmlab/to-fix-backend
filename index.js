@@ -3,6 +3,7 @@ var fs = require('fs'),
     pg = require('pg'),
     boom = require('boom'),
     pg_copy = require('pg-copy-streams'),
+    hstore = require('pg-hstore')(),
     reformatCsv = require('./lib/reformat-csv');
 
 var user = process.env.DBUsername || 'postgres';
@@ -48,16 +49,31 @@ server.route({
 });
 
 server.route({
-    method: 'GET',
-    path: '',
-    handler: function() {
-        // do lots of shit
-        // first wee need to log shit
-        // then we pull that shit out in order
-        // caching all along the way you idiot
-        reply('dododododo');
+    method: 'POST',
+    path: '/log/{task}',
+    handler: function(request, reply) {
+        var table = request.params.task;
+        var time = request.payload.time;
+        var attributes = request.payload.attributes;
+
+        log(table, time, attributes, function(err, results) {
+            if (err) return reply(boom.badRequest(err));
+            return reply();
+        });
     }
 });
+
+function log(table, time, attributes, callback) {
+    // validate time, is int, is within range
+    time = time || Math.round(+new Date()/1000);
+    // sanitize table name;
+    var query = "INSERT into " + table + "_stats VALUES($1, $2);";
+
+    client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
+        if (err) return callback(err);
+        callback(null, results);
+    });
+}
 
 server.route({
     method: 'POST',
@@ -145,7 +161,7 @@ server.route({
                     } else {
                         var closed = 0;
 
-                        client.query('CREATE TABLE temp_' + internalName + ' (key VARCHAR(255) PRIMARY KEY, value TEXT);', function(err, results) {
+                        client.query('CREATE TABLE temp_' + internalName + ' (key VARCHAR(255), value TEXT);', function(err, results) {
                             if (err) {
                                 console.log('create temp');
                                 return reply(boom.badRequest(err));
@@ -166,7 +182,7 @@ server.route({
                                 .on('finish', theEnd)
                                 .on('error', theEnd);
 
-                        // do this because both will emit something, and reply twice errors
+                        // do this because on error both will emit something and calling reply twice errors
                         function theEnd(err) {
                             if (err) {
                                 closed = 1;
@@ -182,7 +198,7 @@ server.route({
                                     client.query('CREATE TABLE ' + internalName + ' as SELECT * FROM temp_' + internalName + ' ORDER BY RANDOM();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
 
-                                        client.query('CREATE TABLE ' + internalName + '_stats (time INT PRIMARY KEY, store HSTORE);', function(err, results) {
+                                        client.query('CREATE TABLE ' + internalName + '_stats (time INT, attributes HSTORE);', function(err, results) {
                                             if (err) return reply(boom.badRequest(err));
 
                                             client.query('DROP TABLE temp_' + internalName + ';', function(err, results) {
