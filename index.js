@@ -123,7 +123,7 @@ server.route({
     handler: function(request, reply) {
         // I know
         var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+        var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 AND unixtime != 2147483647 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
         var now = Math.round(+new Date()/1000);
         client.query(query, [now+lockPeriod, now], function(err, results) {
             if (err) return console.log(err);
