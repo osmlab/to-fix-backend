@@ -245,7 +245,9 @@ server.route({
 
                                             client.query('DROP TABLE temp_' + internalName + ';', function(err, results) {
                                                 if (err) return reply(boom.badRequest(err));
-                                                reply('ok');
+                                                reply({
+                                                    taskName: internalName
+                                                });
                                             });
 
                                         });
