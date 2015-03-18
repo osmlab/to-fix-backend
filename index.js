@@ -67,7 +67,7 @@ function track(table, time, attributes, callback) {
     // validate time, is int, is within range
     time = time || Math.round(+new Date()/1000);
     table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-    var query = 'INSERT into ' + table + '_stats VALUES($1, $2);';
+    var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
 
     client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
         if (err) return callback(err);
@@ -81,10 +81,10 @@ server.route({
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();;
 
-        client.query('SELECT count(*) from ' + table + ';', function(err, results) {
+        client.query('SELECT count(*) FROM ' + table + ';', function(err, results) {
             if (err) return reply(boom.badRequest(err));
             var total = results.rows[0].count;
-            client.query('SELECT count(*) from ' + table + ' where unixtime != 2147483647;', function(err, results) {
+            client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', function(err, results) {
                 if (err) return reply(boom.badRequest(err));
                 var unfixed = results.rows[0].count;
                 reply({
@@ -105,7 +105,7 @@ server.route({
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         var key = request.params.key;
         var value = request.params.value;
-        var query = 'SELECT time as unixtime, hstore_to_json_loose(attributes) as attributes from ' + table + '_stats where attributes->$1=$2 order by time ASC;';
+        var query = 'SELECT time AS unixtime, hstore_to_json_loose(attributes) AS attributes FROM ' + table + '_stats WHERE attributes->$1=$2 ORDER BY time ASC;';
 
         client.query(query, [key, value], function(err, results) {
             if (err) return console.log(err);
