@@ -79,7 +79,7 @@ server.route({
     method: 'GET',
     path: '/count/{task}',
     handler: function(request, reply) {
-        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();;
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
 
         client.query('SELECT count(*) FROM ' + table + ';', function(err, results) {
             if (err) return reply(boom.badRequest(err));
