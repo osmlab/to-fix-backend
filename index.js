@@ -144,12 +144,12 @@ server.route({
         }
     },
     handler: function(request, reply) {
-        var payload = JSON.parse(request.payload);
         var soWonderful = request.params.error.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         // 2147483647 is int max
-        var query = 'UPDATE ' + soWonderful + ' SET unixtime=2147483647 WHERE key=$1;';
-        client.query(query, [payload.state._id], function(err, results) {
+        var query = 'UPDATE ' + soWonderful + ' SET unixtime=2147483647 WHERE key=$1 RETURNING *;';
+        client.query(query, [request.payload.key], function(err, results) {
             if (err) return boom.badRequest(err);
+            // check for a real update, err if not
             return reply('ok');
         });
     }
