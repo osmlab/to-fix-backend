@@ -1,6 +1,10 @@
+API
+---
+
+The API address lies here: `http://54.147.184.23:8000/`.
+
 ### GET `/status`
 - confirms the server is working and publicly exposed
-- request example: <pre>http://localhost:8000<b>/status</b></pre>
 - response format: JSON
 - response example: 
 ```js
@@ -11,7 +15,7 @@
 
 ### GET `/count/{taskName}`
 - returns the count of the total number of items and all available items for a given task
-- request example: <pre>http://localhost:8000<b>/count/brokenbuildings</b></pre>
+- request example: `/count/brokenbuildings`
 - response format: JSON
 - response example: 
 ```js
@@ -25,7 +29,7 @@
 - returns tracking results for a given task, key, and value
 - {key}:{value} are dependent on what is tracked with `/track/{taskName}`
 - results are sorted by unixtime in ascending order
-- request example: <pre>http://localhost:8000<b>/track/brokenbuildings/user:joey</b></pre>
+- request example: `/track/brokenbuildings/user:joey`
 - response example: 
 ```js
 {
