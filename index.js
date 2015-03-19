@@ -84,12 +84,22 @@ server.route({
         client.query('SELECT count(*) FROM ' + table + ';', function(err, results) {
             if (err) return reply(boom.badRequest(err));
             var total = results.rows[0].count;
+
             client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', function(err, results) {
                 if (err) return reply(boom.badRequest(err));
                 var unfixed = results.rows[0].count;
-                reply({
-                    'total': parseInt(total),
-                    'available': parseInt(unfixed)
+
+                var query = 'SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;';
+                client.query(query, function(err, results) {
+                    if (err) return reply(boom.badRequest(err));
+                    var active = results.rows[0].count;
+
+                    reply({
+                        'total': parseInt(total),
+                        'available': parseInt(unfixed),
+                        'active': parseInt(active)
+                    });
+
                 });
             });
         });
@@ -119,10 +129,10 @@ server.route({
 
 server.route({
     method: 'POST',
-    path: '/task/{item}',
+    path: '/task/{task}',
     handler: function(request, reply) {
         // I know
-        var soWonderful = request.params.item.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var soWonderful = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 AND unixtime != 2147483647 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
         var now = Math.round(+new Date()/1000);
         client.query(query, [now+lockPeriod, now], function(err, results) {
@@ -146,7 +156,7 @@ server.route({
     handler: function(request, reply) {
         var soWonderful = request.params.item.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         // 2147483647 is int max
-        var query = 'UPDATE ' + soWonderful + ' SET unixtime=2147483647 WHERE key=$1 RETURNING *;';
+        var query = 'UPDATE ' + soWonderful + ' SET unixtime=2147483647 WHERE key=$1;';
         client.query(query, [request.payload.key], function(err, results) {
             if (err) return boom.badRequest(err);
             // check for a real update, err if not
