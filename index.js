@@ -53,12 +53,15 @@ server.route({
     path: '/track/{task}',
     handler: function(request, reply) {
         var table = request.params.task;
-        var time = request.payload.time;
+        var time = request.payload.time || Math.round(+new Date()/1000);
         var attributes = request.payload.attributes;
+        if (!attributes) return reply(boom.badRequest('missing attributes'));
+
+        // don't wait
+        reply();
 
         track(table, time, attributes, function(err, results) {
-            if (err) return reply(boom.badRequest(err));
-            return reply();
+            console.error('/track err', err);
         });
     }
 });
