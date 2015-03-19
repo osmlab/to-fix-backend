@@ -109,15 +109,28 @@ server.route({
 
 server.route({
     method: 'GET',
-    path: '/track/{task}/{key}:{value}',
+    path: '/track/{task}/{key}:{value}/{to?}',
     handler: function(request, reply) {
-        // future, add range param
-        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var key = request.params.key;
-        var value = request.params.value;
-        var query = 'SELECT time AS unixtime, hstore_to_json_loose(attributes) AS attributes FROM ' + table + '_stats WHERE attributes->$1=$2 ORDER BY time ASC;';
+        // gets results filtered by key:value or by date range
+        // user:joey, filters from hstore
+        // or
+        // from:2015-03-17/to:2015-03-19, filters on unixtime
 
-        client.query(query, [key, value], function(err, results) {
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = 'SELECT time AS unixtime, hstore_to_json_loose(attributes) AS attributes FROM ' + table + '_stats WHERE ';
+        var params;
+
+        if (request.params.key == 'from' && request.params.to) {
+            var from = Date.parse(request.params.value)/1000;
+            var to = Date.parse(request.params.to.split(':')[1])/1000;
+            query += 'unixtime > $1 and unixtime < $2;';
+            params = [from, to];
+        } else {
+            query += 'attributes->$1=$2 ORDER BY time ASC;';
+            params = [request.params.key, request.params.value];
+        }
+
+        client.query(query, params, function(err, results) {
             if (err) return console.log(err);
             reply({
                 updated: Math.round(+new Date()/1000),
