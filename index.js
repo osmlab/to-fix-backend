@@ -123,8 +123,12 @@ server.route({
         if (request.params.key == 'from' && request.params.to) {
             var from = Date.parse(request.params.value)/1000;
             var to = Date.parse(request.params.to.split(':')[1])/1000;
-            query += 'unixtime > $1 and unixtime < $2;';
+            query += 'time > $1 and time < $2;';
             params = [from, to];
+        } else if (request.params.key == 'from' && !request.params.to) {
+            var from = Date.parse(request.params.value)/1000;
+            query += 'time > $1;';
+            params = [from];
         } else {
             query += 'attributes->$1=$2 ORDER BY time ASC;';
             params = [request.params.key, request.params.value];
@@ -137,6 +141,7 @@ server.route({
                 data: results.rows
             });
         });
+
     }
 });
 
