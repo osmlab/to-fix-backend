@@ -88,8 +88,8 @@ server.route({
                 if (err) return reply(boom.badRequest(err));
                 var unfixed = results.rows[0].count;
                 reply({
-                    'total': total,
-                    'available': unfixed
+                    'total': parseInt(total),
+                    'available': parseInt(unfixed)
                 });
             });
         });
