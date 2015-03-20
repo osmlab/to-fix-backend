@@ -2,37 +2,39 @@ mkdir -p $UploadPath
 
 apt-get -y update
 
-echo "- installing postgres + postgis"
-
-# removed
-# postgres-xc-client
-
-apt-get install -y libpq-dev postgresql-9.3 postgresql-9.3-postgis-2.1 postgresql-contrib-9.3 postgresql-client-9.3 postgresql-common postgresql-client-common postgresql-plpython-9.3 unzip zip git vim htop bzip2 curl
-
-echo "- setting up postgres permissions + database"
-chmod a+rx $HOME
-
-echo "- installing node"
+apt-get install unzip zip git vim htop bzip2 curl
 apt-get install -y nodejs npm
 ln -s /usr/bin/nodejs /usr/bin/node
 
-# play nicely with other users
-sh -c 'echo "
-local all postgres trust
-local all all trust
-host all all 127.0.0.1/32 trust
-host all all ::1/128 trust
-host replication postgres samenet trust
-" > /etc/postgresql/9.3/main/pg_hba.conf'
+if [ $DBAddress == 'localhost' ]; then
+    echo "- installing postgres + postgis"
 
-sudo /etc/init.d/postgresql restart
+    # removed
+    # postgres-xc-client
 
-echo "
-    CREATE DATABASE tofix;
-" | psql -U postgres
+    apt-get install -y libpq-dev postgresql-9.3 postgresql-9.3-postgis-2.1 postgresql-contrib-9.3 postgresql-client-9.3 postgresql-common postgresql-client-common postgresql-plpython-9.3
 
-echo "
-    CREATE EXTENSION hstore;
-" | psql -U postgres -d tofix
+    echo "- setting up postgres permissions + database"
+    chmod a+rx $HOME
 
-node index.js >> /var/log/application.log 2>&1
+    # play nicely with other users
+    sh -c 'echo "
+    local all postgres trust
+    local all all trust
+    host all all 127.0.0.1/32 trust
+    host all all ::1/128 trust
+    host replication postgres samenet trust
+    " > /etc/postgresql/9.3/main/pg_hba.conf'
+
+    sudo /etc/init.d/postgresql restart
+
+    echo "
+        CREATE DATABASE tofix;
+    " | psql -U postgres
+
+    echo "
+        CREATE EXTENSION hstore;
+    " | psql -U postgres -d tofix
+fi
+
+npm start
