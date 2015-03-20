@@ -53,15 +53,14 @@ server.route({
     path: '/track/{task}',
     handler: function(request, reply) {
         var table = request.params.task;
-        var time = request.payload.time || Math.round(+new Date()/1000);
         var attributes = request.payload.attributes;
         if (!attributes) return reply(boom.badRequest('missing attributes'));
 
         // don't wait
         reply();
 
-        track(table, time, attributes, function(err, results) {
-            console.error('/track err', err);
+        track(table, request.payload.time, attributes, function(err, results) {
+            if (err) console.error('/track err', err);
         });
     }
 });
@@ -153,8 +152,8 @@ server.route({
     path: '/task/{task}',
     handler: function(request, reply) {
         // I know
-        var soWonderful = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'UPDATE ' + soWonderful + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + soWonderful + ' WHERE unixtime < $2 AND unixtime != 2147483647 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = 'UPDATE ' + table + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + table + ' WHERE unixtime < $2 AND unixtime != 2147483647 LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
         var now = Math.round(+new Date()/1000);
         client.query(query, [now+lockPeriod, now], function(err, results) {
             if (err) return console.log(err);
@@ -168,21 +167,32 @@ server.route({
 
 server.route({
     method: 'POST',
-    path: '/fixed/{item}',
+    path: '/fixed/{task}',
     config: {
         payload: {
             output: 'data'
         }
     },
     handler: function(request, reply) {
-        var soWonderful = request.params.item.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         // 2147483647 is int max
-        var query = 'UPDATE ' + soWonderful + ' SET unixtime=2147483647 WHERE key=$1;';
+        var query = 'UPDATE ' + table + ' SET unixtime=2147483647 WHERE key=$1;';
         client.query(query, [request.payload.key], function(err, results) {
             if (err) return boom.badRequest(err);
             // check for a real update, err if not
             return reply('ok');
         });
+
+        var attributes = {
+            user: request.payload.user,
+            key: request.payload.key,
+            action: 'fix'
+        };
+
+        track(table, false, attributes, function(err, results) {
+            if (err) console.error('/fixed tracking err', err);
+        });
+
     }
 });
 
