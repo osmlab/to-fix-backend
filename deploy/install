@@ -35,6 +35,11 @@ if [ $DBAddress == 'localhost' ]; then
     echo "
         CREATE EXTENSION hstore;
     " | psql -U postgres -d tofix
+
+    echo "
+        CREATE TABLE task_details (task text primary key, attributes HSTORE);
+    " | psql -U postgres -d tofix
+
 fi
 
 npm start
