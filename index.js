@@ -286,9 +286,22 @@ server.route({
 
                                             client.query('DROP TABLE temp_' + internalName + ';', function(err, results) {
                                                 if (err) return reply(boom.badRequest(err));
-                                                reply({
-                                                    taskName: internalName
+
+                                                var details = {
+                                                    title: '',
+                                                    description: '',
+                                                    updated: Math.round(+new Date()/1000),
+                                                    owner: JSON.stringify([data.user || null])
+                                                };
+
+                                                client.query('INSERT INTO ' + task_details + ' VALUES($1, $2);', [time, hstore.stringify(details)], function(err, results) {
+                                                    if (err) return reply(boom.badRequest(err));
+
+                                                    return reply({
+                                                        taskName: internalName
+                                                    });
                                                 });
+
                                             });
 
                                         });
