@@ -170,9 +170,15 @@ server.route({
                 }
             });
 
+            users = Object.keys(users).map(function(user) {
+                var out = users[user];
+                out.user = user;
+                return out;
+            });
+
             reply({
                 updated: Math.round(+new Date()/1000),
-                stats: [users]
+                stats: users
             });
         });
     }
