@@ -4,6 +4,7 @@ var fs = require('fs'),
     boom = require('boom'),
     pg_copy = require('pg-copy-streams'),
     hstore = require('pg-hstore')(),
+    queue = require('queue-async'),
     reformatCsv = require('./lib/reformat-csv');
 
 var user = process.env.DBUsername || 'postgres';
@@ -143,7 +144,52 @@ server.route({
                 data: results.rows
             });
         });
+    }
+});
 
+server.route({
+    method: 'GET',
+    path: '/track_stats/{task}/{from}/{to?}',
+    handler: function(request, reply) {
+        // give stats for the given time period and given actions
+        // should have a way of limiting the range, this is going to get expensive
+            // also, cache everything
+
+        var results = {
+            skip: [],
+            fix: [],
+            edit: []
+        };
+
+        var from = request.params.from.split(':');
+        var to = request.params.to;
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = "SELECT count(*), attributes->'user' as user FROM " + table + "_stats WHERE ";
+
+        function getStats(action, callback) {
+            var actionQuery = query + "attributes->'action'=$1 group by attributes->'user';";
+
+            client.query(actionQuery, [action], function(err, result) {
+                if (err) {
+                    console.log(err);
+                    reply(boom.badRequest(err));
+                    return false;
+                }
+                results[action] = result;
+                callback(null, action + ' true');
+            });
+        }
+
+        var q = queue(1);
+
+        Object.keys(results).forEach(function(action) {
+            q.defer(getStats, action);
+        });
+
+        q.awaitAll(function(err, r) {
+            if (err) return console.log('err', err);
+            console.log(results);
+        });
     }
 });
 
