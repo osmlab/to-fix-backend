@@ -220,7 +220,7 @@ server.route({
 
         if (data.file) {
             var name = data.file.hapi.filename;
-            var internalName = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+            var taskName = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
 
             // just looking at the extension for now
             if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
@@ -244,14 +244,14 @@ server.route({
                     } else {
                         var closed = 0;
 
-                        client.query('CREATE TABLE temp_' + internalName + ' (key VARCHAR(255), value TEXT);', function(err, results) {
+                        client.query('CREATE TABLE temp_' + taskName + ' (key VARCHAR(255), value TEXT);', function(err, results) {
                             if (err) {
                                 console.log('create temp');
                                 return reply(boom.badRequest(err));
                             }
                         });
 
-                        var stream = client.query(pg_copy.from('COPY temp_' + internalName + ' FROM STDIN (FORMAT CSV);'));
+                        var stream = client.query(pg_copy.from('COPY temp_' + taskName + ' FROM STDIN (FORMAT CSV);'));
                         var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
 
                         // csv errors aren't being caught and surfaced very well, silent
@@ -273,18 +273,18 @@ server.route({
                             }
                             setTimeout(function() {
                                 // https://github.com/brianc/node-pg-copy-streams/issues/22
-                                client.query('ALTER TABLE temp_' + internalName + ' ADD COLUMN unixtime INT DEFAULT 0;', function(err, results) {
+                                client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN unixtime INT DEFAULT 0;', function(err, results) {
                                     if (err) {
                                         return reply(boom.badRequest(err));
                                     }
 
-                                    client.query('CREATE TABLE ' + internalName + ' as SELECT * FROM temp_' + internalName + ' ORDER BY RANDOM();', function(err, results) {
+                                    client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
 
-                                        client.query('CREATE TABLE ' + internalName + '_stats (time INT, attributes HSTORE);', function(err, results) {
+                                        client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', function(err, results) {
                                             if (err) return reply(boom.badRequest(err));
 
-                                            client.query('DROP TABLE temp_' + internalName + ';', function(err, results) {
+                                            client.query('DROP TABLE temp_' + taskName + ';', function(err, results) {
                                                 if (err) return reply(boom.badRequest(err));
 
                                                 var details = {
@@ -298,7 +298,7 @@ server.route({
                                                     if (err) return reply(boom.badRequest(err));
 
                                                     return reply({
-                                                        taskName: internalName
+                                                        taskName: taskName
                                                     });
                                                 });
 
