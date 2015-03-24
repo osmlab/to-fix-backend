@@ -25,11 +25,13 @@ The API address lies here: `http://54.147.184.23:8000/`.
 }
 ```
 
-### GET `/track/{taskName}/{key}:{value}`
+### GET `/track/{taskName}/{key}:{value}/{to?}`
 - returns tracking results for a given task, key, and value
 - {key}:{value} are dependent on what is tracked with `/track/{taskName}`
 - results are sorted by unixtime in ascending order
 - request example: `/track/brokenbuildings/user:joey`
+- {to} is optional, if {key} is "from" and "to" is set, results will be data from within that time period
+  - for example: `/track/brokenbuildings/from:2015-03-20/to:2015-03-25`
 - response example: 
 ```js
 {
