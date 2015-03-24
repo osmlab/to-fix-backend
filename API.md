@@ -55,5 +55,28 @@ The API address lies here: `http://54.147.184.23:8000/`.
 }
 ```
 
-### POST `/track/{taskName}`
-- track attributes for a given task
+### GET `/track_stats/{taskName}/{from}/{to}`
+- returns summarized results for 'edit', 'skip', 'fix' events that were tracked
+- request example: `/track_stats/brokenbuildings/from:2015-03-01/to:2015-03-29`
+- response example:
+```js
+{
+    "updated": 1427152632,
+    "stats": [{
+        "skip": "1776",
+        "fix": "1249",
+        "edit": "2",
+        "user": "joey"
+    }, {
+        "skip": "54",
+        "edit": "1671",
+        "fix": "1539",
+        "user": "franky"
+    }, {
+        "fix": "15",
+        "skip": "1",
+        "edit": "10",
+        "user": "leslie"
+    }]
+}
+```
