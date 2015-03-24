@@ -125,6 +125,8 @@ server.route({
         if (request.params.key == 'from' && request.params.to) {
             var from = Date.parse(request.params.value)/1000;
             var to = Date.parse(request.params.to.split(':')[1])/1000;
+            // if they are the same date, move the 'to' date ahead 24 hours
+            if (from == to) to = to + 86400;
             query += 'time > $1 and time < $2;';
             params = [from, to];
         } else if (request.params.key == 'from' && !request.params.to) {
