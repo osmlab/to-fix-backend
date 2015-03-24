@@ -331,7 +331,7 @@ server.route({
                                                     owner: JSON.stringify([data.user || null])
                                                 };
 
-                                                client.query('INSERT INTO task_details VALUES($1, $2);', [time, hstore.stringify(details)], function(err, results) {
+                                                client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], function(err, results) {
                                                     if (err) return reply(boom.badRequest(err));
 
                                                     return reply({
