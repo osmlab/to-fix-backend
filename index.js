@@ -143,7 +143,44 @@ server.route({
                 data: results.rows
             });
         });
+    }
+});
 
+server.route({
+    method: 'GET',
+    path: '/track_stats/{task}/{from}/{to}',
+    handler: function(request, reply) {
+        // give stats for the given time period and given actions
+        var from = Math.round(+new Date(request.params.from.split(':')[1])/1000);
+        var to = Math.round(+new Date(request.params.to.split(':')[1])/1000);
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = "SELECT count(*), attributes->'user' AS user, attributes->'action' AS action FROM " + table + "_stats WHERE time < $1 AND time > $2 AND (attributes->'action'='edit' OR attributes->'action'='skip' OR attributes->'action'='fix') GROUP BY attributes->'user', attributes->'action' ORDER BY attributes->'user';";
+        client.query(query, [to, from], function(err, results) {
+            if (err) {
+                reply(boom.badRequest(err));
+                return false;
+            }
+            var users = {};
+            results.rows.forEach(function(row) {
+                if (row.user && row.user.trim()) {
+                    if (!users[row.user]) {
+                        users[row.user] = {};
+                    }
+                    users[row.user][row.action] = row.count;
+                }
+            });
+
+            users = Object.keys(users).map(function(user) {
+                var out = users[user];
+                out.user = user;
+                return out;
+            });
+
+            reply({
+                updated: Math.round(+new Date()/1000),
+                stats: users
+            });
+        });
     }
 });
 
@@ -294,7 +331,7 @@ server.route({
                                                     owner: JSON.stringify([data.user || null])
                                                 };
 
-                                                client.query('INSERT INTO ' + task_details + ' VALUES($1, $2);', [time, hstore.stringify(details)], function(err, results) {
+                                                client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], function(err, results) {
                                                     if (err) return reply(boom.badRequest(err));
 
                                                     return reply({
