@@ -166,7 +166,7 @@ server.route({
                     if (!users[row.user]) {
                         users[row.user] = {};
                     }
-                    users[row.user][row.action] = row.count;
+                    users[row.user][row.action] = parseInt(row.count);
                 }
             });
 
