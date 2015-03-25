@@ -119,16 +119,15 @@ server.route({
         var query = "select count(*), date_trunc($1, to_timestamp(time)) as group from " + table + "_stats group by date_trunc($1, to_timestamp(time));";
         client.query(query, [request.params.grouping], function(err, results) {
             if (err) return reply(boom.badRequest(err));
-            if (results.rowCount > 0) {
-                var out = [];
-                results.rows.forEach(function(row) {
-                    out.push({
-                        start: Math.round(+new Date(row.group)/1000),
-                        count: parseInt(row.count)
-                    });
-                });
-                reply(out);
-            }
+            reply({
+                updated: Math.round(+new Date()/1000),
+                data: results.rows.map(function(row) {
+                    return {
+                        count: parseInt(row.count),
+                        start: Math.round(+new Date(row.group)/1000)
+                    };
+                })
+            });
         });
     }
 });
