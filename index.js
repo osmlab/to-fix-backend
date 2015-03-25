@@ -113,8 +113,6 @@ server.route({
     method: 'GET',
     path: '/count_history/{task}/{grouping}',
     handler: function(request, reply) {
-        // grouping = daily,hourly,minutely
-
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         var query = "select count(*), date_trunc($1, to_timestamp(time)) as group from " + table + "_stats group by date_trunc($1, to_timestamp(time));";
         client.query(query, [request.params.grouping], function(err, results) {
