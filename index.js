@@ -111,6 +111,27 @@ server.route({
 
 server.route({
     method: 'GET',
+    path: '/count_history/{task}/{action}/{grouping}',
+    handler: function(request, reply) {
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = "select count(*), date_trunc($1, to_timestamp(time)) as group from " + table + "_stats where attributes->'action'=$2 group by date_trunc($1, to_timestamp(time)), attributes->'action'=$2;";
+        client.query(query, [request.params.grouping, request.params.action], function(err, results) {
+            if (err) return reply(boom.badRequest(err));
+            reply({
+                updated: Math.round(+new Date()/1000),
+                data: results.rows.map(function(row) {
+                    return {
+                        count: parseInt(row.count),
+                        start: Math.round(+new Date(row.group)/1000)
+                    };
+                })
+            });
+        });
+    }
+});
+
+server.route({
+    method: 'GET',
     path: '/track/{task}/{key}:{value}/{to?}',
     handler: function(request, reply) {
         // gets results filtered by key:value or by date range

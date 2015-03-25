@@ -82,3 +82,35 @@ The API address lies here: `http://54.147.184.23:8000/`.
     }]
 }
 ```
+
+### GET `/count_history/{task}/{action}/{grouping}`
+- returns the count history of a defined {action}, grouped by {grouping}
+- {action} corresponds to previously tracked actions with /track
+- {grouping} can be any field from [PostgreSQL's date_trunc](http://www.postgresql.org/docs/9.1/static/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
+    - ex: hour, day, week, month
+- request example: `/count_history/unconnectedmajor/fix/day`
+- response example:
+```js
+{
+    "updated": 1427303352,
+    "data": [{
+        "count": 41,
+        "start": 1427155200
+    }, {
+        "count": 1527,
+        "start": 1427068800
+    }, {
+        "count": 58,
+        "start": 1426896000
+    }, {
+        "count": 3,
+        "start": 1426982400
+    }, {
+        "count": 589,
+        "start": 1426809600
+    }, {
+        "count": 7,
+        "start": 1427241600
+    }]
+}
+```
