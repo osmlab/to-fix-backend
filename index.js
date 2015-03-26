@@ -4,6 +4,7 @@ var fs = require('fs'),
     boom = require('boom'),
     pg_copy = require('pg-copy-streams'),
     hstore = require('pg-hstore')(),
+    queue = require('queue-async'),
     reformatCsv = require('./lib/reformat-csv');
 
 var user = process.env.DBUsername || 'postgres';
@@ -337,49 +338,40 @@ server.route({
                                 return closed ? null : reply(boom.badRequest(err));
                             }
                             setTimeout(function() {
-                                // https://github.com/brianc/node-pg-copy-streams/issues/22
-                                client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN unixtime INT DEFAULT 0;', function(err, results) {
-                                    if (err) return reply(boom.badRequest(err));
-
-                                    client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', function(err, results) {
+                                queue(1)
+                                    .defer(function(cb) {
+                                        client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN unixtime INT DEFAULT 0;', cb);
+                                    })
+                                    .defer(function(cb) {
+                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', cb);
+                                    })
+                                    .defer(function(cb) {
+                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (unixtime);', cb);
+                                    })
+                                    .defer(function(cb) {
+                                        client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', cb);
+                                    })
+                                    .defer(function(cb) {
+                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);', cb);
+                                    })
+                                    .defer(function(cb) {
+                                        client.query('DROP TABLE temp_' + taskName + ';', cb);
+                                    })
+                                    .defer(function(cb) {
+                                        var details = {
+                                            title: '',
+                                            description: '',
+                                            updated: Math.round(+new Date()/1000),
+                                            owner: JSON.stringify([data.user || null])
+                                        };
+                                        client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], cb);
+                                    })
+                                    .awaitAll(function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
-
-                                        // don't wait
-                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (unixtime);', function(err, results) {
-                                            if (err) return console.log('taskName create index', err);
+                                        reply({
+                                            taskname: taskName
                                         });
-
-                                        client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', function(err, results) {
-                                            if (err) return reply(boom.badRequest(err));
-
-                                            // don't wait
-                                            client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);', function(err, results) {
-                                                if (err) return ('_stats create index', err);
-                                            });
-
-                                            client.query('DROP TABLE temp_' + taskName + ';', function(err, results) {
-                                                if (err) return reply(boom.badRequest(err));
-
-                                                var details = {
-                                                    title: '',
-                                                    description: '',
-                                                    updated: Math.round(+new Date()/1000),
-                                                    owner: JSON.stringify([data.user || null])
-                                                };
-
-                                                client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], function(err, results) {
-                                                    if (err) return reply(boom.badRequest(err));
-                                                    return reply({
-                                                        taskName: taskName
-                                                    });
-                                                });
-
-                                            });
-
-                                        });
-
                                     });
-                                });
                             }, 500);
                         }
 

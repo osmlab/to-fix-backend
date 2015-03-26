@@ -16,7 +16,8 @@
     "hapi": "^8.2.0",
     "pg": "^4.2.0",
     "pg-copy-streams": "^0.3.0",
-    "pg-hstore": "^2.3.1"
+    "pg-hstore": "^2.3.1",
+    "queue-async": "^1.0.7"
   },
   "engines": {
     "node": "0.10.x"
