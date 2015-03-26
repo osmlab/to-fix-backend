@@ -125,7 +125,7 @@ server.route({
             });
             var out = [];
             for (var time in times) {
-                times[time].start = time;
+                times[time].start = parseInt(time);
                 out.push(times[time]);
             }
             reply({
