@@ -114,7 +114,7 @@ server.route({
     path: '/count_history/{task}/{grouping}',
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = "select count(*), attributes->'action' as action, date_trunc($1, to_timestamp(time)) as time from unconnectedmajor_stats where attributes->'action'='skip' or attributes->'action'='edit' or attributes->'action'='fix' group by date_trunc($1, to_timestamp(time)), attributes->'action' order by date_trunc($1, to_timestamp(time));";
+        var query = "select count(*), attributes->'action' as action, date_trunc($1, to_timestamp(time)) as time from " + table + "_stats where attributes->'action'='skip' or attributes->'action'='edit' or attributes->'action'='fix' group by date_trunc($1, to_timestamp(time)), attributes->'action' order by date_trunc($1, to_timestamp(time));";
         client.query(query, [request.params.grouping], function(err, results) {
             if (err) return reply(boom.badRequest(err));
             var times = {};
