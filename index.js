@@ -183,6 +183,7 @@ server.route({
         // give stats for the given time period and given actions
         var from = Math.round(+new Date(request.params.from.split(':')[1])/1000);
         var to = Math.round(+new Date(request.params.to.split(':')[1])/1000);
+        if (from == to) to = to + 86400;
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         var query = "SELECT count(*), attributes->'user' AS user, attributes->'action' AS action FROM " + table + "_stats WHERE time < $1 AND time > $2 AND (attributes->'action'='edit' OR attributes->'action'='skip' OR attributes->'action'='fix') GROUP BY attributes->'user', attributes->'action' ORDER BY attributes->'user';";
         client.query(query, [to, from], function(err, results) {
