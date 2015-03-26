@@ -344,8 +344,18 @@ server.route({
                                     client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
 
+                                        // don't wait
+                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (unixtime);', function(err, results) {
+                                            if (err) return console.log('taskName create index', err);
+                                        });
+
                                         client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', function(err, results) {
                                             if (err) return reply(boom.badRequest(err));
+
+                                            // don't wait
+                                            client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);', function(err, results) {
+                                                if (err) return ('_stats create index', err);
+                                            });
 
                                             client.query('DROP TABLE temp_' + taskName + ';', function(err, results) {
                                                 if (err) return reply(boom.badRequest(err));
