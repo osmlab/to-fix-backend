@@ -58,7 +58,6 @@ server.route({
 
         // don't wait
         reply();
-
         track(table, request.payload.time, attributes, function(err, results) {
             if (err) console.error('/track err', err);
         });
@@ -90,7 +89,6 @@ server.route({
             client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', function(err, results) {
                 if (err) return reply(boom.badRequest(err));
                 var unfixed = results.rows[0].count;
-
                 var query = 'SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;';
                 client.query(query, function(err, results) {
                     if (err) return reply(boom.badRequest(err));
@@ -118,16 +116,19 @@ server.route({
         client.query(query, [request.params.grouping], function(err, results) {
             if (err) return reply(boom.badRequest(err));
             var times = {};
+
             results.rows.forEach(function(row) {
                 var time = Math.round(+new Date(row.time)/1000);
                 if (!times[time]) times[time] = {};
                 times[time][row.action] = parseInt(row.count);
             });
+
             var out = [];
             for (var time in times) {
                 times[time].start = parseInt(time);
                 out.push(times[time]);
             }
+
             reply({
                 updated: Math.round(+new Date()/1000),
                 data: out
@@ -180,7 +181,7 @@ server.route({
     method: 'GET',
     path: '/track_stats/{task}/{from}/{to}',
     handler: function(request, reply) {
-        // give stats for the given time period and given actions
+        // give stats for the given time period
         var from = Math.round(+new Date(request.params.from.split(':')[1])/1000);
         var to = Math.round(+new Date(request.params.to.split(':')[1])/1000);
         if (from == to) to = to + 86400;
@@ -191,6 +192,7 @@ server.route({
                 reply(boom.badRequest(err));
                 return false;
             }
+
             var users = {};
             results.rows.forEach(function(row) {
                 if (row.user && row.user.trim()) {
@@ -219,7 +221,6 @@ server.route({
     method: 'POST',
     path: '/task/{task}',
     handler: function(request, reply) {
-        // I know
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         var query = 'UPDATE ' + table + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + table + ' WHERE unixtime < $2 AND unixtime != 2147483647 ORDER BY unixtime ASC LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
         var now = Math.round(+new Date()/1000);
@@ -277,7 +278,6 @@ server.route({
     handler: function(request, reply) {
         // confirm db config vars are set
         // err immeditately if not
-
         var data = request.payload;
 
         if (!data.file ||
@@ -289,12 +289,9 @@ server.route({
         if (data.file) {
             var name = data.file.hapi.filename;
             var taskName = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-
             // just looking at the extension for now
             if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
-
             if (path[path.length-1] !== '/') path = path + '/';
-
             var file = fs.createWriteStream(path + name);
 
             file.on('error', function (err) {
@@ -342,9 +339,7 @@ server.route({
                             setTimeout(function() {
                                 // https://github.com/brianc/node-pg-copy-streams/issues/22
                                 client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN unixtime INT DEFAULT 0;', function(err, results) {
-                                    if (err) {
-                                        return reply(boom.badRequest(err));
-                                    }
+                                    if (err) return reply(boom.badRequest(err));
 
                                     client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
@@ -364,7 +359,6 @@ server.route({
 
                                                 client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], function(err, results) {
                                                     if (err) return reply(boom.badRequest(err));
-
                                                     return reply({
                                                         taskName: taskName
                                                     });
