@@ -90,45 +90,45 @@ The API address lies here: `http://54.147.184.23:8000/`.
 - request example: `/count_history/unconnectedmajor/day`
 - response example:
 ```js
-{  
+{
     "updated":1427391497,
-    "data":[  
-        {  
+    "data":[
+        {
             "skip":1483,
             "edit":589,
             "fix":2007,
             "start":"1426809600"
         },
-        {  
+        {
             "edit":58,
             "skip":56,
             "fix":35,
             "start":"1426896000"
         },
-        {  
+        {
             "skip":80,
             "edit":3,
             "fix":4,
             "start":"1426982400"
         },
-        {  
+        {
             "fix":1574,
             "edit":1527,
             "skip":386,
             "start":"1427068800"
         },
-        {  
+        {
             "fix":23,
             "edit":41,
             "skip":102,
             "start":"1427155200"
         },
-        {  
+        {
             "edit":7,
             "skip":61,
             "start":"1427241600"
         },
-        {  
+        {
             "skip":213,
             "edit":929,
             "fix":829,
