@@ -86,31 +86,22 @@ server.route({
         queue(1)
             .defer(function(cb) {
                 // overall count
-                client.query('SELECT count(*) FROM ' + table + ';', function(err, results) {
-                    if (err) return cb(err);
-                    cb(null, results.rows[0].count);
-                });
+                client.query('SELECT count(*) FROM ' + table + ';', cb);
             })
             .defer(function(cb) {
                 // unfixed items
-                client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', function(err, results) {
-                    if (err) return cb(err);
-                    cb(null, results.rows[0].count);
-                });
+                client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', cb);
             })
             .defer(function(cb) {
                 // items that are active
-                client.query('SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;' , function(err, results) {
-                    if (err) return cb(err);
-                    cb(err, results.rows[0].count);
-                });
+                client.query('SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;' , cb);
             })
             .awaitAll(function(err, results) {
                 if (err) return reply(boom.badRequest(err));
                 reply({
-                    total: parseInt(results[0]),
-                    available: parseInt(results[1]),
-                    active: parseInt(results[2])
+                    total: parseInt(results[0].rows[0].count),
+                    available: parseInt(results[1].rows[0].count),
+                    active: parseInt(results[2].rows[0].count)
                 });
             });
     }
