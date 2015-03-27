@@ -90,11 +90,11 @@ server.route({
             })
             .defer(function(cb) {
                 // unfixed items
-                client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', cb);
+                client.query('SELECT count(*) FROM ' + table + ' WHERE time != 2147483647;', cb);
             })
             .defer(function(cb) {
                 // items that are active
-                client.query('SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;' , cb);
+                client.query('SELECT count(*) from ' + table + ' WHERE time > ' + Math.round(+new Date()/1000) + ' AND time != 2147483647;' , cb);
             })
             .awaitAll(function(err, results) {
                 if (err) return reply(boom.badRequest(err));
@@ -145,10 +145,10 @@ server.route({
         // gets results filtered by key:value or by date range
         // user:joey, filters from hstore
         // or
-        // from:2015-03-17/to:2015-03-19, filters on unixtime
+        // from:2015-03-17/to:2015-03-19, filters on time
 
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'SELECT time AS unixtime, hstore_to_json_loose(attributes) AS attributes FROM ' + table + '_stats WHERE ';
+        var query = 'SELECT time AS time, hstore_to_json_loose(attributes) AS attributes FROM ' + table + '_stats WHERE ';
         var params;
 
         if (request.params.key == 'from' && request.params.to) {
@@ -222,7 +222,7 @@ server.route({
     path: '/task/{task}',
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'UPDATE ' + table + ' x SET unixtime=$1 FROM (SELECT key, unixtime FROM ' + table + ' WHERE unixtime < $2 AND unixtime != 2147483647 ORDER BY unixtime ASC LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+        var query = 'UPDATE ' + table + ' x SET time=$1 FROM (SELECT key, time FROM ' + table + ' WHERE time < $2 AND time != 2147483647 ORDER BY time ASC LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
         var now = Math.round(+new Date()/1000);
         client.query(query, [now+lockPeriod, now], function(err, results) {
             if (err) return console.log(err);
@@ -245,7 +245,7 @@ server.route({
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
         // 2147483647 is int max
-        var query = 'UPDATE ' + table + ' SET unixtime=2147483647 WHERE key=$1;';
+        var query = 'UPDATE ' + table + ' SET time=2147483647 WHERE key=$1;';
         client.query(query, [request.payload.key], function(err, results) {
             if (err) return boom.badRequest(err);
             // check for a real update, err if not
@@ -339,13 +339,13 @@ server.route({
                             setTimeout(function() {
                                 queue(1)
                                     .defer(function(cb) {
-                                        client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN unixtime INT DEFAULT 0;', cb);
+                                        client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;', cb);
                                     })
                                     .defer(function(cb) {
                                         client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', cb);
                                     })
                                     .defer(function(cb) {
-                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (unixtime);', cb);
+                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);', cb);
                                     })
                                     .defer(function(cb) {
                                         client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', cb);
