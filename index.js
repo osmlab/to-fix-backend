@@ -83,28 +83,36 @@ server.route({
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
 
-        client.query('SELECT count(*) FROM ' + table + ';', function(err, results) {
-            if (err) return reply(boom.badRequest(err));
-            var total = results.rows[0].count;
-
-            client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', function(err, results) {
+        queue(1)
+            .defer(function(cb) {
+                // overall count
+                client.query('SELECT count(*) FROM ' + table + ';', function(err, results) {
+                    if (err) return cb(err);
+                    cb(null, results.rows[0].count);
+                });
+            })
+            .defer(function(cb) {
+                // unfixed items
+                client.query('SELECT count(*) FROM ' + table + ' WHERE unixtime != 2147483647;', function(err, results) {
+                    if (err) return cb(err);
+                    cb(null, results.rows[0].count);
+                });
+            })
+            .defer(function(cb) {
+                // items that are active
+                client.query('SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;' , function(err, results) {
+                    if (err) return cb(err);
+                    cb(err, results.rows[0].count);
+                });
+            })
+            .awaitAll(function(err, results) {
                 if (err) return reply(boom.badRequest(err));
-                var unfixed = results.rows[0].count;
-                var query = 'SELECT count(*) from ' + table + ' WHERE unixtime > ' + Math.round(+new Date()/1000) + ' AND unixtime != 2147483647;';
-                client.query(query, function(err, results) {
-                    if (err) return reply(boom.badRequest(err));
-                    var active = results.rows[0].count;
-
-                    reply({
-                        'total': parseInt(total),
-                        'available': parseInt(unfixed),
-                        'active': parseInt(active)
-                    });
-
+                reply({
+                    total: parseInt(results[0]),
+                    available: parseInt(results[1]),
+                    active: parseInt(results[2])
                 });
             });
-        });
-
     }
 });
 
