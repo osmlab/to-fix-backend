@@ -15,7 +15,7 @@ The server component of to-fix which provides the API that interacts with the fr
 ####Ubuntu Installation
 ```sh
 # set your environment variables
-sh install.sh
+sh deploy/install.sh
 npm server
 ```
 

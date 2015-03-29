@@ -5,6 +5,7 @@ apt-get -y update
 apt-get install unzip zip git vim htop bzip2 curl
 apt-get install -y nodejs npm
 ln -s /usr/bin/nodejs /usr/bin/node
+npm install
 
 if [ $DBAddress == 'localhost' ]; then
     echo "- installing postgres + postgis"
