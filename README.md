@@ -16,7 +16,7 @@ The server component of to-fix which provides the API that interacts with the fr
 ```sh
 # set your environment variables
 sh deploy/install.sh
-npm server
+npm start
 ```
 
 ####Other Installation
