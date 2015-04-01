@@ -168,7 +168,7 @@ server.route({
         }
 
         client.query(query, params, function(err, results) {
-            if (err) return console.log(err);
+            if (err) return reply(boom.badRequest(err));
             reply({
                 updated: Math.round(+new Date()/1000),
                 data: results.rows
@@ -225,7 +225,7 @@ server.route({
         var query = 'UPDATE ' + table + ' x SET time=$1 FROM (SELECT key, time FROM ' + table + ' WHERE time < $2 AND time != 2147483647 ORDER BY time ASC LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
         var now = Math.round(+new Date()/1000);
         client.query(query, [now+lockPeriod, now], function(err, results) {
-            if (err) return console.log(err);
+            if (err) return reply(boom.badRequest(err));
             return reply(JSON.stringify({
                 key: results.rows[0].key,
                 value: JSON.parse(results.rows[0].value.split('|').join('"'))
