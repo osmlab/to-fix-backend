@@ -118,6 +118,7 @@ The API address lies here: `http://54.147.184.23:8000/`.
 - track attributes about the given task
 - JSON data
 - no required attributes
+- empty response
 
 ### POST `/fixed/{task}`
 - mark a given item as fixed, so that other users don't get it later
@@ -125,6 +126,7 @@ The API address lies here: `http://54.147.184.23:8000/`.
 - required attributes
     - `user` - the user who fixed the item
     - `key` - the key of the item that was fixed
+- replys "ok" or an error
 
 ### POST `/csv`
 - create a new task from a csv file
@@ -133,3 +135,4 @@ The API address lies here: `http://54.147.184.23:8000/`.
     - `password` - the server password, set with the env variable UploadPassword
     - `name` - the name of the task to be created with the csv contents
     - `file` - the csv file
+- replys the final taskname or an error
