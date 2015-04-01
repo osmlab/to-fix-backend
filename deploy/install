@@ -1,17 +1,17 @@
 mkdir -p $UploadPath
+export PGPASSWORD=$DBPassword
 
 apt-get -y update
 
 apt-get install unzip zip git vim htop bzip2 curl
 apt-get install -y nodejs npm
+# this is useful to have on the server
+apt-get install -u postgres-xc-client
 ln -s /usr/bin/nodejs /usr/bin/node
+npm install
 
-if [ $DBAddress == 'localhost' ]; then
+if [ "$DBAddress" = 'localhost' ]; then
     echo "- installing postgres + postgis"
-
-    # removed
-    # postgres-xc-client
-
     apt-get install -y libpq-dev postgresql-9.3 postgresql-9.3-postgis-2.1 postgresql-contrib-9.3 postgresql-client-9.3 postgresql-common postgresql-client-common postgresql-plpython-9.3
 
     echo "- setting up postgres permissions + database"
@@ -19,27 +19,26 @@ if [ $DBAddress == 'localhost' ]; then
 
     # play nicely with other users
     sh -c 'echo "
-    local all postgres trust
+    local all $DBUsername trust
     local all all trust
     host all all 127.0.0.1/32 trust
     host all all ::1/128 trust
-    host replication postgres samenet trust
+    host replication $DBUsername samenet trust
     " > /etc/postgresql/9.3/main/pg_hba.conf'
 
     sudo /etc/init.d/postgresql restart
-
-    echo "
-        CREATE DATABASE tofix;
-    " | psql -U postgres
-
-    echo "
-        CREATE EXTENSION hstore;
-    " | psql -U postgres -d tofix
-
-    echo "
-        CREATE TABLE task_details (task text primary key, attributes HSTORE);
-    " | psql -U postgres -d tofix
-
 fi
+
+echo "
+    CREATE DATABASE $Database;
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
+
+echo "
+    CREATE EXTENSION hstore;
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
+
+echo "
+    CREATE TABLE task_details (task text primary key, attributes HSTORE);
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
 
 npm start

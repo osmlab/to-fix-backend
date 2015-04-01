@@ -15,7 +15,7 @@ The API address lies here: `http://54.147.184.23:8000/`.
 
 ### GET `/count/{taskName}`
 - returns the count of the total number of items and all available items for a given task
-- request example: `/count/brokenbuildings`
+- request example: `/count/unconnectedmajor`
 - response format: JSON
 - response example: 
 ```js
@@ -29,7 +29,7 @@ The API address lies here: `http://54.147.184.23:8000/`.
 - returns tracking results for a given task, key, and value
 - {key}:{value} are dependent on what is tracked with `/track/{taskName}`
 - results are sorted by unixtime in ascending order
-- request example: `/track/brokenbuildings/user:joey`
+- request example: `/track/unconnectedmajor/user:joey`
 - {to} is optional, if {key} is "from" and "to" is set, results will be data from within that time period
   - for example: `/track/unconnectedmajor/from:2015-03-21/to:2015-03-24`
 - response example: 
@@ -65,19 +65,19 @@ The API address lies here: `http://54.147.184.23:8000/`.
 {
     "updated": 1427152632,
     "stats": [{
-        "skip": "1776",
-        "fix": "1249",
-        "edit": "2",
+        "skip": 1776,
+        "fix": 1249,
+        "edit": 2,
         "user": "joey"
     }, {
-        "skip": "54",
-        "edit": "1671",
-        "fix": "1539",
+        "skip": 54,
+        "edit": 1671,
+        "fix": 1539,
         "user": "franky"
     }, {
-        "fix": "15",
-        "skip": "1",
-        "edit": "10",
+        "fix": 15,
+        "skip": 1,
+        "edit": 10,
         "user": "leslie"
     }]
 }
@@ -91,49 +91,48 @@ The API address lies here: `http://54.147.184.23:8000/`.
 - response example:
 ```js
 {
-    "updated":1427394785,
+    "updated": 1427394785,
     "data":[
         {
-            "skip":1483,
-            "edit":589,
-            "fix":2007,
-            "start":1426809600
+            "skip": 1483,
+            "edit": 589,
+            "fix": 2007,
+            "start": 1426809600
         },
         {
-            "edit":58,
-            "skip":56,
-            "fix":35,
-            "start":1426896000
+            "edit": 7,
+            "skip": 61,
+            "start": 1427241600
         },
         {
-            "skip":80,
-            "edit":3,
-            "fix":4,
-            "start":1426982400
-        },
-        {
-            "fix":1574,
-            "edit":1527,
-            "skip":386,
-            "start":1427068800
-        },
-        {
-            "fix":23,
-            "edit":41,
-            "skip":102,
-            "start":1427155200
-        },
-        {
-            "edit":7,
-            "skip":61,
-            "start":1427241600
-        },
-        {
-            "skip":217,
-            "edit":984,
-            "fix":884,
-            "start":1427328000
+            "skip": 217,
+            "edit": 984,
+            "fix": 884,
+            "start": 1427328000
         }
     ]
 }
 ```
+
+### POST `/track/{task}`
+- track attributes about the given task
+- JSON data
+- no required attributes
+- empty response
+
+### POST `/fixed/{task}`
+- mark a given item as fixed, so that other users don't get it later
+- JSON data
+- required attributes
+    - `user` - the user who fixed the item
+    - `key` - the key of the item that was fixed
+- replys "ok" or an error
+
+### POST `/csv`
+- create a new task from a csv file
+- form data
+- required fields
+    - `password` - the server password, set with the env variable UploadPassword
+    - `name` - the name of the task to be created with the csv contents
+    - `file` - the csv file
+- replys the final taskname or an error
