@@ -42,3 +42,5 @@ echo "
 " | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
 
 npm start
+
+curl --form "file=@sample.csv;password=$DBPassword;name=unconnectedmajor" http://localhost:8000/csv
