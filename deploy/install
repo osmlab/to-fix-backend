@@ -9,7 +9,7 @@ apt-get install -u postgres-xc-client
 ln -s /usr/bin/nodejs /usr/bin/node
 npm install
 
-if [ $DBAddress == 'localhost' ]; then
+if [ "$DBAddress" = 'localhost' ]; then
     echo "- installing postgres + postgis"
     apt-get install -y libpq-dev postgresql-9.3 postgresql-9.3-postgis-2.1 postgresql-contrib-9.3 postgresql-client-9.3 postgresql-common postgresql-client-common postgresql-plpython-9.3
 
