@@ -24,3 +24,6 @@ npm server
 - install node.js, npm if needed
 - run `npm install`
 - run `node index.js`
+
+####Adding a task
+Adding a task requires POSTing a CSV to the API, see [API.md](API.md) and adding the necessary logic to the front end of to-fix to know how to process the results. This is currently hard coded into the front end (at src/stores/map_store.js), but something that will be abstracted in the future, making it easier to add new tasks.
