@@ -43,4 +43,6 @@ echo "
 
 npm start
 
-curl --form "file=@sample.csv;password=$DBPassword;name=unconnectedmajor" http://localhost:8000/csv
+sleep 5
+
+curl --form "file=@sample.csv" --form "password=$UploadPassword" --form "name=unconnectedmajor" http://localhost:8000/csv
