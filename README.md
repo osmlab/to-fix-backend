@@ -20,7 +20,7 @@ npm server
 ```
 
 ####Other Installation
-- install PostgreSQL, I recommend [postgres.app](http://postgresapp.com/)
+- install PostgreSQL, I recommend [postgres.app](http://postgresapp.com/) for OS X
 - install node.js, npm if needed
 - run `npm install`
 - run `node index.js`

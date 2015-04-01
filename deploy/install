@@ -1,4 +1,5 @@
 mkdir -p $UploadPath
+export PGPASSWORD = $DBPassword
 
 apt-get -y update
 
@@ -18,27 +19,26 @@ if [ "$DBAddress" = 'localhost' ]; then
 
     # play nicely with other users
     sh -c 'echo "
-    local all postgres trust
+    local all $DBUsername trust
     local all all trust
     host all all 127.0.0.1/32 trust
     host all all ::1/128 trust
-    host replication postgres samenet trust
+    host replication $DBUsername samenet trust
     " > /etc/postgresql/9.3/main/pg_hba.conf'
 
     sudo /etc/init.d/postgresql restart
-
-    echo "
-        CREATE DATABASE tofix;
-    " | psql -U postgres
-
-    echo "
-        CREATE EXTENSION hstore;
-    " | psql -U postgres -d tofix
-
-    echo "
-        CREATE TABLE task_details (task text primary key, attributes HSTORE);
-    " | psql -U postgres -d tofix
-
 fi
+
+echo "
+    CREATE DATABASE $Database;
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
+
+echo "
+    CREATE EXTENSION hstore;
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
+
+echo "
+    CREATE TABLE task_details (task text primary key, attributes HSTORE);
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
 
 npm start
