@@ -114,6 +114,22 @@ The API address lies here: `http://54.147.184.23:8000/`.
 }
 ```
 
+### POST `/task/{task}`
+- get an item from a task
+- JSON data
+- required attributes
+    - `user` - the user requesting the item
+- response example:
+```js
+{
+    "key":"4c4cbb5b2b388fb25315232324eeb24c",
+    "value":{
+        "way_id":"23113041",
+        "node_id":"25376667"
+    }
+}
+```
+
 ### POST `/track/{task}`
 - track attributes about the given task
 - JSON data
