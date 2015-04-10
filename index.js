@@ -309,26 +309,30 @@ server.route({
                     } else {
                         var closed = 0;
 
-                        client.query('CREATE TABLE temp_' + taskName + ' (key VARCHAR(255), value TEXT);', function(err, results) {
-                            if (err) {
-                                console.log('create temp');
-                                return reply(boom.badRequest(err));
-                            }
+                        queue(1)
+                        .defer(function(cb) {
+                            // Drop temp before creating one.
+                            client.query('DROP TABLE IF EXISTS temp_' + taskName, cb);
+                        })
+                        .defer(function(cb) {
+                            client.query('CREATE TABLE temp_' + taskName + ' (key VARCHAR(255), value TEXT);', cb);
+                        })
+                        .awaitAll(function(err, results) {
+                            if (err) return reply(boom.badRequest(err));
+
+                            var stream = client.query(pg_copy.from('COPY temp_' + taskName + ' FROM STDIN (FORMAT CSV);'));
+                            var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
+
+                            // csv errors aren't being caught and surfaced very well, silent
+                            fileStream
+                                .on('error', function(err) {
+                                    console.log('err here', err);
+                                    return reply(boom.badRequest(err));
+                                })
+                                .pipe(stream)
+                                    .on('finish', theEnd)
+                                    .on('error', theEnd);
                         });
-
-                        var stream = client.query(pg_copy.from('COPY temp_' + taskName + ' FROM STDIN (FORMAT CSV);'));
-                        var fileStream = fs.createReadStream(filename, {encoding: 'utf8'});
-
-                        // csv errors aren't being caught and surfaced very well, silent
-
-                        fileStream
-                            .on('error', function(err) {
-                                console.log('err here', err);
-                                return reply(boom.badRequest(err));
-                            })
-                            .pipe(stream)
-                                .on('finish', theEnd)
-                                .on('error', theEnd);
 
                         // do this because on error both will emit something and calling reply twice errors
                         function theEnd(err) {
@@ -337,40 +341,65 @@ server.route({
                                 return closed ? null : reply(boom.badRequest(err));
                             }
                             setTimeout(function() {
-                                queue(1)
-                                    .defer(function(cb) {
-                                        client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;', cb);
-                                    })
-                                    .defer(function(cb) {
-                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', cb);
-                                    })
-                                    .defer(function(cb) {
-                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);', cb);
-                                    })
-                                    .defer(function(cb) {
-                                        client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', cb);
-                                    })
-                                    .defer(function(cb) {
-                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);', cb);
-                                    })
-                                    .defer(function(cb) {
+
+                                var q =  queue(1);
+
+                                q.defer(function(cb) {
+                                    client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;', cb);
+                                });
+
+                                client.query('SELECT * FROM ' + taskName + ' LIMIT 1', function(e, r) {
+                                    if (e) {
+                                        // Task doesn't exist. First import.
+                                        q.defer(function(cb) {
+                                            client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', cb);
+                                        })
+                                        .defer(function(cb) {
+                                            client.query('ALTER TABLE ' + taskName + ' ADD PRIMARY KEY (key)', cb);
+                                        })
+                                        .defer(function(cb) {
+                                            client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);', cb);
+                                        })
+                                        .defer(function(cb) {
+                                            client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', cb);
+                                        })
+                                        .defer(function(cb) {
+                                            client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);', cb);
+                                        })
+                                        .defer(function(cb) {
+                                            var details = {
+                                                title: '',
+                                                description: '',
+                                                updated: Math.round(+new Date()/1000),
+                                                owner: JSON.stringify([data.user || null])
+                                            };
+                                            client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], cb);
+                                        });
+                                    }
+                                    else {
+                                        // Task exists. Append
+                                        q.defer(function(cb) {
+                                            client.query('INSERT INTO ' + taskName + ' SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', cb);
+                                        });
+                                    }
+
+                                    q.defer(function(cb) {
                                         client.query('DROP TABLE temp_' + taskName + ';', cb);
                                     })
-                                    .defer(function(cb) {
-                                        var details = {
-                                            title: '',
-                                            description: '',
-                                            updated: Math.round(+new Date()/1000),
-                                            owner: JSON.stringify([data.user || null])
-                                        };
-                                        client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], cb);
-                                    })
                                     .awaitAll(function(err, results) {
-                                        if (err) return reply(boom.badRequest(err));
-                                        reply({
+                                        if (err) {
+                                            if (err.code == 23505) {
+                                                return reply(boom.badRequest(err.toString() + ' - ' + err.detail));
+                                            }
+                                            return reply(boom.badRequest(err));
+                                        }
+                                        return  reply({
                                             taskname: taskName
                                         });
                                     });
+
+                                 });
+
                             }, 500);
                         }
 
