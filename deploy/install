@@ -3,9 +3,8 @@ export PGPASSWORD=$DBPassword
 
 apt-get -y update
 
-apt-get install unzip zip git vim htop bzip2 curl
+apt-get install -y unzip zip git vim htop bzip2 curl
 apt-get install -y nodejs npm
-# this is useful to have on the server
 apt-get install -u postgres-xc-client
 ln -s /usr/bin/nodejs /usr/bin/node
 npm install
@@ -17,7 +16,6 @@ if [ "$DBAddress" = 'localhost' ]; then
     echo "- setting up postgres permissions + database"
     chmod a+rx $HOME
 
-    # play nicely with other users
     sh -c 'echo "
     local all $DBUsername trust
     local all all trust
