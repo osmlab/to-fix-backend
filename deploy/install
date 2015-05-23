@@ -42,7 +42,5 @@ echo "
 " | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
 
 npm start
-
 sleep 5
-
 curl --form "file=@sample.csv" --form "password=$UploadPassword" --form "name=unconnectedmajor" http://localhost:8000/csv

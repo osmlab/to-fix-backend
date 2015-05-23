@@ -342,7 +342,9 @@ server.route({
                                         client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;', cb);
                                     })
                                     .defer(function(cb) {
-                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + ' ORDER BY RANDOM();', cb);
+                                        var order = ' ORDER BY RANDOM();';
+                                        if (data.preserve) random = ';';
+                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + random, cb);
                                     })
                                     .defer(function(cb) {
                                         client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);', cb);
