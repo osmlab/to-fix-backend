@@ -343,8 +343,8 @@ server.route({
                                     })
                                     .defer(function(cb) {
                                         var order = ' ORDER BY RANDOM();';
-                                        if (data.preserve) random = ';';
-                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + random, cb);
+                                        if (data.preserve) order = ';';
+                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + order, cb);
                                     })
                                     .defer(function(cb) {
                                         client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);', cb);
