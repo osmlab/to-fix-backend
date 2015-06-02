@@ -339,24 +339,30 @@ server.route({
                             setTimeout(function() {
                                 queue(1)
                                     .defer(function(cb) {
-                                        client.query('ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;', cb);
+                                        var query = 'ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;';
+                                        client.query(query, cb);
                                     })
                                     .defer(function(cb) {
                                         var order = ' ORDER BY RANDOM();';
                                         if (data.preserve) order = ';';
-                                        client.query('CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + order, cb);
+                                        var query = 'CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + order;
+                                        client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);', cb);
+                                        var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);';
+                                        client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        client.query('CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);', cb);
+                                        var query = 'CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);';
+                                        client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        client.query('CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);', cb);
+                                        var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);';
+                                        client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        client.query('DROP TABLE temp_' + taskName + ';', cb);
+                                        var query = 'DROP TABLE temp_' + taskName + ';';
+                                        client.query(query, cb);
                                     })
                                     .defer(function(cb) {
                                         var details = {
