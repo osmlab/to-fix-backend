@@ -399,8 +399,10 @@ server.route({
                                         var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);';
                                         client.query(query, cb);
                                     }).defer(function(cb){
+                                        var query = queries.create_type();
+                                        client.query(query, cb);
+                                    }).defer(function(cb){
                                         var query = queries.create_function(taskName);
-                                        console.log(query);
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
