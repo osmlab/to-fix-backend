@@ -267,6 +267,34 @@ server.route({
 
 server.route({
     method: 'POST',
+    path: '/noterror/{task}',
+    config: {
+        payload: {
+            output: 'data'
+        }
+    },
+    handler: function(request, reply) {
+        var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+         var query = 'UPDATE ' + table + ' SET time=2147483647 WHERE key=$1;';
+        client.query(query, [request.payload.key], function(err, results) {
+            if (err) return boom.badRequest(err);
+            return reply('ok');
+        });
+        var attributes = {
+            user: request.payload.user,
+            key: request.payload.key,
+            action: 'noterror'
+        };
+
+        track(table, false, attributes, function(err, results) {
+            if (err) console.error('/Not a error tracking err', err);
+        });
+
+    }
+});
+
+server.route({
+    method: 'POST',
     path: '/csv',
     config: {
         payload: {
