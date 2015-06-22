@@ -5,7 +5,8 @@ var fs = require('fs'),
     pg_copy = require('pg-copy-streams'),
     hstore = require('pg-hstore')(),
     queue = require('queue-async'),
-    reformatCsv = require('./lib/reformat-csv');
+    reformatCsv = require('./lib/reformat-csv'),
+    queries = require('./lib/queries');
 
 var user = process.env.DBUsername || 'postgres';
 var password = process.env.DBPassword || '';
@@ -167,6 +168,9 @@ server.route({
             params = [request.params.key, request.params.value];
         }
 
+        console.log(query);
+        console.log(request.params.key, request.params.value);
+
         client.query(query, params, function(err, results) {
             if (err) return reply(boom.badRequest(err));
             reply({
@@ -222,10 +226,19 @@ server.route({
     path: '/task/{task}',
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'UPDATE ' + table + ' x SET time=$1 FROM (SELECT key, time FROM ' + table + ' WHERE time < $2 AND time != 2147483647 ORDER BY time ASC LIMIT 1) AS sub WHERE x.key=sub.key RETURNING x.key, x.value;';
+        var query = 'SELECT key, value FROM extract_' + table + '($1,$2)';
+
         var now = Math.round(+new Date()/1000);
-        client.query(query, [now+lockPeriod, now], function(err, results) {
+            console.log('SELECT key, value FROM extract_' + table + '('+lockPeriod+','+now+')')
+        client.query(query, [lockPeriod, now], function(err, results) {
             if (err) return reply(boom.badRequest(err));
+            if (results.rows[0].key==='complete') {
+                console.log(JSON.parse(results.rows[0].value.split('|').join('"')))
+                return reply(JSON.stringify({
+                    key: results.rows[0].key,
+                    value:  JSON.parse(results.rows[0].value.split('|').join('"'))
+                })); 
+            }
             return reply(JSON.stringify({
                 key: results.rows[0].key,
                 value: JSON.parse(results.rows[0].value.split('|').join('"'))
@@ -386,6 +399,10 @@ server.route({
                                     })
                                     .defer(function(cb) {
                                         var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);';
+                                        client.query(query, cb);
+                                    }).defer(function(cb){
+                                        var query = queries.create_function(taskName);
+                                        console.log(query);
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
