@@ -67,15 +67,18 @@ server.route({
 });
 
 function track(table, time, attributes, callback) {
-    // validate time, is int, is within range
-    time = time || Math.round(+new Date()/1000);
-    table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-    var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
+    //not tracking when a task is done or it has key=complete
+    if(attributes.key !== 'complete'){
+        // validate time, is int, is within range
+        time = time || Math.round(+new Date()/1000);
+        table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
 
-    client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
-        if (err) return callback(err);
-        callback(null, results);
-    });
+        client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
+            if (err) return callback(err);
+            callback(null, results);
+        });
+    }
 }
 
 server.route({
@@ -167,10 +170,6 @@ server.route({
             query += 'attributes->$1=$2 ORDER BY time ASC;';
             params = [request.params.key, request.params.value];
         }
-
-        console.log(query);
-        console.log(request.params.key, request.params.value);
-
         client.query(query, params, function(err, results) {
             if (err) return reply(boom.badRequest(err));
             reply({
@@ -226,23 +225,22 @@ server.route({
     path: '/task/{task}',
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'SELECT key, value FROM extract_' + table + '($1,$2)';
-
+        var query = 'SELECT key, value FROM task_' + table + '($1,$2)';
         var now = Math.round(+new Date()/1000);
-            console.log('SELECT key, value FROM extract_' + table + '('+lockPeriod+','+now+')')
-        client.query(query, [lockPeriod, now], function(err, results) {
+        client.query(query, [lockPeriod, now], function(err, results) {            
             if (err) return reply(boom.badRequest(err));
-            if (results.rows[0].key==='complete') {
-                console.log(JSON.parse(results.rows[0].value.split('|').join('"')))
+            if (results.rows[0].key === 'complete') {// this return  the tas using key ="complete" and number for each task
+                console.log(results.rows[0].value.split('|').join('"'))
                 return reply(JSON.stringify({
                     key: results.rows[0].key,
                     value:  JSON.parse(results.rows[0].value.split('|').join('"'))
                 })); 
+            }else{
+                return reply(JSON.stringify({
+                    key: results.rows[0].key,
+                    value: JSON.parse(results.rows[0].value.split('|').join('"'))
+                }));
             }
-            return reply(JSON.stringify({
-                key: results.rows[0].key,
-                value: JSON.parse(results.rows[0].value.split('|').join('"'))
-            }));
         });
     }
 });
@@ -288,7 +286,7 @@ server.route({
     },
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-         var query = 'UPDATE ' + table + ' SET time=2147483647 WHERE key=$1;';
+        var query = 'UPDATE ' + table + ' SET time=2147483647 WHERE key=$1;';
         client.query(query, [request.payload.key], function(err, results) {
             if (err) return boom.badRequest(err);
             return reply('ok');
