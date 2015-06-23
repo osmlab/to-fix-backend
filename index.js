@@ -230,7 +230,6 @@ server.route({
         client.query(query, [lockPeriod, now], function(err, results) {            
             if (err) return reply(boom.badRequest(err));
             if (results.rows[0].key === 'complete') {// this return  the tas using key ="complete" and number for each task
-                console.log(results.rows[0].value.split('|').join('"'))
                 return reply(JSON.stringify({
                     key: results.rows[0].key,
                     value:  JSON.parse(results.rows[0].value.split('|').join('"'))
