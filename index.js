@@ -116,7 +116,7 @@ server.route({
     path: '/count_history/{task}/{grouping}',
     handler: function(request, reply) {
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = "SELECT count(*), attributes->'action' AS action, date_trunc($1, to_timestamp(time)) AS time FROM " + table + "_stats WHERE attributes->'action'='skip' OR attributes->'action'='edit' OR attributes->'action'='fix' GROUP BY date_trunc($1, to_timestamp(time)), attributes->'action' ORDER BY date_trunc($1, to_timestamp(time));";
+        var query = "SELECT count(*), attributes->'action' AS action, date_trunc($1, to_timestamp(time)) AS time FROM " + table + "_stats WHERE attributes->'action'='skip' OR attributes->'action'='edit' OR attributes->'action'='fix' OR attributes->'action'='noterror' GROUP BY date_trunc($1, to_timestamp(time)), attributes->'action' ORDER BY date_trunc($1, to_timestamp(time));";
         client.query(query, [request.params.grouping], function(err, results) {
             if (err) return reply(boom.badRequest(err));
             var times = {};
@@ -189,7 +189,7 @@ server.route({
         var to = Math.round(+new Date(request.params.to.split(':')[1])/1000);
         if (from == to) to = to + 86400;
         var table = request.params.task.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = "SELECT count(*), attributes->'user' AS user, attributes->'action' AS action FROM " + table + "_stats WHERE time < $1 AND time > $2 AND (attributes->'action'='edit' OR attributes->'action'='skip' OR attributes->'action'='fix') GROUP BY attributes->'user', attributes->'action' ORDER BY attributes->'user';";
+        var query = "SELECT count(*), attributes->'user' AS user, attributes->'action' AS action FROM " + table + "_stats WHERE time < $1 AND time > $2 AND (attributes->'action'='edit' OR attributes->'action'='skip' OR attributes->'action'='fix' OR attributes->'action'='noterror') GROUP BY attributes->'user', attributes->'action' ORDER BY attributes->'user';";
         client.query(query, [to, from], function(err, results) {
             if (err) {
                 reply(boom.badRequest(err));
