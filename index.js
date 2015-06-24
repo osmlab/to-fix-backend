@@ -67,16 +67,17 @@ server.route({
 });
 
 function track(table, time, attributes, callback) {
-    // validate time, is int, is within range
-    time = time || Math.round(+new Date()/1000);
-    table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-    var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
+    if(typeof attributes.key !== 'undefined'){// filter undefined track after a task was complete
+        // validate time, is int, is within range
+        time = time || Math.round(+new Date()/1000);
+        table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+        var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
 
-    client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
-        if (err) return callback(err);
-        callback(null, results);
-    });
-
+        client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
+            if (err) return callback(err);
+            callback(null, results);
+        });
+    }
 }
 
 server.route({
@@ -298,7 +299,6 @@ server.route({
         track(table, false, attributes, function(err, results) {
             if (err) console.error('/Not a error tracking err', err);
         });
-
     }
 });
 
