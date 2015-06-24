@@ -67,18 +67,16 @@ server.route({
 });
 
 function track(table, time, attributes, callback) {
-    //not tracking when a task is done or it has key=complete
-    if(attributes.key !== 'complete'){
-        // validate time, is int, is within range
-        time = time || Math.round(+new Date()/1000);
-        table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-        var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
+    // validate time, is int, is within range
+    time = time || Math.round(+new Date()/1000);
+    table = table.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+    var query = 'INSERT INTO ' + table + '_stats VALUES($1, $2);';
 
-        client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
-            if (err) return callback(err);
-            callback(null, results);
-        });
-    }
+    client.query(query, [time, hstore.stringify(attributes)], function(err, results) {
+        if (err) return callback(err);
+        callback(null, results);
+    });
+
 }
 
 server.route({
