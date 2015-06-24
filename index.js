@@ -229,11 +229,12 @@ server.route({
         var now = Math.round(+new Date()/1000);
         client.query(query, [lockPeriod, now], function(err, results) {            
             if (err) return reply(boom.badRequest(err));
-            if (results.rows[0].key === 'complete') {// this return  the tas using key ="complete" and number for each task
-                return reply(JSON.stringify({
-                    key: results.rows[0].key,
-                    value:  JSON.parse(results.rows[0].value.split('|').join('"'))
-                })); 
+            if (results.rows[0].key === 'complete') {
+               return reply(boom.resourceGone(JSON.stringify({
+                        key: results.rows[0].key,
+                        value:  JSON.parse(results.rows[0].value.split('|').join('"'))
+                        })
+                    ));
             }else{
                 return reply(JSON.stringify({
                     key: results.rows[0].key,
