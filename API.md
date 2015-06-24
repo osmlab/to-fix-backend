@@ -149,7 +149,7 @@ The API address lies here: `http://54.147.184.23:8000/`.
 - JSON data
 - required attributes
     - `user` - the user who fixed the item
-    - `key` - the key of the item that was fixed
+    - `key` - the key of the item that was not a error
 - replys "ok"
 
 ### POST `/csv`
