@@ -144,6 +144,14 @@ The API address lies here: `http://54.147.184.23:8000/`.
     - `key` - the key of the item that was fixed
 - replys "ok" or an error
 
+### POST `/noterror/{task}`
+- mark a given item as not a error, so that other users don't get it later
+- JSON data
+- required attributes
+    - `user` - the user who fixed the item
+    - `key` - the key of the item that was fixed
+- replys "ok"
+
 ### POST `/csv`
 - create a new task from a csv file
 - form data
