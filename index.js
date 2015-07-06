@@ -377,24 +377,25 @@ server.route({
                                 queue(1)
                                     .defer(function(cb) {
                                         var query = 'ALTER TABLE temp_' + taskName + ' ADD COLUMN time INT DEFAULT 0;';
+                                        
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
                                         var order = ' ORDER BY RANDOM();';
                                         if (data.preserve) order = ';';
-                                        var query = 'CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + order;
+                                        var query = 'CREATE TABLE ' + taskName + ' as SELECT * FROM temp_' + taskName + order;                                        
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);';
+                                        var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + ' (time);';                                        
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        var query = 'CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);';
+                                        var query = 'CREATE TABLE ' + taskName + '_stats (time INT, attributes HSTORE);';                                        
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);';
+                                        var query = 'CREATE INDEX CONCURRENTLY ON ' + taskName + '_stats (time);';                                        
                                         client.query(query, cb);
                                     }).defer(function(cb){
                                         var query = queries.create_type();
@@ -404,23 +405,27 @@ server.route({
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
-                                        var query = 'DROP TABLE temp_' + taskName + ';';
+                                        var query = 'DROP TABLE temp_' + taskName + ';';                                        
+                                        client.query(query, cb);
+                                    })
+                                    .defer(function(cb) { //Lets avoid create tables out off this file
+                                        var query = queries.create_task_details();
                                         client.query(query, cb);
                                     })
                                     .defer(function(cb) {
                                         var details = {
-                                            title: '',
+                                            title: taskName,
                                             description: '',
                                             updated: Math.round(+new Date()/1000),
                                             owner: JSON.stringify([data.user || null])
-                                        };
+                                        };                                       
                                         client.query('INSERT INTO task_details VALUES($1, $2);', [taskName, hstore.stringify(details)], cb);
                                     })
                                     .awaitAll(function(err, results) {
                                         if (err) return reply(boom.badRequest(err));
-                                        reply({
+                                        return reply(JSON.stringify({
                                             taskname: taskName
-                                        });
+                                        }));
                                     });
                             }, 500);
                         }
