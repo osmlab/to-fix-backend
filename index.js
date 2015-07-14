@@ -330,6 +330,30 @@ server.route({
     }
 });
 
+//Get a list of task 
+server.route({
+    method: 'GET',
+    path: '/tasks',
+    handler: function(request, reply) {
+        var query = 'SELECT id, title, source FROM task_details;';
+        var tasks = [];        
+        var cliente = client.query(query, function(err, results) {
+            if (err) return boom.badRequest(err);
+            results.rows.forEach(function(row) {
+                var task = {};
+                task.id = row.id;
+                task.title = row.title;
+                task.source = row.source;
+                tasks.push(task);
+            });
+        });
+        cliente.on('end', function(result) {
+            return reply(JSON.stringify({
+                tasks: tasks
+            }));
+        });
+    }
+});
 
 
 server.route({
