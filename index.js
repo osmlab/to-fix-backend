@@ -147,7 +147,7 @@ server.route({
 
 server.route({
     method: 'GET',
-    path: '/tasks/{status}',
+    path: '/tasks',
     handler: function(request, reply) {
         get_functions.tasks(client, request, reply);
     }

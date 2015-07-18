@@ -32,6 +32,20 @@ INSERT INTO task_details(id, title, source, owner, description, updated, status)
 
 SELECT id, title, source FROM task_details WHERE status = false
 
+SELECT table_name FROM information_schema.tables WHERE table_schema='public'
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

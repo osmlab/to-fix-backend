@@ -17,7 +17,8 @@
     "pg": "^4.2.0",
     "pg-copy-streams": "^0.3.0",
     "pg-hstore": "^2.3.1",
-    "queue-async": "^1.0.7"
+    "queue-async": "^1.0.7",
+    "random-strings": "0.0.1"
   },
   "engines": {
     "node": "0.10.x"
