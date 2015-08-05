@@ -45,6 +45,8 @@ server.connection({
     }
 });
 
+var tasks = {};
+
 server.route({
     method: 'GET',
     path: '/status',
@@ -59,7 +61,7 @@ server.route({
     method: 'POST',
     path: '/track/{task}',
     handler: function(request, reply) {
-        var table = request.params.task;
+        var table = request.params.task.simplify();
         var attributes = request.payload.attributes;
         if (!attributes) return reply(boom.badRequest('missing attributes'));
         // don't wait
@@ -107,7 +109,8 @@ server.route({
     method: 'POST',
     path: '/task/{task}',
     handler: function(request, reply) {
-        post_functions.task(client, request, reply, lockPeriod);
+        var table = tasks[request.params.task.simplify()];
+        post_functions.task(client, request, reply, lockPeriod, table);
     }
 });
 
@@ -120,7 +123,8 @@ server.route({
         }
     },
     handler: function(request, reply) {
-        post_functions.fixed(client, request, reply);
+        var table = tasks[request.params.task.simplify()];
+        post_functions.fixed(client, request, reply, table);
     }
 });
 
@@ -133,7 +137,8 @@ server.route({
         }
     },
     handler: function(request, reply) {
-        post_functions.noterror(client, request, reply);
+        var table = tasks[request.params.task.simplify()];
+        post_functions.noterror(client, request, reply, table);
     }
 });
 
@@ -163,10 +168,38 @@ server.route({
             parse: true
         }
     },
-    handler: function(request, reply) {        
-        post_functions.csv(client,  request, reply);
+    handler: function(request, reply) {
+        post_functions.csv(client, request, reply, function(results) {
+            load_tasks(results.status);
+            return reply(JSON.stringify({
+                taskid: results.taskid
+            }));
+        });
+        // setTimeout(function(){
+        //     console.log(tasks);
+        // },6000)
     }
 });
+
+
+function load_tasks(status) { // this function  will run just oane time
+    if (status) {
+        tasks = {};
+        var query = 'SELECT id, tasktable FROM task_details ORDER BY status, title;';
+        var cliente = client.query(query, function(err, results) {
+            results.rows.forEach(function(row) {
+                tasks[row.id] = row.tasktable;
+            });
+        });
+        // cliente.on('end', function(result) {
+        //     console.log(tasks);
+        // });
+    }
+}
+
+String.prototype.simplify = function() {
+    return this.replace(/[^a-zA-Z]+/g, '').toLowerCase()
+};
 
 pg.connect(conString, function(err, c, d) {
     if (err) return console.log(err);
@@ -175,5 +208,6 @@ pg.connect(conString, function(err, c, d) {
     done = d;
     server.start(function() {
         console.log('server on port', port);
+        load_tasks(true)
     });
 });
