@@ -77,7 +77,8 @@ server.route({
     method: 'GET',
     path: '/count/{task}',
     handler: function(request, reply) {
-        get_functions.count(client, request, reply);
+        var table = tasks[request.params.task.simplify()];
+        get_functions.count(client, request, reply, table);
     }
 });
 
@@ -85,7 +86,8 @@ server.route({
     method: 'GET',
     path: '/count_history/{task}/{grouping}',
     handler: function(request, reply) {
-        get_functions.count_history(client, request, reply);
+        var table = request.params.task.simplify();
+        get_functions.count_history(client, request, reply,table);
     }
 });
 
@@ -93,7 +95,8 @@ server.route({
     method: 'GET',
     path: '/track/{task}/{key}:{value}/{to?}',
     handler: function(request, reply) {
-        get_functions.track(client, request, reply);
+        var table = request.params.task.simplify();
+        get_functions.track(client, request, reply,table);
     }
 });
 
@@ -101,7 +104,8 @@ server.route({
     method: 'GET',
     path: '/track_stats/{task}/{from}/{to}',
     handler: function(request, reply) {
-        get_functions.track_stats(client, request, reply);
+        var table = request.params.task.simplify();
+        get_functions.track_stats(client, request, reply,table);
     }
 });
 
@@ -175,14 +179,11 @@ server.route({
                 taskid: results.taskid
             }));
         });
-        // setTimeout(function(){
-        //     console.log(tasks);
-        // },6000)
     }
 });
 
 
-function load_tasks(status) { // this function  will run just oane time
+function load_tasks(status) {
     if (status) {
         tasks = {};
         var query = 'SELECT id, tasktable FROM task_details ORDER BY status, title;';
