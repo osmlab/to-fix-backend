@@ -51,8 +51,15 @@ server.route({
     method: 'GET',
     path: '/status',
     handler: function(request, reply) {
-        reply({
-            status: 'a ok'
+        pg.connect(conString, function(err, c, d) {
+            if (err) {
+                reply(boom.badRequest(err));
+            } else {
+                reply({
+                    status: 'a ok'
+                });
+            }
+            c.end();
         });
     }
 });
