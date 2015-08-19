@@ -53,7 +53,7 @@ server.route({
     handler: function(request, reply) {
         pg.connect(conString, function(err, c, d) {
             if (err) {
-                reply(boom.badRequest(err));
+                reply('error').code(500)
             } else {
                 reply({
                     status: 'a ok'
@@ -61,6 +61,14 @@ server.route({
             }
             c.end();
         });
+    }
+});
+
+server.route({
+    method: 'GET',
+    path: '/sends-errors',
+    handler: function(request, reply) {
+        reply('error').code(500)
     }
 });
 
