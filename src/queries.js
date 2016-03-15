@@ -14,7 +14,7 @@ queries.create_function = function(tableName, taskid) {
 		' UPDATE task_details SET status = subquery.status FROM (SELECT CASE when MIN("time")=2147483647 THEN true  ELSE false END AS status FROM ' + tableName + ') AS subquery WHERE task_details.id=\'' + taskid + '\'; ' +
 		' ELSE  ' +
 		' UPDATE ' + tableName + '  SET time = (now+lockPeriod) WHERE key=result.key;' +
-		' UPDATE task_details  SET updated = now WHERE id=\'' + taskid + '\';' +
+		//' UPDATE task_details  SET updated = now WHERE id=\'' + taskid + '\';' +
 		' END IF;  ' +
 		' RETURN result;  ' +
 		' END;  ' +

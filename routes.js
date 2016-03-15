@@ -4,17 +4,6 @@ var get = require('./src/get');
 var post = require('./src/post');
 
 var routes = function(client, conString, lockPeriod, tasks) {
-  function load_tasks(status) {
-    if (status) {
-      tasks = {};
-      var query = 'SELECT id, tasktable FROM task_details ORDER BY status, title;';
-      var cliente = client.query(query, function(err, results) {
-        results.rows.forEach(function(row) {
-          tasks[row.id] = row.tasktable;
-        });
-      });
-    }
-  }
   load_tasks(true);
   return [{
     method: 'GET',
@@ -140,6 +129,18 @@ var routes = function(client, conString, lockPeriod, tasks) {
       });
     }
   }];
+
+  function load_tasks(status) {
+    if (status) {
+      tasks = {};
+      var query = 'SELECT id, tasktable FROM task_details ORDER BY status, title;';
+      var cliente = client.query(query, function(err, results) {
+        results.rows.forEach(function(row) {
+          tasks[row.id] = row.tasktable;
+        });
+      });
+    }
+  }
 };
 String.prototype.simplify = function() {
   return this.replace(/[^a-zA-Z]+/g, '').toLowerCase();
