@@ -1,8 +1,7 @@
-var boom = require('boom'),
-	hstore = require('pg-hstore')(),
-	queue = require('queue-async'),
-	queries = require('./queries');
-
+var boom = require('boom');
+var hstore = require('pg-hstore')();
+var queue = require('queue-async');
+var queries = require('./queries');
 var uploadPassword = process.env.UploadPassword;
 var path = process.env.UploadPath;
 
@@ -160,4 +159,4 @@ module.exports = {
 			}));
 		});
 	}
-}
+};
