@@ -19,7 +19,7 @@ queries.create_function = function(tableName, taskid) {
 		' RETURN result;  ' +
 		' END;  ' +
 		' $$ LANGUAGE plpgsql;';
-}
+};
 
 queries.create_type = function() {
 	return 'CREATE OR REPLACE FUNCTION create_type() \
@@ -30,7 +30,7 @@ queries.create_type = function() {
 				END IF; \
 			END; \
 			$$  LANGUAGE plpgsql; SELECT create_type();'; //execute at same Time as created the function
-}
+};
 
 // create table task_details
 queries.create_task_details = function() {
@@ -44,6 +44,6 @@ queries.create_task_details = function() {
 			END; \
 			$$  LANGUAGE plpgsql; \
 			SELECT create_table();"; //execute at same Time as created the function
-}
+};
 
 module.exports = queries;
