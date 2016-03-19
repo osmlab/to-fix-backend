@@ -7,7 +7,7 @@ var user = process.env.DBUsername || 'postgres';
 var password = process.env.DBPassword || '';
 var address = process.env.DBAddress || 'localhost';
 var database = process.env.Database || 'tofix';
-var path = process.env.UploadPath;
+var path = process.env.UploadPath || '/tmp';
 // short term, to prevent the need from building out user authentication until later
 var uploadPassword = process.env.UploadPassword;
 if (!path) return console.log('env variable UploadPath must be set');
