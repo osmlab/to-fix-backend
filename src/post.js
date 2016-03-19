@@ -83,6 +83,10 @@ module.exports = {
     // confirm db config vars are set
     // err immeditately if not
     var data = request.payload;
+    console.log(data.password);
+    console.log(data.file);
+    console.log(data.name);
+
     if (!data.file ||
       (!data.password || data.password === '') ||
       (!data.name || data.name === '')) return reply(boom.badRequest('missing something'));
@@ -110,6 +114,7 @@ module.exports = {
       // just looking at the extension for now
       if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
       if (path[path.length - 1] !== '/') path = path + '/';
+      console.log(path);
       var file = fs.createWriteStream(path + name);
 
       file.on('error', function(err) {
@@ -117,7 +122,6 @@ module.exports = {
       });
 
       data.file.pipe(file);
-
       data.file.on('end', function(err) {
         reformatCsv(path, path + name, function(err, filename) {
           if (err) {
@@ -212,7 +216,7 @@ module.exports = {
                       details.push(tableName);
                       details.push(data.description);
                       details.push(Math.round(+new Date() / 1000));
-                      details.push(false) //status =false, for a new task
+                      details.push(false); //status =false, for a new task
                       details.push(data.changeset_comment);
                       var query = 'INSERT INTO task_details VALUES($1, $2, $3, $4, $5, $6, $7,$8);';
                       client.query(query, details, cb);
@@ -222,7 +226,7 @@ module.exports = {
                       details.push(tableName);
                       details.push(data.description);
                       details.push(data.changeset_comment);
-                      details.push(false) //status =false, change to avalible task
+                      details.push(false); //status =false, change to avalible task
                       details.push(data.id); // modifed id task
                       var query = 'UPDATE task_details SET source=$1, tasktable=$2, description=$3, changeset_comment=$4, status=$5 WHERE id=$6;';
                       client.query(query, details, cb);

@@ -1,8 +1,7 @@
 var hapi = require('hapi');
 var pg = require('pg');
 var routes = require('./routes');
-var updateTask = require('./src/updateTask');
-var crontab = require('node-crontab');
+// var updateTask = require('./src/updateTask');
 
 var user = process.env.DBUsername || 'postgres';
 var password = process.env.DBPassword || '';
@@ -41,7 +40,7 @@ pg.connect(conString, function(err, c, d) {
   console.log('connected to:', address);
   client = c;
   server.route(routes(client, conString, lockPeriod, tasks));
-  updateTask(client);
+  // updateTask(client,path);
   server.start(function() {
     console.log('server on port', port);
   });
