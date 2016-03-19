@@ -139,7 +139,7 @@ module.exports = {
 		});
 	},
 	tasks: function(client, request, reply) {
-		var query = 'SELECT id, title, source, changeset_comment, status FROM task_details ORDER BY status, title;'; // WHERE status = $1
+		var query = 'SELECT id, title, source,description ,changeset_comment, status FROM task_details ORDER BY status, title;'; // WHERE status = $1
 		var tasks = [];
 		var cliente = client.query(query, /* [status],*/ function(err, results) {
 			if (err) return boom.badRequest(err);
@@ -148,6 +148,7 @@ module.exports = {
 				task.id = row.id;
 				task.title = row.title;
 				task.source = row.source;
+				task.description = row.description;
 				task.changeset_comment = row.changeset_comment;
 				task.status = row.status;
 				tasks.push(task);
