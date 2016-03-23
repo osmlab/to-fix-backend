@@ -1,13 +1,12 @@
-var boom = require('boom'),
-	hstore = require('pg-hstore')(),
-	queue = require('queue-async'),
-	queries = require('./queries');
-
+var boom = require('boom');
+var hstore = require('pg-hstore')();
+var queue = require('queue-async');
+var queries = require('./queries');
 var uploadPassword = process.env.UploadPassword;
 var path = process.env.UploadPath;
 
 module.exports = {
-	count: function(client, request, reply,table) {
+	count: function(client, request, reply, table) {
 		queue(1)
 			.defer(function(cb) {
 				// overall count
@@ -30,7 +29,7 @@ module.exports = {
 				});
 			});
 	},
-	count_history: function(client, request, reply,table) {
+	count_history: function(client, request, reply, table) {
 		var query = "SELECT count(*), attributes->'action' AS action, date_trunc($1, to_timestamp(time)) AS time FROM " + table + "_stats WHERE attributes->'action'='skip' OR attributes->'action'='edit' OR attributes->'action'='fix' OR attributes->'action'='noterror' GROUP BY date_trunc($1, to_timestamp(time)), attributes->'action' ORDER BY date_trunc($1, to_timestamp(time));";
 		client.query(query, [request.params.grouping], function(err, results) {
 			if (err) return reply(boom.badRequest(err));
@@ -54,7 +53,7 @@ module.exports = {
 			});
 		});
 	},
-	track: function(client, request, reply,table) {
+	track: function(client, request, reply, table) {
 		// gets results filtered by key:value or by date range
 		// user:joey, filters from hstore
 		// or
@@ -121,7 +120,7 @@ module.exports = {
 	},
 	detail: function(client, request, reply) {
 		var idtask = request.params.idtask.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-		var query = 'SELECT id, title, source, description, updated, status from task_details where id =  $1';
+		var query = 'SELECT id, title, source, description, changeset_comment, updated, status from task_details where id =  $1';
 		var task = {};
 		var cliente = client.query(query, [idtask], function(err, results) {
 			if (err) return boom.badRequest(err);
@@ -130,6 +129,7 @@ module.exports = {
 				task.title = row.title;
 				task.source = row.source;
 				task.description = row.description;
+				task.changeset_comment = row.changeset_comment;
 				task.updated = row.updated;
 				task.status = row.status;
 			});
@@ -139,7 +139,7 @@ module.exports = {
 		});
 	},
 	tasks: function(client, request, reply) {
-		var query = 'SELECT id, title, source, status FROM task_details ORDER BY status, title;'; // WHERE status = $1
+		var query = 'SELECT id, title, source, changeset_comment, status FROM task_details ORDER BY status, title;'; // WHERE status = $1
 		var tasks = [];
 		var cliente = client.query(query, /* [status],*/ function(err, results) {
 			if (err) return boom.badRequest(err);
@@ -148,6 +148,7 @@ module.exports = {
 				task.id = row.id;
 				task.title = row.title;
 				task.source = row.source;
+				task.changeset_comment = row.changeset_comment;
 				task.status = row.status;
 				tasks.push(task);
 			});
@@ -158,4 +159,4 @@ module.exports = {
 			}));
 		});
 	}
-}
+};
