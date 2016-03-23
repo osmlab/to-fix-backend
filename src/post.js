@@ -83,10 +83,6 @@ module.exports = {
     // confirm db config vars are set
     // err immeditately if not
     var data = request.payload;
-    console.log(data.password);
-    console.log(data.file);
-    console.log(data.name);
-
     if (!data.file ||
       (!data.password || data.password === '') ||
       (!data.name || data.name === '')) return reply(boom.badRequest('missing something'));
@@ -94,7 +90,6 @@ module.exports = {
     if (data.password != uploadPassword) return reply(boom.unauthorized('invalid password'));
 
     if (data.file) {
-
       var new_task = (data.newtask === 'true');
       var name = data.file.hapi.filename;
       var table_stats;
@@ -114,7 +109,6 @@ module.exports = {
       // just looking at the extension for now
       if (name.slice(-4) != '.csv') return reply(boom.badRequest('.csv files only'));
       if (path[path.length - 1] !== '/') path = path + '/';
-      console.log(path);
       var file = fs.createWriteStream(path + name);
 
       file.on('error', function(err) {
@@ -244,7 +238,6 @@ module.exports = {
           }
         });
       });
-
     }
   }
 };
