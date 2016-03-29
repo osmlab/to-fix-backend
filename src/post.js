@@ -93,7 +93,6 @@ module.exports = {
       var new_task = (data.newtask === 'true');
       var name = data.file.hapi.filename;
       var table_stats;
-      var oldTableName;
       var tableName;
       var taskid;
 
@@ -202,17 +201,6 @@ module.exports = {
                     var query = queries.create_task_details();
                     client.query(query, cb);
                   })
-                  .defer(function(cb) { //Get name from previous table to remove later
-                    if (!new_task) {
-                      var query = 'SELECT id, tasktable FROM task_details WHERE id =$1';
-                      client.query(query, [taskid], function(err, results) {
-                        oldTableName = results.rows[0].tasktable;
-                        cb();
-                      });
-                    } else {
-                      cb();
-                    }
-                  })
                   .defer(function(cb) {
                     if (new_task) {
                       var details = [];
@@ -236,14 +224,6 @@ module.exports = {
                       details.push(data.id); // modifed id task
                       var query = 'UPDATE task_details SET source=$1, tasktable=$2, description=$3, changeset_comment=$4, status=$5 WHERE id=$6;';
                       client.query(query, details, cb);
-                    }
-                  })
-                  .defer(function(cb) { //remove previous table
-                    if (!new_task) {
-                      var query = 'DROP TABLE ' + oldTableName + ';';
-                      client.query(query, cb);
-                    } else {
-                      cb();
                     }
                   })
                   .awaitAll(function(err, results) {
