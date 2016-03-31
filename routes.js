@@ -115,7 +115,7 @@ var routes = function(client, conString, lockPeriod, tasks) {
     path: '/csv',
     config: {
       payload: {
-        maxBytes: 200000000,
+        maxBytes: 300000000,
         output: 'stream',
         parse: true
       }
