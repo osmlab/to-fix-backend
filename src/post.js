@@ -186,7 +186,8 @@ module.exports = {
                     } else {
                       cb();
                     }
-                  }).defer(function(cb) {
+                  })
+                  .defer(function(cb) {
                     var query = queries.create_type();
                     client.query(query, cb);
                   }).defer(function(cb) {
@@ -200,6 +201,34 @@ module.exports = {
                   .defer(function(cb) { //Lets avoid create tables out off this file
                     var query = queries.create_task_details();
                     client.query(query, cb);
+                  })
+                  .defer(function(cb) { //Get name from previous table to remove later
+                    if (!new_task) {
+                      var query = 'SELECT id, tasktable FROM task_details WHERE id =$1';
+                      client.query(query, [taskid], function(err, results) {
+                        oldTableName = results.rows[0].tasktable;
+                        cb();
+                      });
+                    } else {
+                      cb();
+                    }
+                  })
+                  .defer(function(cb) { //create table idtask_noterror
+                    if (new_task) {
+                      var query = 'CREATE TABLE ' + taskid + '_noterror( key character varying(255),  value text );';
+                      client.query(query, cb);
+                    } else {
+                      cb();
+                    }
+                  })
+                  .defer(function(cb) { //save not-an-error items on table **_noterror
+                    if (!new_task) {
+                      var query = 'INSERT INTO ' + taskid + '_noterror (key,value) SELECT b.key,b.value FROM ' + taskid + '_stats as a INNER JOIN ' +
+                        oldTableName + ' as b  ON a.attributes->\'key\' = b.key AND a.attributes->\'action\'=\'noterror\';';
+                      client.query(query, cb());
+                    } else {
+                      cb();
+                    }
                   })
                   .defer(function(cb) {
                     if (new_task) {
@@ -224,6 +253,14 @@ module.exports = {
                       details.push(data.id); // modifed id task
                       var query = 'UPDATE task_details SET source=$1, tasktable=$2, description=$3, changeset_comment=$4, status=$5 WHERE id=$6;';
                       client.query(query, details, cb);
+                    }
+                  })
+                  .defer(function(cb) { //remove old table
+                    if (!new_task) {
+                      var query = 'DROP TABLE ' + oldTableName + ';';
+                      client.query(query, cb);
+                    } else {
+                      cb();
                     }
                   })
                   .awaitAll(function(err, results) {
