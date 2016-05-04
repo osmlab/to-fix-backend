@@ -250,8 +250,9 @@ module.exports = {
                       details.push(data.description);
                       details.push(data.changeset_comment);
                       details.push(false); //status =false, change to avalible task
+                      details.push(Math.round(+new Date() / 1000));
                       details.push(data.id); // modifed id task
-                      var query = 'UPDATE task_details SET source=$1, tasktable=$2, description=$3, changeset_comment=$4, status=$5 WHERE id=$6;';
+                      var query = 'UPDATE task_details SET source=$1, tasktable=$2, description=$3, changeset_comment=$4, status=$5, updated=$6 WHERE id=$7;';
                       client.query(query, details, cb);
                     }
                   })
