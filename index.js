@@ -1,47 +1,40 @@
-var hapi = require('hapi');
-var pg = require('pg');
-var routes = require('./routes');
-// var updateTask = require('./src/updateTask');
+'use strict';
 
-var user = process.env.DBUsername || 'postgres';
-var password = process.env.DBPassword || '';
-var address = process.env.DBAddress || 'localhost';
-var database = process.env.Database || 'tofix';
-var path = process.env.UploadPath;
-// short term, to prevent the need from building out user authentication until later
-var uploadPassword = process.env.UploadPassword;
-if (!path) return console.log('env variable UploadPath must be set');
-if (!uploadPassword) return console.log('env variable UploadPassword must be set');
-// from the db connection
-var client;
-// seconds to lock each item
-var lockPeriod = 600;
+const Hapi = require('hapi');
+const Inert = require('inert');
+const Lout = require('lout');
+const Vision = require('vision');
+const Routes = require('./routes');
 
-var conString = 'postgres://' +
-  user + ':' +
-  password + '@' +
-  address + '/' +
-  database;
+const config = {};
+const server = new Hapi.Server(config);
 
-var server = new hapi.Server();
-var port = 8000;
-
+const port = 3000;
+const host = '0.0.0.0';
 server.connection({
-  port: port,
-  routes: {
-    cors: true
-  }
+    port: port,
+    host: host
 });
 
-var tasks = {};
+const loutRegister = {
+    register: Lout,
+    options: {
+        endpoint: '/docs'
+    }
+};
 
-pg.connect(conString, function(err, c, d) {
-  if (err) return console.log(err);
-  console.log('connected to:', address);
-  client = c;
-  server.route(routes(client, conString, lockPeriod, tasks));
-  // updateTask(client,path);
-  server.start(function() {
-    console.log('server on port', port);
-  });
+server.register([Vision, Inert, loutRegister], function(err) {
+
+    if (err) {
+        console.error('Failed loading plugins');
+        process.exit(1);
+    }
+
+    server.route(Routes);
+
+    server.start(function() {
+        console.log('Server running at:', server.info.uri);
+    });
 });
+
+module.exports = server;

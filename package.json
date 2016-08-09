@@ -1,26 +1,27 @@
 {
-  "name": "build-to-fix",
+  "name": "to-fix-backend",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
-    "stop": "./node_modules/.bin/forever stop index.js"
+    "stop": "./node_modules/.bin/forever stop index.js",
+    "test": "lab -a code -c",
+    "test-tap": "lab -a code -r tap -o tests.tap",
+    "test-cov-html": "lab -a code -r html -o coverage.html"
   },
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "aws-sdk": "^2.2.43",
-    "boom": "^2.6.1",
-    "csv-parser": "^1.5.0",
-    "forever": "^0.14.1",
-    "hapi": "^8.2.0",
-    "node-crontab": "0.0.8",
-    "pg": "^4.2.0",
-    "pg-copy-streams": "^0.3.0",
-    "pg-hstore": "^2.3.1",
-    "queue-async": "^1.0.7",
-    "random-strings": "0.0.1"
+    "code": "^3.0.2",
+    "handlebars": "^4.0.5",
+    "hapi": "^14.1.0",
+    "inert": "^4.0.1",
+    "joi": "^9.0.4",
+    "lab": "^10.9.0",
+    "lout": "^9.1.0",
+    "massive": "^2.4.0",
+    "vision": "^4.1.0"
   },
   "engines": {
     "node": "0.10.x"
