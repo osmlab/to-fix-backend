@@ -10,7 +10,10 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "boom": "^3.2.2",
     "code": "^3.0.2",
+    "geojson-validation": "^0.1.6",
+    "geojsonhint": "^2.0.0-beta",
     "handlebars": "^4.0.5",
     "hapi": "^14.1.0",
     "inert": "^4.0.1",

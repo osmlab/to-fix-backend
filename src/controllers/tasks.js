@@ -1,8 +1,11 @@
 'use strict';
 const massive = require("massive");
+const boom = require('boom');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const geojsonhint = require('geojsonhint');
+
 const user = process.env.DBUsername || 'postgres';
 const password = process.env.DBPassword || '';
 const address = process.env.DBAddress || 'localhost';
@@ -39,18 +42,22 @@ module.exports.createTasks = function(request, reply) {
   if (data.file) {
     const name = data.file.hapi.filename;
     const folder = os.tmpDir();
-    const fileSrc = path.join(folder, name);
-    const file = fs.createWriteStream(fileSrc);
+    const geojsonFile = path.join(folder, name);
+    const file = fs.createWriteStream(geojsonFile);
     file.on('error', function(err) {
       console.error(err);
     });
     data.file.pipe(file);
     data.file.on('end', function(err) {
-      const rep = {
-        filename: data.file.hapi.filename,
-        headers: data.file.hapi.headers
-      };
-      reply(JSON.stringify(rep));
+      if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
+        const rep = {
+          filename: data.file.hapi.filename,
+          headers: data.file.hapi.headers
+        };
+        reply(JSON.stringify(rep));
+      } else {
+        reply(boom.badData('The data is bad and you should fix it'));
+      }
     });
   }
 };

@@ -22,6 +22,13 @@ module.exports = [{
   method: 'POST',
   path: '/tasks',
   config: {
+    validate: {
+      payload: {
+        taskname: Joi.string().required(),
+        taskid: Joi.string().required(),
+        file: Joi.object().required() //Joi.any().required(),
+      }
+    },
     payload: {
       output: 'stream',
       parse: true,
