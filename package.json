@@ -5,10 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
-    "stop": "./node_modules/.bin/forever stop index.js",
-    "test": "lab -a code -c",
-    "test-tap": "lab -a code -r tap -o tests.tap",
-    "test-cov-html": "lab -a code -r html -o coverage.html"
+    "stop": "./node_modules/.bin/forever stop index.js"
   },
   "author": "",
   "license": "BSD",

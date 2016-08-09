@@ -1,8 +1,7 @@
-"use strict";
+'use strict';
 
 const Joi = require('joi');
-const controllersTasks= require('./src/controllers/tasks');
-
+const controllersTasks = require('./src/controllers/tasks');
 
 module.exports = [{
   method: 'GET',
@@ -13,29 +12,21 @@ module.exports = [{
         name: Joi.string()
       }
     },
-    handler: function(request, reply) {
-      console.log('hola');
-    }
+    handler: controllersTasks.tasks
   }
 }, {
   method: 'GET',
   path: '/tasks/{id}',
-  handler: function(request, reply) {
-    console.log('hola2');
-
-  }
+  handler: controllersTasks.findeOne
 }, {
   method: 'POST',
   path: '/tasks',
   config: {
-    validate: {
-      payload: {
-        name: Joi.string().required().min(3)
-      }
+    payload: {
+      output: 'stream',
+      parse: true,
+      allow: 'multipart/form-data'
     },
-    handler: function(request, reply) {
-      console.log('hola3');
-
-    }
+    handler: controllersTasks.createTasks,
   }
 }];

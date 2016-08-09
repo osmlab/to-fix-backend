@@ -16,6 +16,17 @@ server.connection({
     host: host
 });
 
+const user = process.env.DBUsername || 'postgres';
+const password = process.env.DBPassword || '';
+const address = process.env.DBAddress || 'localhost';
+const database = process.env.Database || 'tofix';
+
+const connectionString = 'postgres://' +
+    user + ':' +
+    password + '@' +
+    address + '/' +
+    database;
+
 const loutRegister = {
     register: Lout,
     options: {
@@ -24,14 +35,11 @@ const loutRegister = {
 };
 
 server.register([Vision, Inert, loutRegister], function(err) {
-
     if (err) {
         console.error('Failed loading plugins');
         process.exit(1);
     }
-
     server.route(Routes);
-
     server.start(function() {
         console.log('Server running at:', server.info.uri);
     });
