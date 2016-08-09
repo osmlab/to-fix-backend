@@ -1,47 +1,56 @@
-var hapi = require('hapi');
-var pg = require('pg');
-var routes = require('./routes');
-// var updateTask = require('./src/updateTask');
+'use strict';
+var Hapi = require('hapi');
+var Inert = require('inert');
+var Lout = require('lout');
+var Vision = require('vision');
+var HapiNodPostgres = require('hapi-node-postgres');
+var Good = require('good');
+var routes = require('./src/routes');
+var config = require('./src/configs/config');
 
-var user = process.env.DBUsername || 'postgres';
-var password = process.env.DBPassword || '';
-var address = process.env.DBAddress || 'localhost';
-var database = process.env.Database || 'tofix';
-var path = process.env.UploadPath;
-// short term, to prevent the need from building out user authentication until later
-var uploadPassword = process.env.UploadPassword;
-if (!path) return console.log('env variable UploadPath must be set');
-if (!uploadPassword) return console.log('env variable UploadPassword must be set');
-// from the db connection
-var client;
-// seconds to lock each item
-var lockPeriod = 600;
-
-var conString = 'postgres://' +
-  user + ':' +
-  password + '@' +
-  address + '/' +
-  database;
-
-var server = new hapi.Server();
-var port = 8000;
-
+var server = new Hapi.Server();
 server.connection({
-  port: port,
-  routes: {
-    cors: true
-  }
+  host: 'localhost',
+  port: 3000
 });
-
-var tasks = {};
-
-pg.connect(conString, function(err, c, d) {
-  if (err) return console.log(err);
-  console.log('connected to:', address);
-  client = c;
-  server.route(routes(client, conString, lockPeriod, tasks));
-  // updateTask(client,path);
+var loutRegister = {
+  register: Lout,
+  options: {
+    endpoint: '/docs'
+  }
+};
+var pgconnection = {
+  register: HapiNodPostgres,
+  options: {
+    connectionString: config.connectionString,
+    native: true
+  }
+};
+var good = {
+  register: Good,
+  options: {
+    reporters: {
+      console: [{
+        module: 'good-squeeze',
+        name: 'Squeeze',
+        args: [{
+          response: '*',
+          log: '*' //['error']
+        }]
+      }, {
+        module: 'good-console'
+      }, 'stdout']
+    }
+  }
+};
+server.register([Vision, Inert, loutRegister, pgconnection, good], function(err) {
+  if (err) {
+    console.error('Failed loading plugins');
+  }
+  server.route(routes);
   server.start(function() {
-    console.log('server on port', port);
+    console.log(`Server running at: ${server.info.uri}`);
   });
 });
+
+module.exports = server;
