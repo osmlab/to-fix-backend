@@ -21,6 +21,8 @@
     "lab": "^10.9.0",
     "lout": "^9.1.0",
     "massive": "^2.4.0",
+    "pg": "^6.0.3",
+    "pg-copy-streams": "^1.1.1",
     "vision": "^4.1.0"
   },
   "engines": {

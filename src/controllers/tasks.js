@@ -40,6 +40,7 @@ module.exports.createTasks = function(request, reply) {
   //create
   const data = request.payload;
   if (data.file) {
+    const taskid = data.taskid;
     const name = data.file.hapi.filename;
     const folder = os.tmpDir();
     const geojsonFile = path.join(folder, name);
@@ -50,11 +51,21 @@ module.exports.createTasks = function(request, reply) {
     data.file.pipe(file);
     data.file.on('end', function(err) {
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-        const rep = {
-          filename: data.file.hapi.filename,
-          headers: data.file.hapi.headers
-        };
-        reply(JSON.stringify(rep));
+        var geojson = JSON.parse(fs.readFileSync(geojsonFile, 'utf8'));
+        for (var i = 0; i < geojson.features.length; i++) {
+          var v = geojson.features[i];
+          if (v) {
+            var d = (new Date()).getTime();
+            v.properties._timestamp = d - d % 1000;
+            console.log(v.properties._timestamp);
+            db.saveDoc(taskid, v, function(err, res) {
+              console.log(res);
+            });
+          }
+        }
+        reply({
+          'sattus': 'task was created'
+        });
       } else {
         reply(boom.badData('The data is bad and you should fix it'));
       }

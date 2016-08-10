@@ -5,6 +5,7 @@ const Inert = require('inert');
 const Lout = require('lout');
 const Vision = require('vision');
 const Routes = require('./routes');
+const RoutesItem = require('./routes-item');
 
 const config = {};
 const server = new Hapi.Server(config);
@@ -39,7 +40,9 @@ server.register([Vision, Inert, loutRegister], function(err) {
         console.error('Failed loading plugins');
         process.exit(1);
     }
-    server.route(Routes);
+
+    var allroutes = Routes.concat(RoutesItem);
+    server.route(allroutes);
     server.start(function() {
         console.log('Server running at:', server.info.uri);
     });
