@@ -1,7 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
-const controllersTasks = require('./src/controllers/tasks');
+const controllersTasks = require('./../controllers/tasks');
 
 module.exports = [{
   method: 'GET',

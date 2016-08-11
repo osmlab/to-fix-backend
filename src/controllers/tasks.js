@@ -14,7 +14,6 @@ let db = massive.connectSync({
 });
 
 module.exports.listTasks = function(request, reply) {
-  console.log('llega');
   db.tasks.find({},function(err, tasks) {
     reply(tasks);
   });

@@ -25,6 +25,7 @@
     "node-uuid": "^1.4.7",
     "pg": "^6.0.3",
     "pg-copy-streams": "^1.1.1",
+    "underscore": "^1.8.3",
     "vision": "^4.1.0"
   },
   "engines": {
