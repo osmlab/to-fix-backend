@@ -21,10 +21,19 @@ module.exports.tasks = function(request, reply) {
 };
 
 module.exports.findeOne = function(request, reply) {
-  reply({
-    list: "listar uno"
+  const idstr = request.params.idstr;
+  const now = Math.round((new Date()).getTime() / 1000);
+  db[idstr].findOne({
+    "time <": now
+  }, function(err, item) {
+    reply(item);
+    db[idstr].save({
+      id: item.id,
+      time: now + config.lockPeriod
+    }, function(err, updated) {
+      console.log('was updated ' + updated);
+    });
   });
-  //list one
 };
 
 module.exports.createTasks = function(request, reply) {

@@ -16,8 +16,17 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{id}',
-  handler: controllersTasks.findeOne
+  path: '/tasks/{idstr}',
+  config: {
+    description: 'Get specific item for the task',
+    notes: 'Get specific item for the task',
+    validate: {
+      params: {
+        idstr: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.findeOne
+  }
 }, {
   method: 'POST',
   path: '/tasks',

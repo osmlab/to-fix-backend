@@ -8,3 +8,5 @@ module.exports.connectionString = 'postgres://' +
   password + '@' +
   address + '/' +
   database;
+
+module.exports.lockPeriod = 600;
