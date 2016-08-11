@@ -13,21 +13,21 @@ let db = massive.connectSync({
   connectionString: config.connectionString
 });
 
-module.exports.tasks = function(request, reply) {
-  //Listar
-  reply({
-    list: "listar"
+module.exports.listTasks = function(request, reply) {
+  console.log('llega');
+  db.tasks.find({},function(err, tasks) {
+    reply(tasks);
   });
 };
 
 module.exports.findeOne = function(request, reply) {
-  const idstr = request.params.idstr;
   const now = Math.round((new Date()).getTime() / 1000);
-  db[idstr].findOne({
+  const idtask = request.params.idtask;
+  db[idtask].findOne({
     "time <": now
   }, function(err, item) {
     reply(item);
-    db[idstr].save({
+    db[idtask].save({
       id: item.id,
       time: now + config.lockPeriod
     }, function(err, updated) {
