@@ -5,21 +5,13 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const geojsonhint = require('geojsonhint');
+const uuid = require('node-uuid');
+const table = require('./../utils/table');
+const config = require('./../configs/config');
 
-const user = process.env.DBUsername || 'postgres';
-const password = process.env.DBPassword || '';
-const address = process.env.DBAddress || 'localhost';
-const database = process.env.Database || 'tofix';
-const conString = 'postgres://' +
-  user + ':' +
-  password + '@' +
-  address + '/' +
-  database;
-
-const db = massive.connectSync({
-  connectionString: conString
+let db = massive.connectSync({
+  connectionString: config.connectionString
 });
-
 
 module.exports.tasks = function(request, reply) {
   //Listar
@@ -27,7 +19,6 @@ module.exports.tasks = function(request, reply) {
     list: "listar"
   });
 };
-
 
 module.exports.findeOne = function(request, reply) {
   reply({
@@ -40,7 +31,15 @@ module.exports.createTasks = function(request, reply) {
   //create
   const data = request.payload;
   if (data.file) {
-    const taskid = data.taskid;
+    const task = {
+      idstr: data.idstr,
+      name: data.name,
+      description: data.description,
+      updated: Math.round((new Date()).getTime() / 1000),
+      status: true,
+      changeset_comment: data.changeset_comment,
+    };
+    const idstr = data.idstr;
     const name = data.file.hapi.filename;
     const folder = os.tmpDir();
     const geojsonFile = path.join(folder, name);
@@ -51,20 +50,18 @@ module.exports.createTasks = function(request, reply) {
     data.file.pipe(file);
     data.file.on('end', function(err) {
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-        var geojson = JSON.parse(fs.readFileSync(geojsonFile, 'utf8'));
-        for (var i = 0; i < geojson.features.length; i++) {
-          var v = geojson.features[i];
-          if (v) {
-            var d = (new Date()).getTime();
-            v.properties._timestamp = d - d % 1000;
-            console.log(v.properties._timestamp);
-            db.saveDoc(taskid, v, function(err, res) {
-              console.log(res);
+        table.createtable(request, idstr, function(err, result) {
+          if (err) {} else {
+            loadData(geojsonFile, idstr, function(newdb) {
+              db = newdb;
+              db.tasks.save(task, function(err, result) {
+                if (err) {
+                  console.log(err);
+                }
+                reply(result);
+              });
             });
           }
-        }
-        reply({
-          'sattus': 'task was created'
         });
       } else {
         reply(boom.badData('The data is bad and you should fix it'));
@@ -72,3 +69,23 @@ module.exports.createTasks = function(request, reply) {
     });
   }
 };
+
+function loadData(geojsonFile, idstr, done) {
+  massive.connect({
+    connectionString: config.connectionString
+  }, function(err, db) {
+    var geojson = JSON.parse(fs.readFileSync(geojsonFile, 'utf8'));
+    for (var i = 0; i < geojson.features.length; i++) { //need to improve here
+      var v = geojson.features[i];
+      var item = {
+        idsrt: uuid.v4(),
+        time: Math.round((new Date()).getTime() / 1000),
+        body: v
+      };
+      db[idstr].insert(item, function(err, result) {
+        console.log(result.id);
+      });
+    }
+    done(db);
+  });
+}

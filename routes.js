@@ -24,8 +24,10 @@ module.exports = [{
   config: {
     validate: {
       payload: {
-        taskname: Joi.string().required(),
-        taskid: Joi.string().required(),
+        idstr: Joi.string().required(),
+        name: Joi.string().required(),
+        description: Joi.string().required(),
+        changeset_comment: Joi.string().required(),
         file: Joi.object().required() //Joi.any().required(),
       }
     },

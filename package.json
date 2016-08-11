@@ -16,11 +16,13 @@
     "geojsonhint": "^2.0.0-beta",
     "handlebars": "^4.0.5",
     "hapi": "^14.1.0",
+    "hapi-node-postgres": "^4.0.0",
     "inert": "^4.0.1",
     "joi": "^9.0.4",
     "lab": "^10.9.0",
     "lout": "^9.1.0",
     "massive": "^2.4.0",
+    "node-uuid": "^1.4.7",
     "pg": "^6.0.3",
     "pg-copy-streams": "^1.1.1",
     "vision": "^4.1.0"

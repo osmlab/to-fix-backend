@@ -6,42 +6,32 @@ const Lout = require('lout');
 const Vision = require('vision');
 const Routes = require('./routes');
 const RoutesItem = require('./routes-item');
-
-const config = {};
-const server = new Hapi.Server(config);
-
-const port = 3000;
-const host = '0.0.0.0';
+const config = require('./src/configs/config');
+const server = new Hapi.Server({});
 server.connection({
-    port: port,
-    host: host
+    port: 3000,
+    host: '0.0.0.0'
 });
-
-const user = process.env.DBUsername || 'postgres';
-const password = process.env.DBPassword || '';
-const address = process.env.DBAddress || 'localhost';
-const database = process.env.Database || 'tofix';
-
-const connectionString = 'postgres://' +
-    user + ':' +
-    password + '@' +
-    address + '/' +
-    database;
-
 const loutRegister = {
     register: Lout,
     options: {
         endpoint: '/docs'
     }
 };
+const pgconnection = {
+    register: require('hapi-node-postgres'),
+    options: {
+        connectionString: config.connectionString,
+        native: true
+    }
+};
 
-server.register([Vision, Inert, loutRegister], function(err) {
+server.register([Vision, Inert, loutRegister, pgconnection], function(err) {
     if (err) {
         console.error('Failed loading plugins');
         process.exit(1);
     }
-
-    var allroutes = Routes.concat(RoutesItem);
+    const allroutes = Routes.concat(RoutesItem);
     server.route(allroutes);
     server.start(function() {
         console.log('Server running at:', server.info.uri);
