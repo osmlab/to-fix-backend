@@ -12,7 +12,6 @@
   "dependencies": {
     "boom": "^3.2.2",
     "code": "^3.0.2",
-    "geojson-validation": "^0.1.6",
     "geojsonhint": "^2.0.0-beta",
     "handlebars": "^4.0.5",
     "hapi": "^14.1.0",
@@ -22,10 +21,8 @@
     "lab": "^10.9.0",
     "lout": "^9.1.0",
     "massive": "^2.4.0",
-    "node-uuid": "^1.4.7",
     "pg": "^6.0.3",
-    "pg-copy-streams": "^1.1.1",
-    "underscore": "^1.8.3",
+    "shortid": "^2.2.6",
     "vision": "^4.1.0"
   },
   "engines": {

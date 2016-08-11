@@ -15,8 +15,8 @@ module.exports = [{
   config: {
     validate: {
       payload: {
-        idstr: Joi.string().required(),
         name: Joi.string().required(),
+        idproject: Joi.string().required(),
         description: Joi.string().required(),
         changeset_comment: Joi.string().required(),
         file: Joi.object().required() //Joi.any().required(),

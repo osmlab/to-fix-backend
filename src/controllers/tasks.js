@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const geojsonhint = require('geojsonhint');
-const uuid = require('node-uuid');
+const shortid = require('shortid');
 const table = require('./../utils/table');
 const config = require('./../configs/config');
 
@@ -14,7 +14,7 @@ let db = massive.connectSync({
 });
 
 module.exports.listTasks = function(request, reply) {
-  db.tasks.find({},function(err, tasks) {
+  db.tasks.find({}, function(err, tasks) {
     reply(tasks);
   });
 };
@@ -40,14 +40,14 @@ module.exports.createTasks = function(request, reply) {
   const data = request.payload;
   if (data.file) {
     const task = {
-      idstr: data.idstr,
+      idstr: data.name.concat(shortid.generate()).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
       name: data.name,
+      idproject: data.idproject,
       description: data.description,
       updated: Math.round((new Date()).getTime() / 1000),
       status: true,
       changeset_comment: data.changeset_comment,
     };
-    const idstr = data.idstr;
     const name = data.file.hapi.filename;
     const folder = os.tmpDir();
     const geojsonFile = path.join(folder, name);
@@ -58,9 +58,9 @@ module.exports.createTasks = function(request, reply) {
     data.file.pipe(file);
     data.file.on('end', function(err) {
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-        table.createtable(request, idstr, function(err, result) {
+        table.createtable(request, task.idstr, function(err, result) {
           if (err) {} else {
-            loadData(geojsonFile, idstr, function(newdb) {
+            loadData(geojsonFile, task.idstr, function(newdb) {
               db = newdb;
               db.tasks.save(task, function(err, result) {
                 if (err) {
@@ -86,7 +86,7 @@ function loadData(geojsonFile, idstr, done) {
     for (var i = 0; i < geojson.features.length; i++) { //need to improve here
       var v = geojson.features[i];
       var item = {
-        idsrt: uuid.v4(),
+        idsrt: shortid.generate(),
         time: Math.round((new Date()).getTime() / 1000),
         body: v
       };

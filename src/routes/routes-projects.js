@@ -17,7 +17,6 @@ module.exports = [{
   config: {
     tags: ['api'],
     description: 'Get specific project data',
-    notes: 'Get specific project data',
     validate: {
       params: {
         idproject: Joi.string().required()
@@ -43,7 +42,6 @@ module.exports = [{
   path: '/projects/{idproject}',
   config: {
     description: 'Update specific project data',
-    notes: 'Update specific project data',
     validate: {
       params: {
         idproject: Joi.string().required()
@@ -61,12 +59,24 @@ module.exports = [{
   method: 'DELETE',
   path: '/projects/{idproject}',
   config: {
-    description: 'Remove specific user data',
+    description: 'Remove specific project data',
     validate: {
       params: {
         idproject: Joi.string().required()
       }
     },
     handler: controllersProjects.deleteProjects
+  }
+}, {
+  method: 'GET',
+  path: '/projects/{idproject}/tasks',
+  config: {
+    description: 'Get all tasks in a project',
+    validate: {
+      params: {
+        idproject: Joi.string().required()
+      }
+    },
+    handler: controllersProjects.getTasksPerProject
   }
 }];

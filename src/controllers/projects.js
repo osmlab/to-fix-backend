@@ -57,3 +57,11 @@ module.exports.deleteProjects = function(request, reply) {
     reply(res);
   });
 };
+
+module.exports.getTasksPerProject = function(request, reply) {
+  db.tasks.find({
+    idstr: request.params.idproject
+  }, function(err, project) {
+    reply(project);
+  });
+};
