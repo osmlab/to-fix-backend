@@ -3,11 +3,9 @@
 const massive = require("massive");
 const boom = require('boom');
 const config = require('./../configs/config');
-let db;
-
-module.exports.init = function(dbconnection) {
-  db = dbconnection;
-};
+let db = massive.connectSync({
+  connectionString: config.connectionString
+});
 
 module.exports.getAllProjects = function(request, reply) {
   db.projects.find({}, function(err, projects) {

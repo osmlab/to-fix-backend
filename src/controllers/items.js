@@ -3,11 +3,10 @@
 const massive = require("massive");
 const boom = require('boom');
 const config = require('./../configs/config');
-let db;
 
-module.exports.init = function(dbconnection) {
-  db = dbconnection;
-};
+let db = massive.connectSync({
+  connectionString: config.connectionString
+});
 
 module.exports.getItemById = function(request, reply) {
   const iditem = request.params.iditem;
@@ -15,7 +14,7 @@ module.exports.getItemById = function(request, reply) {
   db[idtask].find({
     'idsrt': iditem
   }, function(err, item) {
-    reply(item);
+    return reply(item);
   });
 };
 

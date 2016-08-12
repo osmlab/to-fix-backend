@@ -1,5 +1,6 @@
 'use strict';
 
+const massive = require("massive");
 const boom = require('boom');
 const fs = require('fs');
 const os = require('os');
@@ -8,12 +9,10 @@ const geojsonhint = require('geojsonhint');
 const shortid = require('shortid');
 const table = require('./../utils/table');
 const config = require('./../configs/config');
-const massive = require("massive");
-let db;
 
-module.exports.init = function(dbconnection) {
-  db = dbconnection;
-};
+let db = massive.connectSync({
+  connectionString: config.connectionString
+});
 
 module.exports.listTasks = function(request, reply) {
   db.tasks.find({}, function(err, tasks) {
@@ -44,18 +43,20 @@ module.exports.createTasks = function(request, reply) {
     data.file.on('end', function(err) {
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
         table.createtable(request, task.idstr, function(err, result) {
-          if (err) {} else {
-            loadData(geojsonFile, task.idstr, function() {
-              db.tasks.save(task, function(err, result) {
-                if (err) {
-                  console.log(err);
-                }
-                db.loadTables(function(err, db) {
-                  console.log('reload tables');
-                });
-                reply(result);
+          if (err) {
+            console.log(err);
+
+          } else {
+            db.tasks.save(task, function(err, result) {
+              if (err) {
+                console.log(err);
+              }
+              db.loadTables(function(err, db) {
+                console.log('reload tables');
               });
+              return reply(result);
             });
+            loadData(geojsonFile, task.idstr, function() {});
           }
         });
       } else {

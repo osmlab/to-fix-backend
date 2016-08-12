@@ -29,3 +29,17 @@ CREATE TABLE tasks(
 --DROP table item
 
 --select * from item
+
+
+CREATE INDEX idx_argitosbwzfjy
+  ON argitosbwzfjy
+  USING gin
+  (body jsonb_path_ops);
+
+-- Index: idx_search_my_documents
+
+-- DROP INDEX idx_search_my_documents;
+
+CREATE INDEX index_time_argitosbwzfjy
+ON argitosbwzfjy (time);
+
