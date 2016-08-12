@@ -1,7 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
-const controllersTasks = require('./../controllers/tasks');
+const controllersTasks = require('./../controllers').tasks;
 
 module.exports = [{
   method: 'GET',
@@ -23,6 +23,7 @@ module.exports = [{
       }
     },
     payload: {
+      maxBytes: 209715200,
       output: 'stream',
       parse: true,
       allow: 'multipart/form-data'

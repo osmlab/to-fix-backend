@@ -1,5 +1,5 @@
 'use strict';
-const massive = require("massive");
+
 const boom = require('boom');
 const fs = require('fs');
 const os = require('os');
@@ -8,10 +8,12 @@ const geojsonhint = require('geojsonhint');
 const shortid = require('shortid');
 const table = require('./../utils/table');
 const config = require('./../configs/config');
+const massive = require("massive");
+let db;
 
-let db = massive.connectSync({
-  connectionString: config.connectionString
-});
+module.exports.init = function(dbconnection) {
+  db = dbconnection;
+};
 
 module.exports.listTasks = function(request, reply) {
   db.tasks.find({}, function(err, tasks) {
@@ -19,24 +21,7 @@ module.exports.listTasks = function(request, reply) {
   });
 };
 
-module.exports.findeOne = function(request, reply) {
-  const now = Math.round((new Date()).getTime() / 1000);
-  const idtask = request.params.idtask;
-  db[idtask].findOne({
-    "time <": now
-  }, function(err, item) {
-    reply(item);
-    db[idtask].save({
-      id: item.id,
-      time: now + config.lockPeriod
-    }, function(err, updated) {
-      console.log('was updated ' + updated);
-    });
-  });
-};
-
 module.exports.createTasks = function(request, reply) {
-  //create
   const data = request.payload;
   if (data.file) {
     const task = {
@@ -60,12 +45,14 @@ module.exports.createTasks = function(request, reply) {
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
         table.createtable(request, task.idstr, function(err, result) {
           if (err) {} else {
-            loadData(geojsonFile, task.idstr, function(newdb) {
-              db = newdb;
+            loadData(geojsonFile, task.idstr, function() {
               db.tasks.save(task, function(err, result) {
                 if (err) {
                   console.log(err);
                 }
+                db.loadTables(function(err, db) {
+                  console.log('reload tables');
+                });
                 reply(result);
               });
             });
@@ -79,9 +66,9 @@ module.exports.createTasks = function(request, reply) {
 };
 
 function loadData(geojsonFile, idstr, done) {
-  massive.connect({
+  massive.connect({ //do other conenction to do this faster
     connectionString: config.connectionString
-  }, function(err, db) {
+  }, function(err, newdb) {
     var geojson = JSON.parse(fs.readFileSync(geojsonFile, 'utf8'));
     for (var i = 0; i < geojson.features.length; i++) { //need to improve here
       var v = geojson.features[i];
@@ -90,10 +77,10 @@ function loadData(geojsonFile, idstr, done) {
         time: Math.round((new Date()).getTime() / 1000),
         body: v
       };
-      db[idstr].insert(item, function(err, result) {
+      newdb[idstr].insert(item, function(err, result) {
         console.log(result.id);
       });
     }
-    done(db);
+    done();
   });
 }

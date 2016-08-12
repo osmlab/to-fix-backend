@@ -1,11 +1,13 @@
 'use strict';
+
 const massive = require("massive");
 const boom = require('boom');
 const config = require('./../configs/config');
+let db;
 
-let db = massive.connectSync({
-  connectionString: config.connectionString
-});
+module.exports.init = function(dbconnection) {
+  db = dbconnection;
+};
 
 module.exports.getItemById = function(request, reply) {
   const iditem = request.params.iditem;
@@ -28,7 +30,7 @@ module.exports.getItem = function(request, reply) {
       id: item.id,
       time: now + config.lockPeriod
     }, function(err, updated) {
-      console.log('was updated ' + updated);
+      console.log('updated:' + updated.idsrt);
     });
   });
 };

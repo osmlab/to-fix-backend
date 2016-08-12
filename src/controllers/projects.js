@@ -1,11 +1,13 @@
 'use strict';
+
 const massive = require("massive");
 const boom = require('boom');
 const config = require('./../configs/config');
+let db;
 
-let db = massive.connectSync({
-  connectionString: config.connectionString
-});
+module.exports.init = function(dbconnection) {
+  db = dbconnection;
+};
 
 module.exports.getAllProjects = function(request, reply) {
   db.projects.find({}, function(err, projects) {
@@ -60,7 +62,7 @@ module.exports.deleteProjects = function(request, reply) {
 
 module.exports.getTasksPerProject = function(request, reply) {
   db.tasks.find({
-    idstr: request.params.idproject
+    idproject: request.params.idproject
   }, function(err, project) {
     reply(project);
   });
