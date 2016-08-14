@@ -18,16 +18,37 @@ module.exports = [{
     handler: controllersItem.getItemById
   }
 }, {
-  method: 'GET',
+  method: 'POST',
   path: '/tasks/{idtask}/items',
   config: {
     description: 'Get ramdom item for the task',
     notes: 'Get ramdom item for the task',
     validate: {
+      payload: {
+        action: Joi.string().required(),
+        user: Joi.string().required()
+      },
       params: {
         idtask: Joi.string().required()
       }
     },
     handler: controllersItem.getItem
+  }
+}, {
+  method: 'POST',
+  path: '/tasks/{idtask}/items/track',
+  config: {
+    description: 'Update a item with an action',
+    validate: {
+      payload: {
+        iditem: Joi.string().required(),
+        action: Joi.string().required(),
+        user: Joi.string().required()
+      },
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: controllersItem.updateItem
   }
 }];

@@ -24,10 +24,12 @@ module.exports.getAProjects = function(request, reply) {
 module.exports.saveProjects = function(request, reply) {
   const data = request.payload;
   var project = {
-    'idstr': data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase(),
-    'name': data.name,
-    'admin': data.admin,
-    'status': true
+    idstr: data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase(),
+    body: {
+      name: data.name,
+      admin: data.admin,
+      status: true
+    }
   };
   db.projects.save(project, function(err, res) {
     reply(res);

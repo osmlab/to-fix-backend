@@ -12,3 +12,4 @@ module.exports.connectionString = 'postgres://' +
   database;
 
 module.exports.lockPeriod = 600;
+module.exports.maxnum = 2147483647;
