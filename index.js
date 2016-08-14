@@ -12,13 +12,13 @@ server.connection({
   port: 3000
 });
 
-const loutRegister = {
+let loutRegister = {
   register: Lout,
   options: {
     endpoint: '/docs'
   }
 };
-const pgconnection = {
+let pgconnection = {
   register: require('hapi-node-postgres'),
   options: {
     connectionString: config.connectionString,

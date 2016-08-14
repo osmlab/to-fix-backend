@@ -6,9 +6,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const geojsonhint = require('geojsonhint');
-var child_process = require('child_process');
+const child_process = require('child_process');
 const shortid = require('shortid');
-const table = require('./../utils/table');
+const util = require('./../utils/util');
 const config = require('./../configs/config');
 const folder = os.tmpDir();
 
@@ -34,43 +34,49 @@ module.exports.createTasks = function(request, reply) {
         updated: Math.round((new Date()).getTime() / 1000),
         status: true,
         changeset_comment: data.changeset_comment,
+        load_status: 'loading'
       }
     };
     const name = data.file.hapi.filename;
     const geojsonFile = path.join(folder, name);
     const file = fs.createWriteStream(geojsonFile);
-    file.on('error', function(err) {
-      console.error(err);
+    file.on('error', (err) => {
+      console.log(err);
     });
     data.file.pipe(file);
-    data.file.on('end', function(err) {
+    data.file.on('end', (err) => {
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-        table.createtable(request, task.idstr, function(err, result) {
+        util.createTable(request, task.idstr, (err, result) => {
           if (err) {
             console.log(err);
           } else {
-
-            db.tasks.save(task, function(err, result) {
+            //save task
+            db.tasks.save(task, (err, result) => {
               if (err) {
                 console.log(err);
               }
-              db.loadTables(function(err, db) {
-                console.log('reload tables');
-              });
               reply(result);
-            });
-            //load the data
-            var child = child_process.fork('./src/controllers/load');
-            child.send({
-              file: geojsonFile,
-              id: task.idstr
-            });
-            child.on('message', function(message) {
-              db.loadTables(function(err, db) {
+              db.loadTables((err, db) => {
                 console.log('reload tables');
               });
+              //insert data into DB
+              var child = child_process.fork('./src/controllers/load');
+              child.send({
+                file: geojsonFile,
+                task: result
+              });
+              child.on('message', (props) => {
+                //update when the load is complete
+                props.result.task.body.load_status = 'complete';
+                db.tasks.update({
+                  id: props.result.task.id,
+                }, {
+                  body: props.result.task.body
+                }, (err, res) => {
+                  console.log(res);
+                });
+              });
             });
-            // loadData(geojsonFile, task.idstr, function() {});
           }
         });
       } else {
@@ -79,3 +85,4 @@ module.exports.createTasks = function(request, reply) {
     });
   }
 };
+

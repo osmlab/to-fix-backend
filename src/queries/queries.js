@@ -6,5 +6,6 @@ queries.selectItemById = (idtask) => `SELECT id, idstr, "time", body FROM ${idta
 queries.updateItemById = (idtask) => `UPDATE ${idtask} SET "time"=$1, body=($2::JSONB) WHERE id=$3;`;
 queries.createTable = (idtask) => `CREATE TABLE ${idtask}( id serial PRIMARY KEY, idstr varchar(50), time integer, body jsonb );`;
 queries.selectItemtoUpdate = (idtask) => `SELECT id, idstr, "time", body FROM ${idtask} WHERE idstr = $1;`;
+queries.selectAllItems = (idtask) => `SELECT body  FROM ${idtask};`;
 
 module.exports = queries;
