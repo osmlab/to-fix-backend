@@ -1,26 +1,26 @@
 'use strict';
-const fs = require('fs');
-const massive = require('massive');
-const shortid = require('shortid');
-const config = require('./../configs/config');
+var fs = require('fs');
+var massive = require('massive');
+var shortid = require('shortid');
+var config = require('./../configs/config');
 process.on('message', (props) => {
   massive.connect({
     connectionString: config.connectionString
-  }, (err, db) => {
+  }, function(err, db) {
     if (err) console.log(err);
-    const geojson = JSON.parse(fs.readFileSync(props.file, 'utf8'));
-    for (let i = 0; i < geojson.features.length; i++) {
-      let feature = geojson.features[i];
-      let item = {
+    var geojson = JSON.parse(fs.readFileSync(props.file, 'utf8'));
+    for (var i = 0; i < geojson.features.length; i++) {
+      var feature = geojson.features[i];
+      var item = {
         idstr: shortid.generate(),
         time: Math.round((new Date()).getTime() / 1000),
         body: feature
       };
-      db[props.task.idstr].insert(item, (err, result) => {
+      db[props.task.idstr].insert(item, function(err, result)  {
         if (err) console.log(err);
         console.log(`insert: ${result.id}`);
         if ((i + 1) === geojson.features.length) {
-          let history = {
+          var history = {
             date: Math.round((new Date()).getTime() / 1000),
             items: geojson.features.length
           };

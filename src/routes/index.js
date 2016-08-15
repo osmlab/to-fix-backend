@@ -1,5 +1,5 @@
 'use strict';
-const items = require('./routes-items.js');
-const projects = require('./routes-projects.js');
-const tasks = require('./routes-tasks.js');
+var items = require('./routes-items.js');
+var projects = require('./routes-projects.js');
+var tasks = require('./routes-tasks.js');
 module.exports = [].concat(projects, tasks, items);

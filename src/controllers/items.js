@@ -68,7 +68,6 @@ module.exports.getItemById = function(request, reply) {
 module.exports.getAllItems = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
-
   client.query(queries.selectAllItems(idtask), function(err, result) {
     if (err) return reply(boom.badRequest(err));
     return reply({
