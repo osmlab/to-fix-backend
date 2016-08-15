@@ -18,4 +18,13 @@ queries.selectItemtoUpdate = function(idtask) {
 queries.selectAllItems = function(idtask) {
   return `SELECT body  FROM ${idtask};`;
 };
+
+queries.selectATask = function() {
+  return 'SELECT body FROM tasks where idstr=$1';
+};
+
+queries.updateATask = function() {
+  return 'UPDATE tasks SET body=($1::JSONB) WHERE idstr=$2;';
+};
+
 module.exports = queries;

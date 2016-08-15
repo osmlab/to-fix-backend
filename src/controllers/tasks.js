@@ -16,9 +16,21 @@ var db = massive.connectSync({
 });
 
 module.exports.listTasks = function(request, reply) {
-  db.tasks.find({}, function(err, tasks) {
+  db.tasks.find({
+    status: true
+  }, function(err, tasks) {
     if (err) return reply(boom.badRequest(err));
     return reply(tasks);
+  });
+};
+
+module.exports.listTasksById = function(request, reply) {
+  var client = request.pg.client;
+  db.tasks.find({
+    idstr: request.params.idtask
+  }, function(err, tasks) {
+    if (err) return reply(boom.badRequest(err));
+    return reply(tasks[0]);
   });
 };
 
@@ -28,22 +40,25 @@ module.exports.createTasks = function(request, reply) {
     var task = {
       idstr: data.name.concat(shortid.generate()).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
       idproject: data.idproject,
+      status: true,
       body: {
         name: data.name,
         description: data.description,
         updated: Math.round((new Date()).getTime() / 1000),
-        status: true,
         changeset_comment: data.changeset_comment,
-        load_status: 'loading'
+        load_status: 'loading',
+        stats: [{
+          edit: 0,
+          fixed: 0,
+          noterror: 0
+        }]
       }
     };
     var name = data.file.hapi.filename;
     var geojsonFile = path.join(folder, name);
     var file = fs.createWriteStream(geojsonFile);
     file.on('error', function(err) {
-      if (err) {
-        return reply(boom.badRequest(err));
-      }
+      if (err) return reply(boom.badRequest(err));
     });
     data.file.pipe(file);
     data.file.on('end', function(err) {
@@ -56,9 +71,7 @@ module.exports.createTasks = function(request, reply) {
             console.log(`Table ok :${result}`);
             //save task
             db.tasks.save(task, function(err, result) {
-              if (err) {
-                return reply(boom.badRequest(err));
-              }
+              if (err) return reply(boom.badRequest(err));
               reply(result);
               db.loadTables(function(err, db) {
                 if (err) return reply(boom.badRequest(err));
@@ -79,7 +92,7 @@ module.exports.createTasks = function(request, reply) {
                   body: props.result.task.body
                 }, function(err, res) {
                   if (err) return reply(boom.badRequest(err));
-                  console.log(res);
+                  console.log('load completed');
                 });
               });
             });
@@ -97,18 +110,23 @@ module.exports.updateTasks = function(request, reply) {
   var idtask = request.params.idtask;
   db.tasks.find(data.id, function(err, result) {
     if (err) return reply(boom.badRequest(err));
+    result.body.stats.push({
+      edit: 0,
+      fixed: 0,
+      noterror: 0
+    });
     var task = {
       id: data.id,
       idstr: idtask,
       idproject: data.idproject,
+      status: true,
       body: {
         name: data.name,
         description: data.description,
         updated: Math.round((new Date()).getTime() / 1000),
-        status: true,
         changeset_comment: data.changeset_comment,
-        history: result.body.history,
-        load_status: result.body.history
+        stats: result.body.stats,
+        load_status: result.body.load_status
       }
     };
 
@@ -165,5 +183,16 @@ module.exports.updateTasks = function(request, reply) {
         return reply(res);
       });
     }
+  });
+};
+
+module.exports.deleteTasks = function(request, reply) {
+  db.tasks.update({
+    idstr: request.params.idtask
+  }, {
+    'status': false //for now set a
+  }, function(err, res) {
+    if (err) return reply(boom.badRequest(err));
+    return reply(res);
   });
 };

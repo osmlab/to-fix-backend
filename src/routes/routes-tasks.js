@@ -9,6 +9,17 @@ module.exports = [{
     handler: controllersTasks.listTasks
   }
 }, {
+  method: 'GET',
+  path: '/tasks/{idtask}',
+  config: {
+    validate: {
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.listTasksById
+  }
+}, {
   method: 'POST',
   path: '/tasks',
   config: {
@@ -53,5 +64,29 @@ module.exports = [{
       allow: 'multipart/form-data'
     },
     handler: controllersTasks.updateTasks
+  }
+}, {
+  method: 'DELETE',
+  path: '/tasks/{idtask}',
+  config: {
+    description: 'Remove specific task',
+    validate: {
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.deleteTasks
+  }
+}, {
+  method: 'GET',
+  path: '/count/{idtask}',
+  config: {
+    description: 'Returns the count of the total number of items and all available items for a given task',
+    validate: {
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.deleteTasks
   }
 }];

@@ -3,6 +3,24 @@ var boom = require('boom');
 var config = require('./../configs/config');
 var queries = require('./../queries/queries');
 
+var updateTask = function(request, reply) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  client.query(queries.selectATask(), [idtask], function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    var task = result.rows[0];
+    if (data.action) {
+      task.body.stats[task.body.stats.length - 1][data.action] = task.body.stats[task.body.stats.length - 1][data.action] + 1;
+    } else {
+      task.body.stats[task.body.stats.length - 1]['edit'] = task.body.stats[task.body.stats.length - 1]['edit'] + 1;
+    }
+    client.query(queries.updateATask(), [JSON.stringify(task.body), idtask], function(err, result) {
+      if (err) console.log(err);
+    });
+  });
+};
+
 var updateItem = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -49,9 +67,11 @@ module.exports.getItem = function(request, reply) {
     client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], function(err, result) {
       if (err) return reply(boom.badRequest(err));
     });
+    //to update fixed and notanerror action
     if (data.iditem && data.action) {
       updateItem(request, reply);
     }
+    updateTask(request, reply);
   });
 };
 

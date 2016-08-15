@@ -15,7 +15,7 @@ module.exports = [{
   path: '/projects/{idproject}',
   config: {
     tags: ['api'],
-    description: 'Get specific project data',
+    description: 'Get specific project data it includes all tasks existing tasks in the project',
     validate: {
       params: {
         idproject: Joi.string().required()
@@ -65,17 +65,5 @@ module.exports = [{
       }
     },
     handler: controllersProjects.deleteProjects
-  }
-}, {
-  method: 'GET',
-  path: '/projects/{idproject}/tasks',
-  config: {
-    description: 'Get all tasks in a project',
-    validate: {
-      params: {
-        idproject: Joi.string().required()
-      }
-    },
-    handler: controllersProjects.getTasksPerProject
   }
 }];

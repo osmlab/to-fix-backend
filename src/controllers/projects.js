@@ -8,7 +8,9 @@ var db = massive.connectSync({
 });
 
 module.exports.getAllProjects = function(request, reply) {
-  db.projects.find({}, function(err, projects) {
+  db.projects.find({
+    status: true
+  }, function(err, projects) {
     if (err) return reply(boom.badRequest(err));
     return reply(projects);
   });
@@ -16,10 +18,19 @@ module.exports.getAllProjects = function(request, reply) {
 
 module.exports.getAProjects = function(request, reply) {
   db.projects.find({
-    idstr: request.params.idproject
+    idstr: request.params.idproject,
+    status: true
   }, function(err, project) {
     if (err) return reply(boom.badRequest(err));
-    return reply(project);
+    var objProject = project[0];
+    db.tasks.find({
+      idproject: request.params.idproject,
+      status: true
+    }, function(err, tasks) {
+      if (err) return reply(boom.badRequest(err));
+      objProject.tasks = tasks;
+      return reply(objProject);
+    });
   });
 };
 
@@ -27,10 +38,10 @@ module.exports.saveProjects = function(request, reply) {
   var data = request.payload;
   var project = {
     idstr: data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase(),
+    status: true,
     body: {
       name: data.name,
-      admin: data.admin,
-      status: true
+      admin: data.admin
     }
   };
   db.projects.save(project, function(err, res) {
@@ -62,14 +73,5 @@ module.exports.deleteProjects = function(request, reply) {
   }, function(err, res) {
     if (err) return reply(boom.badRequest(err));
     return reply(res);
-  });
-};
-
-module.exports.getTasksPerProject = function(request, reply) {
-  db.tasks.find({
-    idproject: request.params.idproject
-  }, function(err, project) {
-    if (err) return reply(boom.badRequest(err));
-    return reply(project);
   });
 };

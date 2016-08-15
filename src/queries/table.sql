@@ -1,6 +1,7 @@
 ﻿CREATE TABLE projects( 
   id serial PRIMARY KEY,
   idstr varchar(50) UNIQUE,
+  status boolean,
   body jsonb
  );
 --DROP table projects
@@ -9,6 +10,7 @@ CREATE TABLE tasks(
   id serial PRIMARY KEY,
   idstr varchar(50) UNIQUE,
   idproject varchar(50),
+  status boolean,
   body jsonb
  );
 --DROP table tasks
