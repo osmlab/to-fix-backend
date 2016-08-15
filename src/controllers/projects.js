@@ -1,15 +1,16 @@
 'use strict';
+var massive = require('massive');
+var boom = require('boom');
+var config = require('./../configs/config');
 
-const massive = require("massive");
-const boom = require('boom');
-const config = require('./../configs/config');
-let db = massive.connectSync({
+var db = massive.connectSync({
   connectionString: config.connectionString
 });
 
 module.exports.getAllProjects = function(request, reply) {
   db.projects.find({}, function(err, projects) {
-    reply(projects);
+    if (err) return reply(boom.badRequest(err));
+    return reply(projects);
   });
 };
 
@@ -17,12 +18,13 @@ module.exports.getAProjects = function(request, reply) {
   db.projects.find({
     idstr: request.params.idproject
   }, function(err, project) {
-    reply(project);
+    if (err) return reply(boom.badRequest(err));
+    return reply(project);
   });
 };
 
 module.exports.saveProjects = function(request, reply) {
-  const data = request.payload;
+  var data = request.payload;
   var project = {
     idstr: data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase(),
     body: {
@@ -32,7 +34,8 @@ module.exports.saveProjects = function(request, reply) {
     }
   };
   db.projects.save(project, function(err, res) {
-    reply(res);
+    if (err) return reply(boom.badRequest(err));
+    return reply(res);
   });
 };
 
@@ -46,7 +49,8 @@ module.exports.updateProjects = function(request, reply) {
   db.projects.update({
     idstr: project.idstr
   }, project, function(err, res) {
-    reply(res);
+    if (err) return reply(boom.badRequest(err));
+    return reply(res);
   });
 };
 
@@ -56,7 +60,8 @@ module.exports.deleteProjects = function(request, reply) {
   }, {
     'status': false
   }, function(err, res) {
-    reply(res);
+    if (err) return reply(boom.badRequest(err));
+    return reply(res);
   });
 };
 
@@ -64,6 +69,7 @@ module.exports.getTasksPerProject = function(request, reply) {
   db.tasks.find({
     idproject: request.params.idproject
   }, function(err, project) {
-    reply(project);
+    if (err) return reply(boom.badRequest(err));
+    return reply(project);
   });
 };

@@ -1,5 +1,5 @@
 'use strict';
-const queries = require('./../queries/queries');
+var queries = require('./../queries/queries');
 
 module.exports.createTable = function(request, idtask, done) {
   var client = request.pg.client;

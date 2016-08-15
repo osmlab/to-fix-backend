@@ -1,6 +1,6 @@
-'use strict'
-const Joi = require('joi');
-const controllersTasks = require('./../controllers/tasks');
+'use strict';
+var Joi = require('joi');
+var controllersTasks = require('./../controllers/tasks');
 
 module.exports = [{
   method: 'GET',
@@ -27,7 +27,7 @@ module.exports = [{
       parse: true,
       allow: 'multipart/form-data'
     },
-    handler: controllersTasks.createTasks,
+    handler: controllersTasks.createTasks
   }
 }, {
   method: 'PUT',
@@ -52,6 +52,6 @@ module.exports = [{
       parse: true,
       allow: 'multipart/form-data'
     },
-    handler: controllersTasks.updateTasks,
+    handler: controllersTasks.updateTasks
   }
 }];

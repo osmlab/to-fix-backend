@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
-    "stop": "./node_modules/.bin/forever stop index.js"
+    "stop": "./node_modules/.bin/forever stop index.js",
+    "lint": "eslint *.js src/*/*.js;exit 0"
   },
   "author": "",
   "license": "BSD",
   "dependencies": {
     "boom": "^3.2.2",
-    "code": "^3.0.2",
     "geojsonhint": "^2.0.0-beta",
     "good": "^7.0.1",
     "good-console": "^6.1.2",
@@ -25,10 +25,15 @@
     "lout": "^9.1.0",
     "massive": "^2.4.0",
     "pg": "^6.0.3",
+    "pg-native": "^1.10.0",
     "shortid": "^2.2.6",
     "vision": "^4.1.0"
   },
   "engines": {
     "node": "0.10.x"
+  },
+  "devDependencies": {
+    "eslint": "^2.8.0",
+    "eslint-config-mourner": "^2.0.1"
   }
 }

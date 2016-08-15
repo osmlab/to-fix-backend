@@ -1,5 +1,4 @@
 'use strict';
-
 const Joi = require('joi');
 const controllersProjects = require('./../controllers/projects');
 
@@ -32,7 +31,7 @@ module.exports = [{
     validate: {
       payload: {
         name: Joi.string().required(),
-        admin: Joi.string().required(),
+        admin: Joi.string().required()
       }
     },
     handler: controllersProjects.saveProjects
@@ -49,7 +48,7 @@ module.exports = [{
       payload: {
         name: Joi.string(),
         admin: Joi.string(),
-        status: Joi.string(),
+        status: Joi.string()
 
       }
     },

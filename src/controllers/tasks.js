@@ -1,31 +1,31 @@
 'use strict';
+var massive = require('massive');
+var boom = require('boom');
+var fs = require('fs');
+var os = require('os');
+var path = require('path');
+var geojsonhint = require('geojsonhint');
+var childProcess = require('child_process');
+var shortid = require('shortid');
+var util = require('./../utils/util');
+var config = require('./../configs/config');
+var folder = os.tmpDir();
 
-const massive = require("massive");
-const boom = require('boom');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const geojsonhint = require('geojsonhint');
-const child_process = require('child_process');
-const shortid = require('shortid');
-const util = require('./../utils/util');
-const config = require('./../configs/config');
-const folder = os.tmpDir();
-
-let db = massive.connectSync({
+var db = massive.connectSync({
   connectionString: config.connectionString
 });
 
 module.exports.listTasks = function(request, reply) {
   db.tasks.find({}, function(err, tasks) {
-    reply(tasks);
+    if (err) return reply(boom.badRequest(err));
+    return reply(tasks);
   });
 };
 
 module.exports.createTasks = function(request, reply) {
-  const data = request.payload;
+  var data = request.payload;
   if (data.file) {
-    let task = {
+    var task = {
       idstr: data.name.concat(shortid.generate()).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
       idproject: data.idproject,
       body: {
@@ -37,43 +37,48 @@ module.exports.createTasks = function(request, reply) {
         load_status: 'loading'
       }
     };
-    const name = data.file.hapi.filename;
-    const geojsonFile = path.join(folder, name);
-    const file = fs.createWriteStream(geojsonFile);
-    file.on('error', (err) => {
-      console.log(err);
+    var name = data.file.hapi.filename;
+    var geojsonFile = path.join(folder, name);
+    var file = fs.createWriteStream(geojsonFile);
+    file.on('error', function(err) {
+      if (err) {
+        return reply(boom.badRequest(err));
+      }
     });
     data.file.pipe(file);
-    data.file.on('end', (err) => {
+    data.file.on('end', function(err) {
+      if (err) return reply(boom.badRequest(err));
       if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-        util.createTable(request, task.idstr, (err, result) => {
+        util.createTable(request, task.idstr, function(err, result) {
           if (err) {
             console.log(err);
           } else {
+            console.log(`Table ok :${result}`);
             //save task
-            db.tasks.save(task, (err, result) => {
+            db.tasks.save(task, function(err, result) {
               if (err) {
-                console.log(err);
+                return reply(boom.badRequest(err));
               }
               reply(result);
-              db.loadTables((err, db) => {
+              db.loadTables(function(err, db) {
+                if (err) return reply(boom.badRequest(err));
                 console.log('reload tables');
               });
               //insert data into DB
-              var child = child_process.fork('./src/controllers/load');
+              var child = childProcess.fork('./src/controllers/load');
               child.send({
                 file: geojsonFile,
                 task: result
               });
-              child.on('message', (props) => {
+              child.on('message', function(props) {
                 //update when the load is complete
                 props.result.task.body.load_status = 'complete';
-
                 db.tasks.update({
-                  id: props.result.task.id,
+                  id: props.result.task.id
                 }, {
                   body: props.result.task.body
-                }, (err, res) => {
+                }, function(err, res) {
+                  if (err) return reply(boom.badRequest(err));
                   console.log(res);
                 });
               });
@@ -88,10 +93,11 @@ module.exports.createTasks = function(request, reply) {
 };
 
 module.exports.updateTasks = function(request, reply) {
-  const data = request.payload;
-  const idtask = request.params.idtask;
-  db.tasks.find(data.id, (err, result) => {
-    let task = {
+  var data = request.payload;
+  var idtask = request.params.idtask;
+  db.tasks.find(data.id, function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    var task = {
       id: data.id,
       idstr: idtask,
       idproject: data.idproject,
@@ -102,42 +108,46 @@ module.exports.updateTasks = function(request, reply) {
         status: true,
         changeset_comment: data.changeset_comment,
         history: result.body.history,
-        load_status: result.body.history,
+        load_status: result.body.history
       }
     };
 
     if (data.file) {
-      const name = data.file.hapi.filename;
-      const geojsonFile = path.join(folder, name);
-      const file = fs.createWriteStream(geojsonFile);
+      var name = data.file.hapi.filename;
+      var geojsonFile = path.join(folder, name);
+      var file = fs.createWriteStream(geojsonFile);
       file.on('error', function(err) {
+        if (err) return reply(boom.badRequest(err));
         console.error(err);
       });
       data.file.pipe(file);
       data.file.on('end', function(err) {
+        if (err) return reply(boom.badRequest(err));
         if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
           task.body.load_status = 'loading';
           db.tasks.update({
-            id: task.id,
+            id: task.id
           }, {
             body: task.body
-          }, (err, res) => {
+          }, function(err, res) {
+            if (err) return reply(boom.badRequest(err));
             reply(res);
           });
           //load the data
-          var child = child_process.fork('./src/controllers/load');
+          var child = childProcess.fork('./src/controllers/load');
           child.send({
             file: geojsonFile,
             task: task
           });
-          child.on('message', (props) => {
+          child.on('message', function(props) {
             //update when the load is complete
             props.result.task.body.load_status = 'complete';
             db.tasks.update({
-              id: props.result.task.id,
+              id: props.result.task.id
             }, {
               body: props.result.task.body
-            }, (err, res) => {
+            }, function(err, res) {
+              if (err) return reply(boom.badRequest(err));
               console.log(res);
             });
           });
@@ -147,11 +157,11 @@ module.exports.updateTasks = function(request, reply) {
       });
     } else {
       db.tasks.update({
-        id: task.id,
+        id: task.id
       }, {
         body: task.body
-      }, (err, res) => {
-        console.log(res);
+      }, function(err, res) {
+        if (err) return reply(boom.badRequest(err));
         return reply(res);
       });
     }
