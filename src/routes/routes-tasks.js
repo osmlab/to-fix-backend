@@ -29,31 +29,29 @@ module.exports = [{
     },
     handler: controllersTasks.createTasks,
   }
-}
-
-// , {
-//   method: 'PUT',
-//   path: '/tasks/{idtask}',
-//   config: {
-//     validate: {
-//       payload: {
-//         name: Joi.string().required(),
-//         idproject: Joi.string().required(),
-//         description: Joi.string().required(),
-//         changeset_comment: Joi.string().required(),
-//         file: Joi.object().required() //Joi.any().required(),
-//       },
-//       params: {
-//         idtask: Joi.string().required()
-//       }
-//     },
-//     payload: {
-//       maxBytes: 300000000,
-//       output: 'stream',
-//       parse: true,
-//       allow: 'multipart/form-data'
-//     },
-//     handler: controllersTasks.updateTasks,
-//   }
-// }
-];
+}, {
+  method: 'PUT',
+  path: '/tasks/{idtask}',
+  config: {
+    validate: {
+      payload: {
+        id: Joi.number().required(),
+        name: Joi.string().required(),
+        idproject: Joi.string().required(),
+        description: Joi.string().required(),
+        changeset_comment: Joi.string().required(),
+        file: Joi.object()
+      },
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    payload: {
+      maxBytes: 300000000,
+      output: 'stream',
+      parse: true,
+      allow: 'multipart/form-data'
+    },
+    handler: controllersTasks.updateTasks,
+  }
+}];

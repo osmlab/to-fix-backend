@@ -68,6 +68,7 @@ module.exports.createTasks = function(request, reply) {
               child.on('message', (props) => {
                 //update when the load is complete
                 props.result.task.body.load_status = 'complete';
+
                 db.tasks.update({
                   id: props.result.task.id,
                 }, {
@@ -86,3 +87,73 @@ module.exports.createTasks = function(request, reply) {
   }
 };
 
+module.exports.updateTasks = function(request, reply) {
+  const data = request.payload;
+  const idtask = request.params.idtask;
+  db.tasks.find(data.id, (err, result) => {
+    let task = {
+      id: data.id,
+      idstr: idtask,
+      idproject: data.idproject,
+      body: {
+        name: data.name,
+        description: data.description,
+        updated: Math.round((new Date()).getTime() / 1000),
+        status: true,
+        changeset_comment: data.changeset_comment,
+        history: result.body.history,
+        load_status: result.body.history,
+      }
+    };
+
+    if (data.file) {
+      const name = data.file.hapi.filename;
+      const geojsonFile = path.join(folder, name);
+      const file = fs.createWriteStream(geojsonFile);
+      file.on('error', function(err) {
+        console.error(err);
+      });
+      data.file.pipe(file);
+      data.file.on('end', function(err) {
+        if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
+          task.body.load_status = 'loading';
+          db.tasks.update({
+            id: task.id,
+          }, {
+            body: task.body
+          }, (err, res) => {
+            reply(res);
+          });
+          //load the data
+          var child = child_process.fork('./src/controllers/load');
+          child.send({
+            file: geojsonFile,
+            task: task
+          });
+          child.on('message', (props) => {
+            //update when the load is complete
+            props.result.task.body.load_status = 'complete';
+            db.tasks.update({
+              id: props.result.task.id,
+            }, {
+              body: props.result.task.body
+            }, (err, res) => {
+              console.log(res);
+            });
+          });
+        } else {
+          reply(boom.badData('The data is bad and you should fix it'));
+        }
+      });
+    } else {
+      db.tasks.update({
+        id: task.id,
+      }, {
+        body: task.body
+      }, (err, res) => {
+        console.log(res);
+        return reply(res);
+      });
+    }
+  });
+};

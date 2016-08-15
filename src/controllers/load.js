@@ -20,6 +20,15 @@ process.on('message', (props) => {
       db[props.task.idstr].insert(item, (err, result) => {
         console.log(`insert: ${result.id}`);
         if ((i + 1) === geojson.features.length) {
+          let history = {
+            date: Math.round((new Date()).getTime() / 1000),
+            items: geojson.features.length
+          };
+          if (props.task.body.history) {
+            props.task.body.history.push(history);
+          } else {
+            props.task.body.history = [history];
+          }
           process.send({
             child: process.pid,
             result: props

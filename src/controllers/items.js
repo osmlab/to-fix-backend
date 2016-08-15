@@ -19,10 +19,17 @@ module.exports.getItem = function(request, reply) {
     }
     let item = result.rows[0];
     reply(item);
-    item.body.properties.tofix = [{
-      action: 'edit',
-      user: data.user
-    }];
+    if (item.body.properties.tofix) {
+      item.body.properties.tofix.push({
+        action: 'edit',
+        user: data.user
+      });
+    } else {
+      item.body.properties.tofix = [{
+        action: 'edit',
+        user: data.user
+      }];
+    }
     client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], (err, result) => {
       console.log(result);
     });
