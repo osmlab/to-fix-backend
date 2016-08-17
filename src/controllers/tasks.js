@@ -69,32 +69,39 @@ module.exports.createTasks = function(request, reply) {
             console.log(err);
           } else {
             console.log(`Table ok :${result}`);
-            //save task
-            db.tasks.save(task, function(err, result) {
-              if (err) return reply(boom.badRequest(err));
-              reply(result);
-              db.loadTables(function(err, db) {
-                if (err) return reply(boom.badRequest(err));
-                console.log('reload tables');
-              });
-              //insert data into DB
-              var child = childProcess.fork('./src/controllers/load');
-              child.send({
-                file: geojsonFile,
-                task: result
-              });
-              child.on('message', function(props) {
-                //update when the load is complete
-                props.result.task.body.load_status = 'complete';
-                db.tasks.update({
-                  id: props.result.task.id
-                }, {
-                  body: props.result.task.body
-                }, function(err, res) {
+            util.createTableStats(request, task.idstr, function(err, result) {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log(`Table Stats ok :${result}`);
+                //save task
+                db.tasks.save(task, function(err, result) {
                   if (err) return reply(boom.badRequest(err));
-                  console.log('load completed');
+                  reply(result);
+                  db.loadTables(function(err, db) {
+                    if (err) return reply(boom.badRequest(err));
+                    console.log('reload tables');
+                  });
+                  //insert data into DB
+                  var child = childProcess.fork('./src/controllers/load');
+                  child.send({
+                    file: geojsonFile,
+                    task: result
+                  });
+                  child.on('message', function(props) {
+                    //update when the load is complete
+                    props.result.task.body.load_status = 'complete';
+                    db.tasks.update({
+                      id: props.result.task.id
+                    }, {
+                      body: props.result.task.body
+                    }, function(err, res) {
+                      if (err) return reply(boom.badRequest(err));
+                      console.log('load completed');
+                    });
+                  });
                 });
-              });
+              }
             });
           }
         });

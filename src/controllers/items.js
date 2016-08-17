@@ -2,6 +2,26 @@
 var boom = require('boom');
 var config = require('./../configs/config');
 var queries = require('./../queries/queries');
+var childProcess = require('child_process');
+var async = require('async');
+
+var updateActivity = function(request, reply, now) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  var action = {
+    action: data.action,
+    user: data.user,
+    date: now
+  };
+  var startActivity = {
+    'activity': [action]
+  };
+  client.query(queries.upsetActivity(idtask), [data.user, now, startActivity, action], function(err, result) {
+    if (err) console.log(err);
+    console.log('Update activity');
+  });
+};
 
 var updateTask = function(request, reply) {
   var client = request.pg.client;
@@ -10,13 +30,10 @@ var updateTask = function(request, reply) {
   client.query(queries.selectATask(), [idtask], function(err, result) {
     if (err) return reply(boom.badRequest(err));
     var task = result.rows[0];
-    if (data.action) {
-      task.body.stats[task.body.stats.length - 1][data.action] = task.body.stats[task.body.stats.length - 1][data.action] + 1;
-    } else {
-      task.body.stats[task.body.stats.length - 1]['edit'] = task.body.stats[task.body.stats.length - 1]['edit'] + 1;
-    }
+    task.body.stats[task.body.stats.length - 1][data.action] = task.body.stats[task.body.stats.length - 1][data.action] + 1;
     client.query(queries.updateATask(), [JSON.stringify(task.body), idtask], function(err, result) {
       if (err) console.log(err);
+      console.log('Update tasks stats');
     });
   });
 };
@@ -34,8 +51,34 @@ var updateItem = function(request, reply) {
       user: data.user
     });
     client.query(queries.updateItemById(idtask), [config.maxnum, JSON.stringify(item.body), item.id], function(err, result) {
-      if (err) return reply(boom.badRequest(err));
+      if (err) console.log(err);
+      console.log('Update Item with fixed or not an Error');
     });
+  });
+};
+
+
+var updateItemEdit = function(request, reply, item, now, done) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  if (item.body.properties.tofix) {
+    item.body.properties.tofix.push({
+      action: data.action,
+      user: data.user,
+      date: now
+    });
+  } else {
+    item.body.properties.tofix = [{
+      action: 'edit',
+      user: data.user,
+      date: now
+    }];
+  }
+  client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    console.log('update item-edit');
+    done();
   });
 };
 
@@ -53,25 +96,18 @@ module.exports.getItem = function(request, reply) {
     }
     var item = result.rows[0];
     reply(item);
-    if (item.body.properties.tofix) {
-      item.body.properties.tofix.push({
-        action: 'edit',
-        user: data.user
-      });
-    } else {
-      item.body.properties.tofix = [{
-        action: 'edit',
-        user: data.user
-      }];
+    if (!data.action) {
+      data.action = 'edit';
     }
-    client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], function(err, result) {
-      if (err) return reply(boom.badRequest(err));
+    //update(action=edit) the item and lock per 10 min
+    updateItemEdit(request, reply, item, now, function() {
+      // update(action=fixed or noterror) and lock definitely
+      if (data.iditem && data.action !== 'edit') {
+        updateItem(request, reply);
+      }
+      updateTask(request, reply);
+      updateActivity(request, reply, now);
     });
-    //to update fixed and notanerror action
-    if (data.iditem && data.action) {
-      updateItem(request, reply);
-    }
-    updateTask(request, reply);
   });
 };
 
@@ -86,6 +122,19 @@ module.exports.getItemById = function(request, reply) {
 };
 
 module.exports.getAllItems = function(request, reply) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  client.query(queries.selectAllItems(idtask), function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    return reply({
+      type: 'FeatureCollection',
+      features: result.rows
+    });
+  });
+};
+
+
+module.exports.Activity = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
   client.query(queries.selectAllItems(idtask), function(err, result) {

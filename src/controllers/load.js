@@ -3,7 +3,7 @@ var fs = require('fs');
 var massive = require('massive');
 var shortid = require('shortid');
 var config = require('./../configs/config');
-process.on('message', (props) => {
+process.on('message', function(props)  {
   massive.connect({
     connectionString: config.connectionString
   }, function(err, db) {

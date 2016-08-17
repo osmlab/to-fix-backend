@@ -4,6 +4,8 @@
   status boolean,
   body jsonb
  );
+CREATE INDEX idx_products_attributes ON products USING GIN (attributes);
+
 --DROP table projects
 
 CREATE TABLE tasks(
