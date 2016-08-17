@@ -26,7 +26,8 @@ module.exports = [{
       payload: {
         action: Joi.string(),
         iditem: Joi.string(),
-        user: Joi.string().required()
+        user: Joi.string().required(),
+        editor: Joi.string().required()
       },
       params: {
         idtask: Joi.string().required()

@@ -48,7 +48,8 @@ var updateItem = function(request, reply, now) {
     item.body.properties.tofix.push({
       action: data.action,
       user: data.user,
-      date: now
+      date: now,
+      editor: data.editor
     });
     client.query(queries.updateItemById(idtask), [config.maxnum, JSON.stringify(item.body), item.id], function(err, result) {
       if (err) console.log(err);
@@ -66,13 +67,15 @@ var updateItemEdit = function(request, reply, item, now, done) {
     item.body.properties.tofix.push({
       action: data.action,
       user: data.user,
-      date: now
+      date: now,
+      editor: data.editor
     });
   } else {
     item.body.properties.tofix = [{
       action: 'edit',
       user: data.user,
-      date: now
+      date: now,
+      editor: data.editor
     }];
   }
   client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], function(err, result) {

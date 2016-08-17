@@ -1,13 +1,13 @@
-﻿CREATE TABLE projects( 
+﻿--DROP TABLE projects;
+CREATE TABLE projects( 
   id serial PRIMARY KEY,
   idstr varchar(50) UNIQUE,
   status boolean,
   body jsonb
  );
-CREATE INDEX idx_products_attributes ON products USING GIN (attributes);
+CREATE INDEX idx_projects_body ON projects USING GIN (body);
 
---DROP table projects
-
+--DROP TABLE tasks;
 CREATE TABLE tasks(
   id serial PRIMARY KEY,
   idstr varchar(50) UNIQUE,
@@ -15,28 +15,22 @@ CREATE TABLE tasks(
   status boolean,
   body jsonb
  );
---DROP table tasks
+CREATE INDEX idx_tasks_body ON tasks USING GIN (body);
 
- CREATE TABLE item( 
+--DROP TABLE item
+CREATE TABLE items( 
   id serial PRIMARY KEY,
   idstr varchar(50) UNIQUE,
   time integer,
   body jsonb
  );
---DROP table item
+CREATE INDEX idx_items_body ON items USING GIN (body);
 
---select * from item
-
-
-CREATE INDEX idx_argitosbwzfjy
-  ON argitosbwzfjy
-  USING gin
-  (body jsonb_path_ops);
-
--- Index: idx_search_my_documents
-
--- DROP INDEX idx_search_my_documents;
-
-CREATE INDEX index_time_argitosbwzfjy
-ON argitosbwzfjy (time);
-
+--DROP TABLE stats
+CREATE TABLE stats(
+  id serial PRIMARY KEY,
+  "user" varchar(100) UNIQUE,
+  "time" integer,
+  body jsonb
+);
+CREATE INDEX idx_stats_body ON stats USING GIN (body);

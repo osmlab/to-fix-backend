@@ -10,9 +10,7 @@ var shortid = require('shortid');
 var util = require('./../utils/util');
 var config = require('./../configs/config');
 var queries = require('./../queries/queries');
-
 var folder = os.tmpDir();
-
 
 var db = massive.connectSync({
   connectionString: config.connectionString
