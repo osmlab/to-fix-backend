@@ -89,4 +89,29 @@ module.exports = [{
     },
     handler: controllersTasks.deleteTasks
   }
+}, {
+  method: 'GET',
+  path: '/tasks/{idtask}/activity',
+  config: {
+    description: 'Returns the las 24 hours activity in the task',
+    validate: {
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.listTasksActivity
+  }
+}, {
+  method: 'GET',
+  path: '/tasks/{idtask}/activity/{user}',
+  config: {
+    description: 'Returns the activity per user in the task',
+    validate: {
+      params: {
+        idtask: Joi.string().required(),
+        user: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.listTasksActivityByUser
+  }
 }];

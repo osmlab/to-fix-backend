@@ -9,7 +9,10 @@ var childProcess = require('child_process');
 var shortid = require('shortid');
 var util = require('./../utils/util');
 var config = require('./../configs/config');
+var queries = require('./../queries/queries');
+
 var folder = os.tmpDir();
+
 
 var db = massive.connectSync({
   connectionString: config.connectionString
@@ -25,7 +28,6 @@ module.exports.listTasks = function(request, reply) {
 };
 
 module.exports.listTasksById = function(request, reply) {
-  var client = request.pg.client;
   db.tasks.find({
     idstr: request.params.idtask
   }, function(err, tasks) {
@@ -201,5 +203,25 @@ module.exports.deleteTasks = function(request, reply) {
   }, function(err, res) {
     if (err) return reply(boom.badRequest(err));
     return reply(res);
+  });
+};
+
+module.exports.listTasksActivity = function(request, reply) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  var yesterday = Math.round((new Date()).getTime() / 1000) - 60 * 60 * 24;
+  client.query(queries.selectActivity(idtask), [yesterday], function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    return reply(result.rows);
+  });
+};
+
+module.exports.listTasksActivityByUser = function(request, reply) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  var user = request.params.user;
+  client.query(queries.selectActivityByUser(idtask), [user], function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    return reply(result.rows[0]);
   });
 };

@@ -11,7 +11,6 @@ var updateActivity = function(request, reply, now) {
   var data = request.payload;
   var action = {
     action: data.action,
-    user: data.user,
     date: now
   };
   var startActivity = {
@@ -38,7 +37,7 @@ var updateTask = function(request, reply) {
   });
 };
 
-var updateItem = function(request, reply) {
+var updateItem = function(request, reply, now) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
   var data = request.payload;
@@ -48,7 +47,8 @@ var updateItem = function(request, reply) {
     var item = result.rows[0];
     item.body.properties.tofix.push({
       action: data.action,
-      user: data.user
+      user: data.user,
+      date: now
     });
     client.query(queries.updateItemById(idtask), [config.maxnum, JSON.stringify(item.body), item.id], function(err, result) {
       if (err) console.log(err);
@@ -103,7 +103,7 @@ module.exports.getItem = function(request, reply) {
     updateItemEdit(request, reply, item, now, function() {
       // update(action=fixed or noterror) and lock definitely
       if (data.iditem && data.action !== 'edit') {
-        updateItem(request, reply);
+        updateItem(request, reply, now);
       }
       updateTask(request, reply);
       updateActivity(request, reply, now);
