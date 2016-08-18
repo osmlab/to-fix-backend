@@ -37,12 +37,12 @@ queries.upsetActivity = function(idtask) {
 };
 
 queries.selectActivity = function(idtask) {
-  return `SELECT activity.user,activity.editor,activity.action,activity.date
+  return `SELECT activity.user,activity.editor,activity.action,activity.time
           from ( SELECT "user",
           cast(jsonb_array_elements(body->'activity') ->>'editor' as text) as editor, 
           cast(jsonb_array_elements(body->'activity') ->>'action' as text)as action, 
-          cast(jsonb_array_elements(body->'activity') ->>'date' as int) as date FROM ${idtask}_stats )
-          activity WHERE activity.date>$1;`;
+          cast(jsonb_array_elements(body->'activity') ->>'time' as int) as "time" FROM ${idtask}_stats )
+          activity WHERE activity.time>$1;`;
 };
 
 queries.selectActivityByUser = function(idtask) {

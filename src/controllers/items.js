@@ -10,8 +10,10 @@ var updateActivity = function(request, reply, now) {
   var idtask = request.params.idtask;
   var data = request.payload;
   var action = {
+    time: now,
+    key: data.idstr,
     action: data.action,
-    date: now
+    editor: data.editor
   };
   var startActivity = {
     'activity': [action]
@@ -37,28 +39,6 @@ var updateTask = function(request, reply) {
   });
 };
 
-var updateItem = function(request, reply, now) {
-  var client = request.pg.client;
-  var idtask = request.params.idtask;
-  var data = request.payload;
-  //need to improve here to update in only one query-- build a fuction
-  client.query(queries.selectItemtoUpdate(idtask), [data.iditem], function(err, result) {
-    if (err) return reply(boom.badRequest(err));
-    var item = result.rows[0];
-    item.body.properties.tofix.push({
-      action: data.action,
-      user: data.user,
-      date: now,
-      editor: data.editor
-    });
-    client.query(queries.updateItemById(idtask), [config.maxnum, JSON.stringify(item.body), item.id], function(err, result) {
-      if (err) console.log(err);
-      console.log('Update Item with fixed or not an Error');
-    });
-  });
-};
-
-
 var updateItemEdit = function(request, reply, item, now, done) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -67,20 +47,19 @@ var updateItemEdit = function(request, reply, item, now, done) {
     item.body.properties.tofix.push({
       action: data.action,
       user: data.user,
-      date: now,
+      time: now,
       editor: data.editor
     });
   } else {
     item.body.properties.tofix = [{
       action: 'edit',
       user: data.user,
-      date: now,
+      time: now,
       editor: data.editor
     }];
   }
   client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], function(err, result) {
     if (err) return reply(boom.badRequest(err));
-    console.log('update item-edit');
     done();
   });
 };
@@ -99,15 +78,10 @@ module.exports.getItem = function(request, reply) {
     }
     var item = result.rows[0];
     reply(item);
-    if (!data.action) {
-      data.action = 'edit';
-    }
+    data.action = 'edit';
+    data.idstr = item.idstr;
     //update(action=edit) the item and lock per 10 min
     updateItemEdit(request, reply, item, now, function() {
-      // update(action=fixed or noterror) and lock definitely
-      if (data.iditem && data.action !== 'edit') {
-        updateItem(request, reply, now);
-      }
       updateTask(request, reply);
       updateActivity(request, reply, now);
     });
@@ -145,6 +119,34 @@ module.exports.Activity = function(request, reply) {
     return reply({
       type: 'FeatureCollection',
       features: result.rows
+    });
+  });
+};
+
+module.exports.updateItem = function(request, reply) {
+  var client = request.pg.client;
+  var iditem = request.params.iditem;
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  var now = Math.round((new Date()).getTime() / 1000);
+  client.query(queries.selectItemtoUpdate(idtask), [iditem], function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    var item = result.rows[0];
+
+    item.body.properties.tofix.push({
+      action: data.action,
+      user: data.user,
+      time: now,
+      editor: data.editor
+    });
+    client.query(queries.updateItemById(idtask), [config.maxnum, JSON.stringify(item.body), item.id], function(err, result) {
+      if (err) return reply(boom.badRequest(err));
+      reply({
+        update: 'ok',
+        iditem: iditem
+      });
+      updateTask(request, reply);
+      updateActivity(request, reply, now);
     });
   });
 };
