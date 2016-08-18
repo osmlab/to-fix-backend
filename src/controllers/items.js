@@ -10,19 +10,17 @@ var updateActivity = function(request, reply, now) {
   var idtask = request.params.idtask;
   var data = request.payload;
   var action = {
-    time: now,
     key: data.idstr,
     action: data.action,
-    editor: data.editor
+    editor: data.editor,
+    user: data.user
   };
-  var startActivity = {
-    'activity': [action]
-  };
-  client.query(queries.upsetActivity(idtask), [data.user, now, startActivity, action], function(err, result) {
+  client.query(queries.insertActivity(idtask), [now, action], function(err, result) {
     if (err) console.log(err);
     console.log('Update activity');
   });
 };
+
 
 var updateTask = function(request, reply) {
   var client = request.pg.client;

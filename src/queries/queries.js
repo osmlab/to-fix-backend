@@ -13,7 +13,7 @@ queries.createTable = function(idtask) {
   return `CREATE TABLE ${idtask}( id serial PRIMARY KEY, idstr varchar(50), time integer, body jsonb ); CREATE INDEX idx_${idtask}_body ON ${idtask} USING GIN (body);`;
 };
 queries.createTableStats = function(idtask) {
-  return `CREATE TABLE ${idtask}_stats(id serial PRIMARY KEY, "user" varchar(100) UNIQUE, "time" integer, body jsonb);CREATE INDEX idx_${idtask}_stats_body ON ${idtask} USING GIN (body);`;
+  return `CREATE TABLE ${idtask}_stats( "time" integer, body jsonb);CREATE INDEX idx_time_${idtask} ON ${idtask}_stats("time");`;
 };
 queries.selectItemtoUpdate = function(idtask) {
   return `SELECT id, idstr, "time", body FROM ${idtask} WHERE idstr = $1;`;
@@ -27,27 +27,20 @@ queries.selectATask = function() {
 queries.updateATask = function() {
   return 'UPDATE tasks SET body=($1::JSONB) WHERE idstr=$2;';
 };
-queries.upsetActivity = function(idtask) {
-  return `with upsert as (
-          update ${idtask}_stats set "time"=$2, body = jsonb_set(body, '{activity, 999999999}', $4, true) where "user" = $1
-          returning * )
-          insert into ${idtask}_stats ("user", "time",body) 
-          select $1,$2 ,$3
-          where not exists (select 1 from ${idtask}_stats  where "user" = $1);`;
+queries.insertActivity = function(idtask) {
+  return `INSERT INTO ${idtask}_stats("time", body)VALUES ($1, $2);`;
 };
 
 queries.selectActivity = function(idtask) {
-  return `SELECT activity.user,activity.key,activity.editor,activity.action,activity.time
-          from ( SELECT "user",
-          cast(jsonb_array_elements(body->'activity') ->>'key' as text)as key, 
-          cast(jsonb_array_elements(body->'activity') ->>'editor' as text) as editor, 
-          cast(jsonb_array_elements(body->'activity') ->>'action' as text)as action, 
-          cast(jsonb_array_elements(body->'activity') ->>'time' as int) as "time" FROM ${idtask}_stats )
-          activity WHERE activity.time>$1;`;
+  return `SELECT "time", body as attributes FROM ${idtask}_stats WHERE time < $1 AND time > $2;`;
 };
 
 queries.selectActivityByUser = function(idtask) {
-  return `SELECT id,"user","time",body->'activity' as activity FROM ${idtask}_stats WHERE "user"=$1`;
+  return `SELECT "time", body as attributes FROM ${idtask}_stats WHERE time < $1 AND time > $2 AND cast(body->>'user'as text) = $3;`;
+};
+
+queries.selectTrackStats = function(idtask) {
+  return `SELECT body FROM ${idtask}_stats WHERE time < $1 AND time > $2;`;
 };
 
 module.exports = queries;

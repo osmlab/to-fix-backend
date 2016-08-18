@@ -6,8 +6,7 @@ module.exports = [{
   method: 'POST',
   path: '/tasks/{idtask}/items',
   config: {
-    description: 'Get a item randomly, or update a item, in both cases it will return a new item',
-    notes: 'To update a item is required action and iditem',
+    description: 'Return a item randomly',
     validate: {
       payload: {
         action: Joi.string(),
@@ -25,7 +24,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/items/{iditem}',
   config: {
-    description: 'Get specific item for the task',
+    description: 'Return a specific item',
     validate: {
       params: {
         idtask: Joi.string().required(),
@@ -38,7 +37,7 @@ module.exports = [{
   method: 'PUT',
   path: '/tasks/{idtask}/items/{iditem}',
   config: {
-    description: 'Update a item with an action, fixed or noterror',
+    description: 'Update a item with an action(fixed or noterror)',
     validate: {
       payload: {
         action: Joi.string().required(),
@@ -56,7 +55,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/items',
   config: {
-    description: 'Get all items for the task',
+    description: 'Return the list of items in the task',
     validate: {
       params: {
         idtask: Joi.string().required()

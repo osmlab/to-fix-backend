@@ -4,6 +4,7 @@ var boom = require('boom');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
+var _ = require('underscore');
 var geojsonhint = require('geojsonhint');
 var childProcess = require('child_process');
 var shortid = require('shortid');
@@ -207,10 +208,15 @@ module.exports.deleteTasks = function(request, reply) {
 module.exports.listTasksActivity = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
-  var yesterday = Math.round((new Date()).getTime() / 1000) - 60 * 60 * 24 * 7;
-  client.query(queries.selectActivity(idtask), [yesterday], function(err, result) {
+  var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
+  var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
+  if (from === to) to = to + 86400;
+  client.query(queries.selectActivity(idtask), [to, from], function(err, result) {
     if (err) return reply(boom.badRequest(err));
-    return reply(result.rows);
+    return reply({
+      updated: Math.round((new Date()).getTime() / 1000),
+      data: result.rows
+    });
   });
 };
 
@@ -218,8 +224,44 @@ module.exports.listTasksActivityByUser = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
   var user = request.params.user;
-  client.query(queries.selectActivityByUser(idtask), [user], function(err, result) {
+  var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
+  var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
+  if (from === to) to = to + 86400;
+  client.query(queries.selectActivityByUser(idtask), [to, from, user], function(err, result) {
     if (err) return reply(boom.badRequest(err));
-    return reply(result.rows[0]);
+    return reply({
+      updated: Math.round((new Date()).getTime() / 1000),
+      user: user,
+      data: result.rows
+    });
+  });
+};
+
+module.exports.trackStats = function(request, reply) {
+  var client = request.pg.client;
+  var idtask = request.params.idtask;
+  var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
+  var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
+  if (from === to) to = to + 86400;
+  client.query(queries.selectTrackStats(idtask), [to, from], function(err, result) {
+    if (err) return reply(boom.badRequest(err));
+    var data = {};
+    result.rows.forEach(function(v) {
+      if (!data[v.body.user]) {
+        data[v.body.user] = {
+          edit: 0,
+          fixed: 0,
+          noterror: 0,
+          user: v.body.user
+        };
+        data[v.body.user][v.body.action] = data[v.body.user][v.body.action] + 1;
+      } else {
+        data[v.body.user][v.body.action] = data[v.body.user][v.body.action] + 1;
+      }
+    });
+    reply({
+      updated: Math.round((new Date()).getTime() / 1000),
+      stats: _.values(data)
+    });
   });
 };

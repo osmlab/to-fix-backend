@@ -83,27 +83,45 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/activity',
+  path: '/tasks/{idtask}/activity/{from}/{to}',
   config: {
-    description: 'Return the last 7 days activity in the task',
+    description: 'Return activity in the task',
     validate: {
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        from: Joi.string().required(),
+        to: Joi.string().required()
       }
     },
     handler: controllersTasks.listTasksActivity
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/activity/{user}',
+  path: '/tasks/{idtask}/activity/{user}/{from}/{to}',
   config: {
     description: 'Return the user activity in the task',
     validate: {
       params: {
         idtask: Joi.string().required(),
-        user: Joi.string().required()
+        user: Joi.string().required(),
+        from: Joi.string().required(),
+        to: Joi.string().required()
       }
     },
     handler: controllersTasks.listTasksActivityByUser
+  }
+}, {
+  method: 'GET',
+  path: '/tasks/{idtask}/track_stats/{from}/{to}',
+  config: {
+    description: 'Return the tracking stats',
+    validate: {
+      params: {
+        idtask: Joi.string().required(),
+        from: Joi.string().required(),
+        to: Joi.string().required()
+      }
+    },
+    handler: controllersTasks.trackStats
   }
 }];

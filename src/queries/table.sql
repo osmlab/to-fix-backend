@@ -28,9 +28,10 @@ CREATE INDEX idx_items_body ON items USING GIN (body);
 
 --DROP TABLE stats
 CREATE TABLE stats(
-  id serial PRIMARY KEY,
-  "user" varchar(100) UNIQUE,
   "time" integer,
   body jsonb
 );
-CREATE INDEX idx_stats_body ON stats USING GIN (body);
+CREATE INDEX idx_time_stats ON stats("time");
+
+
+
