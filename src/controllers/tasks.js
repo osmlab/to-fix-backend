@@ -83,7 +83,7 @@ module.exports.createTasks = function(request, reply) {
                     console.log('reload tables');
                   });
                   //insert data into DB
-                  var child = childProcess.fork('./src/controllers/load');
+                  var child = childProcess.fork('./src/controllers/loadGeojson');
                   child.send({
                     file: geojsonFile,
                     task: result
@@ -207,7 +207,7 @@ module.exports.deleteTasks = function(request, reply) {
 module.exports.listTasksActivity = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
-  var yesterday = Math.round((new Date()).getTime() / 1000) - 60 * 60 * 24;
+  var yesterday = Math.round((new Date()).getTime() / 1000) - 60 * 60 * 24 * 7;
   client.query(queries.selectActivity(idtask), [yesterday], function(err, result) {
     if (err) return reply(boom.badRequest(err));
     return reply(result.rows);

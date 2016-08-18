@@ -6,12 +6,14 @@ module.exports = [{
   method: 'GET',
   path: '/tasks',
   config: {
+    description: 'Returns a list of existing tasks',
     handler: controllersTasks.listTasks
   }
 }, {
   method: 'GET',
   path: '/tasks/{idtask}',
   config: {
+    description: 'Returns a specific tasks',
     validate: {
       params: {
         idtask: Joi.string().required()
@@ -23,13 +25,14 @@ module.exports = [{
   method: 'POST',
   path: '/tasks',
   config: {
+    description: 'Create a task',
     validate: {
       payload: {
         name: Joi.string().required(),
         idproject: Joi.string().required(),
         description: Joi.string().required(),
         changeset_comment: Joi.string().required(),
-        file: Joi.object().required() //Joi.any().required(),
+        file: Joi.object().required()
       }
     },
     payload: {
@@ -44,6 +47,7 @@ module.exports = [{
   method: 'PUT',
   path: '/tasks/{idtask}',
   config: {
+    description: 'Update a task',
     validate: {
       payload: {
         id: Joi.number().required(),
@@ -69,19 +73,7 @@ module.exports = [{
   method: 'DELETE',
   path: '/tasks/{idtask}',
   config: {
-    description: 'Remove specific task',
-    validate: {
-      params: {
-        idtask: Joi.string().required()
-      }
-    },
-    handler: controllersTasks.deleteTasks
-  }
-}, {
-  method: 'GET',
-  path: '/count/{idtask}',
-  config: {
-    description: 'Returns the count of the total number of items and all available items for a given task',
+    description: 'Delete a specific task',
     validate: {
       params: {
         idtask: Joi.string().required()
@@ -93,7 +85,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/activity',
   config: {
-    description: 'Returns the las 24 hours activity in the task',
+    description: 'Return the last 7 days activity in the task',
     validate: {
       params: {
         idtask: Joi.string().required()
@@ -105,7 +97,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/activity/{user}',
   config: {
-    description: 'Returns the activity per user in the task',
+    description: 'Return the user activity in the task',
     validate: {
       params: {
         idtask: Joi.string().required(),

@@ -6,16 +6,14 @@ module.exports = [{
   method: 'GET',
   path: '/projects',
   config: {
-    tags: ['api'],
-    description: 'Get all projects',
+    description: 'Return a list fo all projects',
     handler: controllersProjects.getAllProjects
   }
 }, {
   method: 'GET',
   path: '/projects/{idproject}',
   config: {
-    tags: ['api'],
-    description: 'Get specific project data it includes all tasks existing tasks in the project',
+    description: 'Return a specific project information, it includes all tasks existing in the project',
     validate: {
       params: {
         idproject: Joi.string().required()
@@ -27,7 +25,7 @@ module.exports = [{
   method: 'POST',
   path: '/projects',
   config: {
-    description: 'Save project data',
+    description: 'Ceate a project',
     validate: {
       payload: {
         name: Joi.string().required(),
@@ -40,7 +38,7 @@ module.exports = [{
   method: 'PUT',
   path: '/projects/{idproject}',
   config: {
-    description: 'Update specific project data',
+    description: 'Update a specific project data',
     validate: {
       params: {
         idproject: Joi.string().required()

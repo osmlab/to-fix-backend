@@ -10,10 +10,10 @@ queries.updateItemById = function(idtask) {
   return `UPDATE ${idtask} SET "time"=$1, body=($2::JSONB) WHERE id=$3;`;
 };
 queries.createTable = function(idtask) {
-  return `CREATE TABLE ${idtask}( id serial PRIMARY KEY, idstr varchar(50), time integer, body jsonb );`;
+  return `CREATE TABLE ${idtask}( id serial PRIMARY KEY, idstr varchar(50), time integer, body jsonb ); CREATE INDEX idx_${idtask}_body ON ${idtask} USING GIN (body);`;
 };
 queries.createTableStats = function(idtask) {
-  return `CREATE TABLE ${idtask}_stats(id serial PRIMARY KEY, "user" varchar(100) UNIQUE, "time" integer, body jsonb);`;
+  return `CREATE TABLE ${idtask}_stats(id serial PRIMARY KEY, "user" varchar(100) UNIQUE, "time" integer, body jsonb);CREATE INDEX idx_${idtask}_stats_body ON ${idtask} USING GIN (body);`;
 };
 queries.selectItemtoUpdate = function(idtask) {
   return `SELECT id, idstr, "time", body FROM ${idtask} WHERE idstr = $1;`;
@@ -37,8 +37,9 @@ queries.upsetActivity = function(idtask) {
 };
 
 queries.selectActivity = function(idtask) {
-  return `SELECT activity.user,activity.editor,activity.action,activity.time
+  return `SELECT activity.user,activity.key,activity.editor,activity.action,activity.time
           from ( SELECT "user",
+          cast(jsonb_array_elements(body->'activity') ->>'key' as text)as key, 
           cast(jsonb_array_elements(body->'activity') ->>'editor' as text) as editor, 
           cast(jsonb_array_elements(body->'activity') ->>'action' as text)as action, 
           cast(jsonb_array_elements(body->'activity') ->>'time' as int) as "time" FROM ${idtask}_stats )
