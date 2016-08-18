@@ -1,13 +1,9 @@
 'use strict';
-var massive = require('massive');
 var boom = require('boom');
-var config = require('./../configs/config');
+var randomString = require('random-string');
+var db = require('./../utils/dbmassive');
 
-var db = massive.connectSync({
-  connectionString: config.connectionString
-});
-
-module.exports.getAllProjects = function(request, reply) {
+module.exports.listProjects = function(request, reply) {
   db.projects.find({
     status: true
   }, function(err, projects) {
@@ -16,7 +12,7 @@ module.exports.getAllProjects = function(request, reply) {
   });
 };
 
-module.exports.getAProjects = function(request, reply) {
+module.exports.listProjectsById = function(request, reply) {
   db.projects.find({
     idstr: request.params.idproject,
     status: true
@@ -34,14 +30,17 @@ module.exports.getAProjects = function(request, reply) {
   });
 };
 
-module.exports.saveProjects = function(request, reply) {
+module.exports.createProjects = function(request, reply) {
   var data = request.payload;
   var project = {
-    idstr: data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase(),
+    idstr: data.name.replace(/[^a-zA-Z]+/g, '').concat(randomString({
+      length: 3
+    })).toLowerCase(),
     status: true,
     body: {
       name: data.name,
-      admin: data.admin
+      admin: data.admin,
+      description: data.description
     }
   };
   db.projects.save(project, function(err, res) {

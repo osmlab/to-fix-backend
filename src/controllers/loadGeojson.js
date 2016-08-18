@@ -2,7 +2,6 @@
 var fs = require('fs');
 var massive = require('massive');
 var shortid = require('shortid');
-var uuid = require('node-uuid');
 
 var config = require('./../configs/config');
 process.on('message', function(props) {

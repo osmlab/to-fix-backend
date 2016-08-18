@@ -16,7 +16,6 @@ var folder = os.tmpDir();
 var db = massive.connectSync({
   connectionString: config.connectionString
 });
-
 module.exports.listTasks = function(request, reply) {
   db.tasks.find({
     status: true
@@ -25,7 +24,6 @@ module.exports.listTasks = function(request, reply) {
     return reply(tasks);
   });
 };
-
 module.exports.listTasksById = function(request, reply) {
   db.tasks.find({
     idstr: request.params.idtask
@@ -34,7 +32,6 @@ module.exports.listTasksById = function(request, reply) {
     return reply(tasks[0]);
   });
 };
-
 module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   if (data.file) {
@@ -48,10 +45,16 @@ module.exports.createTasks = function(request, reply) {
         updated: Math.round((new Date()).getTime() / 1000),
         changeset_comment: data.changeset_comment,
         load_status: 'loading',
+        entities_to_fix: data.entities_to_fix,
+        detailed_instructions: data.detailed_instructions,
+        priority: data.priority,
+        status: data.status,
+        imagery: data.imagery,
         stats: [{
           edit: 0,
           fixed: 0,
-          noterror: 0
+          noterror: 0,
+          skip: 0
         }]
       }
     };
@@ -112,7 +115,6 @@ module.exports.createTasks = function(request, reply) {
     });
   }
 };
-
 module.exports.updateTasks = function(request, reply) {
   var data = request.payload;
   var idtask = request.params.idtask;
@@ -121,7 +123,8 @@ module.exports.updateTasks = function(request, reply) {
     result.body.stats.push({
       edit: 0,
       fixed: 0,
-      noterror: 0
+      noterror: 0,
+      skip: 0
     });
     var task = {
       id: data.id,
@@ -134,7 +137,12 @@ module.exports.updateTasks = function(request, reply) {
         updated: Math.round((new Date()).getTime() / 1000),
         changeset_comment: data.changeset_comment,
         stats: result.body.stats,
-        load_status: result.body.load_status
+        load_status: result.body.load_status,
+        entities_to_fix: data.entities_to_fix,
+        detailed_instructions: data.detailed_instructions,
+        priority: data.priority,
+        status: data.status,
+        imagery: data.imagery
       }
     };
 
@@ -150,31 +158,51 @@ module.exports.updateTasks = function(request, reply) {
       data.file.on('end', function(err) {
         if (err) return reply(boom.badRequest(err));
         if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-          task.body.load_status = 'loading';
-          db.tasks.update({
-            id: task.id
-          }, {
-            body: task.body
-          }, function(err, res) {
-            if (err) return reply(boom.badRequest(err));
-            reply(res);
-          });
-          //load the data
-          var child = childProcess.fork('./src/controllers/load');
-          child.send({
-            file: geojsonFile,
-            task: task
-          });
-          child.on('message', function(props) {
-            //update when the load is complete
-            props.result.task.body.load_status = 'complete';
-            db.tasks.update({
-              id: props.result.task.id
-            }, {
-              body: props.result.task.body
-            }, function(err, res) {
-              if (err) return reply(boom.badRequest(err));
-              console.log(res);
+          util.selectRowsTable(request, task.idstr, function(err, selectresult) {
+            if (err) reply(boom.badRequest(err));
+            var items = {
+              type: 'FeatureCollection',
+              features: selectresult.rows
+            };
+            var idfile = `${idtask}- ${shortid.generate()}.geojson`;
+            //save a backup of file
+            fs.writeFile(idfile, JSON.stringify(items), function(err) {
+              if (err) reply(boom.badRequest(err));
+              util.deleteRowsTable(request, task.idstr, function(err, selectresult) {
+                if (err) reply(boom.badRequest(err));
+                task.body.stats[task.body.stats.length - 2]['backup'] = idfile;
+                //remove
+                util.deleteRowsTable(request, task.idstr, function(err, selectresult) {
+                  if (err) reply(boom.badRequest(err));
+                  task.body.load_status = 'loading';
+                  db.tasks.update({
+                    id: task.id
+                  }, {
+                    body: task.body
+                  }, function(err, res) {
+                    if (err) return reply(boom.badRequest(err));
+                    reply(res);
+                  });
+                  //load the data
+                  var child = childProcess.fork('./src/controllers/loadGeojson');
+                  child.send({
+                    file: geojsonFile,
+                    task: task
+                  });
+                  child.on('message', function(props) {
+                    //update when the load is complete
+                    props.result.task.body.load_status = 'complete';
+                    db.tasks.update({
+                      id: props.result.task.id
+                    }, {
+                      body: props.result.task.body
+                    }, function(err, res) {
+                      if (err) return reply(boom.badRequest(err));
+                      console.log('Task was update');
+                    });
+                  });
+                });
+              });
             });
           });
         } else {
@@ -193,7 +221,6 @@ module.exports.updateTasks = function(request, reply) {
     }
   });
 };
-
 module.exports.deleteTasks = function(request, reply) {
   db.tasks.update({
     idstr: request.params.idtask
@@ -204,7 +231,6 @@ module.exports.deleteTasks = function(request, reply) {
     return reply(res);
   });
 };
-
 module.exports.listTasksActivity = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -219,7 +245,6 @@ module.exports.listTasksActivity = function(request, reply) {
     });
   });
 };
-
 module.exports.listTasksActivityByUser = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -236,7 +261,6 @@ module.exports.listTasksActivityByUser = function(request, reply) {
     });
   });
 };
-
 module.exports.trackStats = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -252,6 +276,7 @@ module.exports.trackStats = function(request, reply) {
           edit: 0,
           fixed: 0,
           noterror: 0,
+          skip: 0,
           user: v.body.user
         };
         data[v.body.user][v.body.action] = data[v.body.user][v.body.action] + 1;

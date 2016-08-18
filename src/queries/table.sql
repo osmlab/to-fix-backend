@@ -6,6 +6,7 @@ CREATE TABLE projects(
   body jsonb
  );
 CREATE INDEX idx_projects_body ON projects USING GIN (body);
+CREATE INDEX idx_projects_idstr ON projects(idstr);
 
 --DROP TABLE tasks;
 CREATE TABLE tasks(
@@ -16,6 +17,8 @@ CREATE TABLE tasks(
   body jsonb
  );
 CREATE INDEX idx_tasks_body ON tasks USING GIN (body);
+CREATE INDEX idx_tasks_idstr ON tasks(idstr);
+
 
 --DROP TABLE item
 CREATE TABLE items( 

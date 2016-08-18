@@ -78,7 +78,6 @@ module.exports.getItem = function(request, reply) {
     reply(item);
     data.action = 'edit';
     data.idstr = item.idstr;
-    //update(action=edit) the item and lock per 10 min
     updateItemEdit(request, reply, item, now, function() {
       updateTask(request, reply);
       updateActivity(request, reply, now);
@@ -108,7 +107,6 @@ module.exports.getAllItems = function(request, reply) {
   });
 };
 
-
 module.exports.Activity = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -137,7 +135,13 @@ module.exports.updateItem = function(request, reply) {
       time: now,
       editor: data.editor
     });
-    client.query(queries.updateItemById(idtask), [config.maxnum, JSON.stringify(item.body), item.id], function(err, result) {
+
+    var maxnum = config.maxnum;
+    if (data.action === 'skip') {
+      maxnum = now + config.lockPeriod;
+    }
+
+    client.query(queries.updateItemById(idtask), [maxnum, JSON.stringify(item.body), item.id], function(err, result) {
       if (err) return reply(boom.badRequest(err));
       reply({
         update: 'ok',

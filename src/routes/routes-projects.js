@@ -7,7 +7,7 @@ module.exports = [{
   path: '/projects',
   config: {
     description: 'Return a list fo all projects',
-    handler: controllersProjects.getAllProjects
+    handler: controllersProjects.listProjects
   }
 }, {
   method: 'GET',
@@ -19,20 +19,22 @@ module.exports = [{
         idproject: Joi.string().required()
       }
     },
-    handler: controllersProjects.getAProjects
+    handler: controllersProjects.listProjectsById
   }
 }, {
   method: 'POST',
   path: '/projects',
   config: {
-    description: 'Ceate a project',
+    description: 'Create a project',
     validate: {
       payload: {
         name: Joi.string().required(),
-        admin: Joi.string().required()
+        admin: Joi.string().required(),
+        description: Joi.string().required()
+          //We need to add image(avatar for ta project)
       }
     },
-    handler: controllersProjects.saveProjects
+    handler: controllersProjects.createProjects
   }
 }, {
   method: 'PUT',

@@ -15,6 +15,12 @@ queries.createTable = function(idtask) {
 queries.createTableStats = function(idtask) {
   return `CREATE TABLE ${idtask}_stats( "time" integer, body jsonb);CREATE INDEX idx_time_${idtask} ON ${idtask}_stats("time");`;
 };
+queries.deleteRowsTable = function(idtask) {
+  return `DELETE FROM ${idtask};`;
+};
+queries.selectRowsTable = function(idtask) {
+  return `SELECT body FROM ${idtask};`;
+};
 queries.selectItemtoUpdate = function(idtask) {
   return `SELECT id, idstr, "time", body FROM ${idtask} WHERE idstr = $1;`;
 };
@@ -30,15 +36,12 @@ queries.updateATask = function() {
 queries.insertActivity = function(idtask) {
   return `INSERT INTO ${idtask}_stats("time", body)VALUES ($1, $2);`;
 };
-
 queries.selectActivity = function(idtask) {
   return `SELECT "time", body as attributes FROM ${idtask}_stats WHERE time < $1 AND time > $2;`;
 };
-
 queries.selectActivityByUser = function(idtask) {
   return `SELECT "time", body as attributes FROM ${idtask}_stats WHERE time < $1 AND time > $2 AND cast(body->>'user'as text) = $3;`;
 };
-
 queries.selectTrackStats = function(idtask) {
   return `SELECT body FROM ${idtask}_stats WHERE time < $1 AND time > $2;`;
 };

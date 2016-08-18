@@ -28,10 +28,15 @@ module.exports = [{
     description: 'Create a task',
     validate: {
       payload: {
-        name: Joi.string().required(),
         idproject: Joi.string().required(),
+        name: Joi.string().required(),
         description: Joi.string().required(),
         changeset_comment: Joi.string().required(),
+        entities_to_fix: Joi.string().required(),
+        detailed_instructions: Joi.string().required(),
+        priority: Joi.string().required(),
+        status: Joi.string().required(),
+        imagery: Joi.string(),
         file: Joi.object().required()
       }
     },
@@ -55,6 +60,11 @@ module.exports = [{
         idproject: Joi.string().required(),
         description: Joi.string().required(),
         changeset_comment: Joi.string().required(),
+        entities_to_fix: Joi.string().required(),
+        detailed_instructions: Joi.string().required(),
+        priority: Joi.string().required(),
+        status: Joi.string().required(),
+        imagery: Joi.string(),
         file: Joi.object()
       },
       params: {
