@@ -2,7 +2,6 @@
 var boom = require('boom');
 var randomString = require('random-string');
 var db = require('./../utils/dbmassive');
-
 module.exports.listProjects = function(request, reply) {
   db.projects.find({
     status: true
@@ -11,7 +10,6 @@ module.exports.listProjects = function(request, reply) {
     return reply(projects);
   });
 };
-
 module.exports.listProjectsById = function(request, reply) {
   db.projects.find({
     idstr: request.params.idproject,
@@ -24,12 +22,14 @@ module.exports.listProjectsById = function(request, reply) {
       status: true
     }, function(err, tasks) {
       if (err) return reply(boom.badRequest(err));
+      tasks.forEach(function(v) {
+        v.body.stats = [v.body.stats[v.body.stats.length - 1]];
+      });
       objProject.tasks = tasks;
       return reply(objProject);
     });
   });
 };
-
 module.exports.createProjects = function(request, reply) {
   var data = request.payload;
   var project = {
@@ -48,22 +48,27 @@ module.exports.createProjects = function(request, reply) {
     return reply(res);
   });
 };
-
 module.exports.updateProjects = function(request, reply) {
+  var data = request.payload;
+  var idproject = request.params.idproject;
   var project = {
-    'idstr': request.params.idproject,
-    'name': request.payload.name,
-    'admin': request.payload.admin,
-    'status': request.payload.status
+    idstr: idproject,
+    status: data.status,
+    body: {
+      name: data.name,
+      admin: data.admin,
+      description: data.description
+    }
   };
   db.projects.update({
-    idstr: project.idstr
-  }, project, function(err, res) {
+    idstr: idproject
+  }, {
+    body: project.body
+  }, function(err, res) {
     if (err) return reply(boom.badRequest(err));
     return reply(res);
   });
 };
-
 module.exports.deleteProjects = function(request, reply) {
   db.projects.update({
     idstr: request.params.idproject
@@ -71,6 +76,6 @@ module.exports.deleteProjects = function(request, reply) {
     'status': false
   }, function(err, res) {
     if (err) return reply(boom.badRequest(err));
-    return reply(res);
+    return reply(res[0]);
   });
 };

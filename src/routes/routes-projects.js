@@ -48,8 +48,8 @@ module.exports = [{
       payload: {
         name: Joi.string(),
         admin: Joi.string(),
+        description: Joi.string().required(),
         status: Joi.string()
-
       }
     },
     handler: controllersProjects.updateProjects
