@@ -2,8 +2,6 @@
 var boom = require('boom');
 var config = require('./../configs/config');
 var queries = require('./../queries/queries');
-var childProcess = require('child_process');
-var async = require('async');
 
 var updateActivity = function(request, reply, now) {
   var client = request.pg.client;
