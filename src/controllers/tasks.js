@@ -7,7 +7,7 @@ var path = require('path');
 var _ = require('underscore');
 var geojsonhint = require('geojsonhint');
 var childProcess = require('child_process');
-var shortid = require('shortid');
+var randomString = require('random-string');
 var util = require('./../utils/util');
 var config = require('./../configs/config');
 var queries = require('./../queries/queries');
@@ -36,7 +36,9 @@ module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   if (data.file) {
     var task = {
-      idstr: data.name.concat(shortid.generate()).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
+      idstr: data.name.concat(randomString({
+        length: 5
+      })).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
       idproject: data.idproject,
       status: true,
       body: {
@@ -120,12 +122,6 @@ module.exports.updateTasks = function(request, reply) {
   var idtask = request.params.idtask;
   db.tasks.find(data.id, function(err, result) {
     if (err) return reply(boom.badRequest(err));
-    result.body.stats.push({
-      edit: 0,
-      fixed: 0,
-      noterror: 0,
-      skip: 0
-    });
     var task = {
       id: data.id,
       idstr: idtask,
@@ -145,8 +141,13 @@ module.exports.updateTasks = function(request, reply) {
         imagery: data.imagery
       }
     };
-
     if (data.file) {
+      task.body.stats.push({
+        edit: 0,
+        fixed: 0,
+        noterror: 0,
+        skip: 0
+      });
       var name = data.file.hapi.filename;
       var geojsonFile = path.join(folder, name);
       var file = fs.createWriteStream(geojsonFile);
@@ -158,7 +159,9 @@ module.exports.updateTasks = function(request, reply) {
       data.file.on('end', function(err) {
         if (err) return reply(boom.badRequest(err));
         if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
-          var backupFile = path.join(folder, idtask + '-' + shortid.generate() + '.json');
+          var backupFile = path.join(folder, idtask + '-' + randomString({
+            length: 5
+          }) + '.json');
           task.body.stats[task.body.stats.length - 2]['backupFile'] = backupFile;
           var childSave = childProcess.fork('./src/utils/saveGeojson');
           childSave.send({

@@ -2,6 +2,7 @@
 var fs = require('fs');
 var massive = require('massive');
 var shortid = require('shortid');
+var randomString = require('random-string');
 
 var config = require('./../configs/config');
 process.on('message', function(props) {
@@ -13,7 +14,9 @@ process.on('message', function(props) {
     for (let i = 0; i < geojson.features.length; i++) {
       var feature = geojson.features[i];
       var item = {
-        idstr: shortid.generate(),
+        idstr: randomString({
+          length: 15
+        }).toLowerCase(),
         time: props.task.body.updated,
         body: feature
       };
