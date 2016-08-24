@@ -89,7 +89,7 @@ module.exports.createTasks = function(request, reply) {
                     console.log('reload tables');
                   });
                   //insert data into DB
-                  var child = childProcess.fork('./src/utils/loadGeojson');
+                  var child = childProcess.fork('./src/utils/loadGeojsonToDB');
                   child.send({
                     file: geojsonFile,
                     task: result
@@ -177,13 +177,13 @@ module.exports.updateTasks = function(request, reply) {
             length: 5
           }) + '.json');
           task.body.stats[task.body.stats.length - 2]['backupFile'] = backupFile;
-          var childSave = childProcess.fork('./src/utils/saveGeojson');
+          var childSave = childProcess.fork('./src/utils/saveGeojsonFromDB');
           childSave.send({
             task: task
           });
           childSave.on('message', function(props) {
             //load the data
-            var child = childProcess.fork('./src/utils/loadGeojson');
+            var child = childProcess.fork('./src/utils/loadGeojsonToDB');
             child.send({
               file: geojsonFile,
               task: task
