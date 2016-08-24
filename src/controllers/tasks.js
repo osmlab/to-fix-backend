@@ -89,22 +89,36 @@ module.exports.createTasks = function(request, reply) {
                     console.log('reload tables');
                   });
                   //insert data into DB
-                  var child = childProcess.fork('./src/utils/loadGeojson');
+                  var child = childProcess.fork('./src/utils/loadGeojsonToDB');
                   child.send({
                     file: geojsonFile,
                     task: result
                   });
                   child.on('message', function(props) {
-                    //update when the load is complete
-                    props.result.task.body.loadStatus = 'complete';
-                    db.tasks.update({
-                      id: props.result.task.id
-                    }, {
-                      body: props.result.task.body
-                    }, function(err, res) {
-                      if (err) return reply(boom.badRequest(err));
-                      console.log('load completed');
-                    });
+                    if (props.result) {
+                      //update when the load is complete
+                      props.result.task.body.loadStatus = 'complete';
+                      db.tasks.update({
+                        id: props.result.task.id
+                      }, {
+                        body: props.result.task.body
+                      }, function(err, res) {
+                        if (err) return reply(boom.badRequest(err));
+                        console.log('load completed');
+                      });
+
+                    } else {
+                      //error saving the data
+                      result.task.body.loadStatus = 'error';
+                      db.tasks.update({
+                        id: result.task.id
+                      }, {
+                        body: result.task.body
+                      }, function(err, res) {
+                        if (err) return reply(boom.badRequest(err));
+                        console.log('Error loading te data');
+                      });
+                    }
                   });
                 });
               }
@@ -163,28 +177,42 @@ module.exports.updateTasks = function(request, reply) {
             length: 5
           }) + '.json');
           task.body.stats[task.body.stats.length - 2]['backupFile'] = backupFile;
-          var childSave = childProcess.fork('./src/utils/saveGeojson');
+          var childSave = childProcess.fork('./src/utils/saveGeojsonFromDB');
           childSave.send({
             task: task
           });
           childSave.on('message', function(props) {
             //load the data
-            var child = childProcess.fork('./src/utils/loadGeojson');
+            var child = childProcess.fork('./src/utils/loadGeojsonToDB');
             child.send({
               file: geojsonFile,
               task: task
             });
             child.on('message', function(props) {
-              //update when the load is complete
-              props.result.task.body.loadStatus = 'complete';
-              db.tasks.update({
-                id: props.result.task.id
-              }, {
-                body: props.result.task.body
-              }, function(err, res) {
-                if (err) return reply(boom.badRequest(err));
-                console.log('Task was update');
-              });
+              if (props.result) {
+                //update when the load is complete
+                props.result.task.body.loadStatus = 'complete';
+                db.tasks.update({
+                  id: props.result.task.id
+                }, {
+                  body: props.result.task.body
+                }, function(err, res) {
+                  if (err) return reply(boom.badRequest(err));
+                  console.log('load completed');
+                });
+
+              } else {
+                //error saving the data
+                result.task.body.loadStatus = 'error';
+                db.tasks.update({
+                  id: result.task.id
+                }, {
+                  body: result.task.body
+                }, function(err, res) {
+                  if (err) return reply(boom.badRequest(err));
+                  console.log('Error loading te data');
+                });
+              }
             });
           });
           //response the update don't need wait, it also status marked as loading

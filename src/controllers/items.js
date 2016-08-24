@@ -53,7 +53,7 @@ var updateItemEdit = function(request, reply, item, now, done) {
       editor: data.editor
     }];
   }
-  client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.id], function(err, result) {
+  client.query(queries.updateItemById(idtask), [now + config.lockPeriod, JSON.stringify(item.body), item.idstr], function(err, result) {
     if (err) return reply(boom.badRequest(err));
     done();
   });
