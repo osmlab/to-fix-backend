@@ -22,7 +22,6 @@ CREATE INDEX idx_tasks_idstr ON tasks(idstr);
 
 --DROP TABLE item
 CREATE TABLE items( 
-  id serial PRIMARY KEY,
   idstr varchar(50) UNIQUE,
   time integer,
   body jsonb

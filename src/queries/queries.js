@@ -1,13 +1,13 @@
 'use strict';
 var queries = {};
 queries.selectItem = function(idtask) {
-  return `SELECT id, idstr, "time", body FROM ${idtask} WHERE "time" < $1 limit 1;`;
+  return `SELECT idstr, "time", body FROM ${idtask} WHERE "time" < $1 limit 1;`;
 };
 queries.selectItemById = function(idtask) {
-  return `SELECT id, idstr, "time", body FROM ${idtask} WHERE idstr = $1 limit 1;`;
+  return `SELECT idstr, "time", body FROM ${idtask} WHERE idstr = $1 limit 1;`;
 };
 queries.updateItemById = function(idtask) {
-  return `UPDATE ${idtask} SET "time"=$1, body=($2::JSONB) WHERE id=$3;`;
+  return `UPDATE ${idtask} SET "time"=$1, body=($2::JSONB) WHERE idstr=$3;`;
 };
 queries.createTable = function(idtask) {
   return `CREATE TABLE ${idtask}(idstr varchar(50), time integer, body jsonb ); CREATE INDEX idx_${idtask}_body ON ${idtask} USING GIN (body); CREATE INDEX idx_${idtask}_idstr ON ${idtask}(idstr);`;
@@ -22,10 +22,10 @@ queries.selectRowsTable = function(idtask) {
   return `SELECT body FROM ${idtask};`;
 };
 queries.selectItemtoUpdate = function(idtask) {
-  return `SELECT id, idstr, "time", body FROM ${idtask} WHERE idstr = $1;`;
+  return `SELECT idstr, "time", body FROM ${idtask} WHERE idstr = $1;`;
 };
 queries.selectAllItems = function(idtask) {
-  return `SELECT body  FROM ${idtask};`;
+  return `SELECT body FROM ${idtask};`;
 };
 queries.selectATask = function() {
   return 'SELECT body FROM tasks where idstr=$1';

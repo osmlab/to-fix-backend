@@ -19,13 +19,15 @@ function handleData(data, file, es) {
   data.properties = _.mapObject(data.properties, function(val, key) {
     return val.replace(/"/g, '').replace(/\n/g, '').replace(/\\/g, '');
   });
-  var row = `${idstr}\t${Math.round((new Date()).getTime() / 1000)}\t${JSON.stringify(data)}\n`;
+  var time = Math.round((new Date()).getTime() / 1000);
+  var row = `${idstr}\t${time}\t${JSON.stringify(data)}\n`;
   fs.appendFile(file, row, function(err) {
     if (err) console.log(err);
     es.resume();
   });
 }
 process.on('message', function(props) {
+  var numRows = 0;
   var file = path.join(folder, props.task.idstr);
   pg.connect(config.connectionString, function(err, client, done) {
     if (err) console.log(err);
@@ -33,13 +35,12 @@ process.on('message', function(props) {
       encoding: 'utf8'
     });
     fileStream.pipe(JSONStream.parse('features.*')).pipe(eventStream.through(function(data) {
+      numRows++;
       this.pause();
       handleData(data, file, this);
       return data;
     }, function end() {
-      console.log('finish write the file' + file);
-      uploadtoDB(props, file, function(p) {
-        console.log('finish upload');
+      uploadtoDB(props, file, numRows, function(p) {
         process.send({
           child: process.pid,
           result: p
@@ -51,7 +52,7 @@ process.on('message', function(props) {
   });
 });
 
-function uploadtoDB(props, file, callback) {
+function uploadtoDB(props, file, numRows, callback) {
   pg.connect(config.connectionString, function(err, client, done) {
     if (err) console.log(err);
     var stream = client.query(copyFrom('COPY ' + props.task.idstr + ' FROM STDIN'));
@@ -59,7 +60,7 @@ function uploadtoDB(props, file, callback) {
     fileStream.on('error', theEnd);
     fileStream.pipe(stream).on('finish', function() {
       props.task.body.stats[props.task.body.stats.length - 1].date = props.task.body.updated;
-      props.task.body.stats[props.task.body.stats.length - 1].items = 1000;
+      props.task.body.stats[props.task.body.stats.length - 1].items = numRows;
       callback(props);
     }).on('error', theEnd);
   });
