@@ -6,14 +6,14 @@ module.exports = [{
   method: 'GET',
   path: '/projects',
   config: {
-    description: 'Return a list fo all projects',
+    description: 'Return a list of all projects',
     handler: controllersProjects.listProjects
   }
 }, {
   method: 'GET',
   path: '/projects/{idproject}',
   config: {
-    description: 'Return a specific project information, it includes all tasks existing in the project',
+    description: 'Return a specific project information, it includes all existing tasks in the project',
     validate: {
       params: {
         idproject: Joi.string().required()
@@ -31,7 +31,7 @@ module.exports = [{
         name: Joi.string().required(),
         admin: Joi.string().required(),
         description: Joi.string().required()
-          //We need to add image(avatar for ta project)
+        //We need to add image(avatar for ta project)
       }
     },
     handler: controllersProjects.createProjects
@@ -40,16 +40,16 @@ module.exports = [{
   method: 'PUT',
   path: '/projects/{idproject}',
   config: {
-    description: 'Update a specific project data',
+    description: 'Update a specific project',
     validate: {
       params: {
         idproject: Joi.string().required()
       },
       payload: {
-        name: Joi.string(),
-        admin: Joi.string(),
+        name: Joi.string().required(),
+        admin: Joi.string().required(),
         description: Joi.string().required(),
-        status: Joi.string()
+        status: Joi.string().required()
       }
     },
     handler: controllersProjects.updateProjects
@@ -58,7 +58,7 @@ module.exports = [{
   method: 'DELETE',
   path: '/projects/{idproject}',
   config: {
-    description: 'Remove specific project data',
+    description: 'Remove a specific project',
     validate: {
       params: {
         idproject: Joi.string().required()

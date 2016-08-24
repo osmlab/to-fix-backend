@@ -9,8 +9,6 @@ module.exports = [{
     description: 'Return a item randomly',
     validate: {
       payload: {
-        action: Joi.string(),
-        iditem: Joi.string(),
         user: Joi.string().required(),
         editor: Joi.string().required()
       },
@@ -24,7 +22,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/items/{iditem}',
   config: {
-    description: 'Return a specific item',
+    description: 'Return the data from a specific item',
     validate: {
       params: {
         idtask: Joi.string().required(),

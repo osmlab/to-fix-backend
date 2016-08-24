@@ -6,7 +6,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks',
   config: {
-    description: 'Returns a list of existing tasks',
+    description: 'Returns all the list of existing tasks',
     handler: controllersTasks.listTasks
   }
 }, {
@@ -31,11 +31,11 @@ module.exports = [{
         idproject: Joi.string().required(),
         name: Joi.string().required(),
         description: Joi.string().required(),
-        changeset_comment: Joi.string().required(),
-        entities_to_fix: Joi.string().required(),
-        detailed_instructions: Joi.string().required(),
+        changesetComment: Joi.string().required(),
+        entitiesToFix: Joi.string().required(),
+        detailedInstructions: Joi.string(),
         priority: Joi.string().required(),
-        status: Joi.string().required(),
+        status: Joi.string().required(), //publish or not
         imagery: Joi.string(),
         file: Joi.object().required()
       }
@@ -59,9 +59,9 @@ module.exports = [{
         name: Joi.string().required(),
         idproject: Joi.string().required(),
         description: Joi.string().required(),
-        changeset_comment: Joi.string().required(),
-        entities_to_fix: Joi.string().required(),
-        detailed_instructions: Joi.string().required(),
+        changesetComment: Joi.string().required(),
+        entitiesToFix: Joi.string().required(),
+        detailedInstructions: Joi.string(),
         priority: Joi.string().required(),
         status: Joi.string().required(),
         imagery: Joi.string(),

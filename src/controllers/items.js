@@ -19,7 +19,6 @@ var updateActivity = function(request, reply, now) {
   });
 };
 
-
 var updateTask = function(request, reply) {
   var client = request.pg.client;
   var idtask = request.params.idtask;
@@ -126,19 +125,16 @@ module.exports.updateItem = function(request, reply) {
   client.query(queries.selectItemtoUpdate(idtask), [iditem], function(err, result) {
     if (err) return reply(boom.badRequest(err));
     var item = result.rows[0];
-
     item.body.properties.tofix.push({
       action: data.action,
       user: data.user,
       time: now,
       editor: data.editor
     });
-
     var maxnum = config.maxnum;
     if (data.action === 'skip') {
       maxnum = now + config.lockPeriod;
     }
-
     client.query(queries.updateItemById(idtask), [maxnum, JSON.stringify(item.body), item.id], function(err, result) {
       if (err) return reply(boom.badRequest(err));
       reply({

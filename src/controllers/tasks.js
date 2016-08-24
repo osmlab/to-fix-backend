@@ -45,10 +45,10 @@ module.exports.createTasks = function(request, reply) {
         name: data.name,
         description: data.description,
         updated: Math.round((new Date()).getTime() / 1000),
-        changeset_comment: data.changeset_comment,
-        load_status: 'loading',
-        entities_to_fix: data.entities_to_fix,
-        detailed_instructions: data.detailed_instructions,
+        changesetComment: data.changesetComment,
+        loadStatus: 'loading',
+        entitiesToFix: data.entitiesToFix,
+        detailedInstructions: data.detailedInstructions,
         priority: data.priority,
         status: data.status,
         imagery: data.imagery,
@@ -96,7 +96,7 @@ module.exports.createTasks = function(request, reply) {
                   });
                   child.on('message', function(props) {
                     //update when the load is complete
-                    props.result.task.body.load_status = 'complete';
+                    props.result.task.body.loadStatus = 'complete';
                     db.tasks.update({
                       id: props.result.task.id
                     }, {
@@ -131,11 +131,11 @@ module.exports.updateTasks = function(request, reply) {
         name: data.name,
         description: data.description,
         updated: Math.round((new Date()).getTime() / 1000),
-        changeset_comment: data.changeset_comment,
+        changesetComment: data.changesetComment,
         stats: result.body.stats,
-        load_status: result.body.load_status,
-        entities_to_fix: data.entities_to_fix,
-        detailed_instructions: data.detailed_instructions,
+        loadStatus: result.body.loadStatus,
+        entitiesToFix: data.entitiesToFix,
+        detailedInstructions: data.detailedInstructions,
         priority: data.priority,
         status: data.status,
         imagery: data.imagery
@@ -176,7 +176,7 @@ module.exports.updateTasks = function(request, reply) {
             });
             child.on('message', function(props) {
               //update when the load is complete
-              props.result.task.body.load_status = 'complete';
+              props.result.task.body.loadStatus = 'complete';
               db.tasks.update({
                 id: props.result.task.id
               }, {
@@ -188,7 +188,7 @@ module.exports.updateTasks = function(request, reply) {
             });
           });
           //response the update don't need wait, it also status marked as loading
-          task.body.load_status = 'loading';
+          task.body.loadStatus = 'loading';
           db.tasks.update({
             id: task.id
           }, {

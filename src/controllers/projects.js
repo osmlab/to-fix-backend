@@ -2,6 +2,7 @@
 var boom = require('boom');
 var randomString = require('random-string');
 var db = require('./../utils/dbmassive');
+
 module.exports.listProjects = function(request, reply) {
   db.projects.find({
     status: true

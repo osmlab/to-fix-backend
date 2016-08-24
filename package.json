@@ -11,7 +11,9 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "JSONStream": "^1.1.4",
     "boom": "^3.2.2",
+    "event-stream": "^3.3.4",
     "geojsonhint": "^2.0.0-beta",
     "good": "^7.0.1",
     "good-console": "^6.1.2",
@@ -25,9 +27,9 @@
     "lout": "^9.1.0",
     "massive": "^2.4.0",
     "pg": "^6.0.3",
+    "pg-copy-streams": "^1.2.0",
     "pg-native": "^1.10.0",
     "random-string": "^0.1.2",
-    "shortid": "^2.2.6",
     "underscore": "^1.8.3",
     "vision": "^4.1.0"
   },

@@ -1,10 +1,9 @@
 'use strict';
 var fs = require('fs');
 var massive = require('massive');
-var shortid = require('shortid');
 var randomString = require('random-string');
-
 var config = require('./../configs/config');
+
 process.on('message', function(props) {
   massive.connect({
     connectionString: config.connectionString
