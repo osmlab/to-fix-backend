@@ -17,7 +17,7 @@ function handleData(data, file, es) {
     length: 15
   }).toLowerCase();
   data.properties = _.mapObject(data.properties, function(val, key) {
-    return val.replace(/"/g, '');
+    return val.replace(/"/g, '').replace(/\n/g, '').replace(/\\/g, '');
   });
   var row = `${idstr}\t${Math.round((new Date()).getTime() / 1000)}\t${JSON.stringify(data)}\n`;
   fs.appendFile(file, row, function(err) {
@@ -68,5 +68,10 @@ function uploadtoDB(props, file, callback) {
 function theEnd(err) {
   if (err) {
     console.log(err);
+    process.send({
+      child: process.pid,
+      err: err
+    });
+    process.disconnect();
   }
 }
