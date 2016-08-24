@@ -10,7 +10,7 @@ queries.updateItemById = function(idtask) {
   return `UPDATE ${idtask} SET "time"=$1, body=($2::JSONB) WHERE id=$3;`;
 };
 queries.createTable = function(idtask) {
-  return `CREATE TABLE ${idtask}( id serial PRIMARY KEY, idstr varchar(50), time integer, body jsonb ); CREATE INDEX idx_${idtask}_body ON ${idtask} USING GIN (body);`;
+  return `CREATE TABLE ${idtask}(idstr varchar(50), time integer, body jsonb ); CREATE INDEX idx_${idtask}_body ON ${idtask} USING GIN (body); CREATE INDEX idx_${idtask}_idstr ON ${idtask}(idstr);`;
 };
 queries.createTableStats = function(idtask) {
   return `CREATE TABLE ${idtask}_stats( "time" integer, body jsonb);CREATE INDEX idx_time_${idtask} ON ${idtask}_stats("time");`;
