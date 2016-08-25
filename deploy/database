@@ -1,0 +1,13 @@
+set -e
+
+echo "
+    CREATE DATABASE $Database;
+" | psql --host=$DBAddress --username=$DBUsername --port=5432
+
+echo "
+    CREATE EXTENSION hstore;
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
+
+echo "
+    CREATE TABLE task_details (task text primary key, attributes HSTORE);
+" | psql --host=$DBAddress --username=$DBUsername --dbname=$Database --port=5432
