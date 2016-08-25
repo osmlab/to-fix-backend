@@ -23,6 +23,8 @@ npm start
 - install PostgreSQL, I recommend [postgres.app](http://postgresapp.com/) for OS X
 - install node.js, npm if needed
 - run `npm install`
+- run `source deploy/env` to load default Environment variables
+- run `./deploy/database` to create the database and the task_details table
 - run `node index.js`
 
 ####Additional steps for running locally on OS X
