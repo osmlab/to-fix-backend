@@ -1,0 +1,6 @@
+export DBUsername=postgres
+export DBPassword=
+export DBAddress=localhost
+export Database=tofix
+export UploadPassword=1123581321
+export UploadPath=./
