@@ -1,28 +1,43 @@
 {
-  "name": "build-to-fix",
+  "name": "to-fix-backend",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
-    "stop": "./node_modules/.bin/forever stop index.js"
+    "stop": "./node_modules/.bin/forever stop index.js",
+    "lint": "eslint *.js src/*/*.js;exit 0"
   },
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "aws-sdk": "^2.2.43",
-    "boom": "^2.6.1",
-    "csv-parser": "^1.5.0",
-    "forever": "^0.14.1",
-    "hapi": "^8.2.0",
-    "node-crontab": "0.0.8",
-    "pg": "^4.2.0",
-    "pg-copy-streams": "^0.3.0",
-    "pg-hstore": "^2.3.1",
-    "queue-async": "^1.0.7",
-    "random-strings": "0.0.1"
+    "JSONStream": "^1.1.4",
+    "boom": "^3.2.2",
+    "event-stream": "^3.3.4",
+    "geojsonhint": "^2.0.0-beta",
+    "good": "^7.0.1",
+    "good-console": "^6.1.2",
+    "good-squeeze": "^4.0.0",
+    "handlebars": "^4.0.5",
+    "hapi": "^14.1.0",
+    "hapi-node-postgres": "^4.0.0",
+    "inert": "^4.0.1",
+    "joi": "^9.0.4",
+    "lab": "^10.9.0",
+    "lout": "^9.1.0",
+    "massive": "^2.4.0",
+    "pg": "^6.0.3",
+    "pg-copy-streams": "^1.2.0",
+    "pg-native": "^1.10.0",
+    "random-string": "^0.1.2",
+    "underscore": "^1.8.3",
+    "vision": "^4.1.0"
   },
   "engines": {
     "node": "0.10.x"
+  },
+  "devDependencies": {
+    "eslint": "^2.8.0",
+    "eslint-config-mourner": "^2.0.1"
   }
 }
