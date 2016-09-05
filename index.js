@@ -10,8 +10,7 @@ var config = require('./src/configs/config');
 
 var server = new Hapi.Server();
 server.connection({
-  host: 'localhost',
-  port: 3000
+  port: 8000
 });
 var loutRegister = {
   register: Lout,
