@@ -1,6 +1,6 @@
 'use strict';
 var Joi = require('joi');
-var controllersItem = require('./../controllers/ControllesItems');
+var ControllerItems = require('./../controllers/ControllerItems');
 
 module.exports = [{
   method: 'POST',
@@ -16,7 +16,7 @@ module.exports = [{
         idtask: Joi.string().required()
       }
     },
-    handler: controllersItem.getItem
+    handler: ControllerItems.getItem
   }
 }, {
   method: 'GET',
@@ -29,7 +29,7 @@ module.exports = [{
         key: Joi.string().required()
       }
     },
-    handler: controllersItem.getItemById
+    handler: ControllerItems.getItemById
   }
 }, {
   method: 'PUT',
@@ -47,7 +47,7 @@ module.exports = [{
         idtask: Joi.string().required()
       }
     },
-    handler: controllersItem.updateItem
+    handler: ControllerItems.updateItem
   }
 }, {
   method: 'GET',
@@ -59,6 +59,6 @@ module.exports = [{
         idtask: Joi.string().required()
       }
     },
-    handler: controllersItem.getAllItems
+    handler: ControllerItems.getAllItems
   }
 }];

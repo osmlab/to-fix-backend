@@ -70,5 +70,9 @@ queries.selectItemtoUpdate = function(idtask) {
 queries.selectAllItems = function(idtask) {
   return `SELECT value FROM ${idtask};`;
 };
+//status
+queries.dbVersion = function() {
+  return 'select version();';
+};
 
 module.exports = queries;

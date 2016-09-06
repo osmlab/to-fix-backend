@@ -1,13 +1,13 @@
 'use strict';
 var Joi = require('joi');
-var controllersTasks = require('./../controllers/ControllesTasks');
+var ControllerTasks = require('./../controllers/ControllerTasks');
 
 module.exports = [{
   method: 'GET',
   path: '/tasks',
   config: {
     description: 'Returns all the list of existing tasks',
-    handler: controllersTasks.listTasks
+    handler: ControllerTasks.listTasks
   }
 }, {
   method: 'GET',
@@ -19,7 +19,7 @@ module.exports = [{
         idtask: Joi.string().required()
       }
     },
-    handler: controllersTasks.listTasksById
+    handler: ControllerTasks.listTasksById
   }
 }, {
   method: 'POST',
@@ -41,7 +41,7 @@ module.exports = [{
       parse: true,
       allow: 'multipart/form-data'
     },
-    handler: controllersTasks.createTasks
+    handler: ControllerTasks.createTasks
   }
 }, {
   method: 'PUT',
@@ -65,7 +65,7 @@ module.exports = [{
       parse: true,
       allow: 'multipart/form-data'
     },
-    handler: controllersTasks.updateTasks
+    handler: ControllerTasks.updateTasks
   }
 }, {
   method: 'DELETE',
@@ -78,7 +78,7 @@ module.exports = [{
         password: Joi.string().required()
       }
     },
-    handler: controllersTasks.deleteTasks
+    handler: ControllerTasks.deleteTasks
   }
 }, {
   method: 'GET',
@@ -92,7 +92,7 @@ module.exports = [{
         to: Joi.string().required()
       }
     },
-    handler: controllersTasks.listTasksActivity
+    handler: ControllerTasks.listTasksActivity
   }
 }, {
   method: 'GET',
@@ -107,7 +107,7 @@ module.exports = [{
         to: Joi.string().required()
       }
     },
-    handler: controllersTasks.listTasksActivityByUser
+    handler: ControllerTasks.listTasksActivityByUser
   }
 }, {
   method: 'GET',
@@ -121,6 +121,6 @@ module.exports = [{
         to: Joi.string().required()
       }
     },
-    handler: controllersTasks.trackStats
+    handler: ControllerTasks.trackStats
   }
 }];
