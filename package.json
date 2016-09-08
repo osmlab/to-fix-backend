@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "./node_modules/.bin/forever start index.js && ./node_modules/.bin/forever list",
-    "stop": "./node_modules/.bin/forever stop index.js"
+    "start": "node index.js"
   },
   "author": "",
   "license": "BSD",
@@ -13,7 +12,6 @@
     "aws-sdk": "^2.2.43",
     "boom": "^2.6.1",
     "csv-parser": "^1.5.0",
-    "forever": "^0.14.1",
     "hapi": "^8.2.0",
     "node-crontab": "0.0.8",
     "pg": "^4.2.0",

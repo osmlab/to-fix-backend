@@ -7,7 +7,7 @@ var routes = function(client, conString, lockPeriod, tasks) {
   load_tasks(true);
   return [{
     method: 'GET',
-    path: '/status',
+    path: '/',
     handler: function(request, reply) {
       pg.connect(conString, function(err, c, d) {
         if (err) {

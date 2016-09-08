@@ -24,7 +24,7 @@ var conString = 'postgres://' +
   database;
 
 var server = new hapi.Server();
-var port = 8000;
+var port = 80;
 
 server.connection({
   port: port,
