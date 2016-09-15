@@ -135,6 +135,7 @@ var routes = function(client, conString, lockPeriod, tasks) {
       tasks = {};
       var query = 'SELECT id, tasktable FROM task_details ORDER BY status, title;';
       var cliente = client.query(query, function(err, results) {
+        if (err || !results) return false;
         results.rows.forEach(function(row) {
           tasks[row.id] = row.tasktable;
         });
