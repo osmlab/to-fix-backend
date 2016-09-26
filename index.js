@@ -3,10 +3,8 @@ var Hapi = require('hapi');
 var Inert = require('inert');
 var Lout = require('lout');
 var Vision = require('vision');
-var HapiNodPostgres = require('hapi-node-postgres');
 var Good = require('good');
-var routes = require('./src/routes');
-var config = require('./src/configs/config');
+var Routes = require('./src/routes');
 
 var server = new Hapi.Server();
 server.connection({
@@ -16,13 +14,6 @@ var loutRegister = {
   register: Lout,
   options: {
     endpoint: '/docs'
-  }
-};
-var pgconnection = {
-  register: HapiNodPostgres,
-  options: {
-    connectionString: config.connectionString,
-    native: true
   }
 };
 var good = {
@@ -42,11 +33,12 @@ var good = {
     }
   }
 };
-server.register([Vision, Inert, loutRegister, pgconnection, good], function(err) {
+
+server.register([Vision, Inert, loutRegister, good], function(err) {
   if (err) {
     console.error('Failed loading plugins');
   }
-  server.route(routes);
+  server.route(Routes);
   server.start(function() {
     console.log(`Server running at: ${server.info.uri}`);
   });
