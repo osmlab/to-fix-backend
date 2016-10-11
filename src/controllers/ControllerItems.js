@@ -276,8 +276,8 @@ module.exports.updateItem = function(request, reply) {
         key: resp._id,
         status: 'updated'
       });
-      updateStatsInTask(request, reply);
-      updateActivity(request, reply, now);
+      updateStatsInTask(request, reply, 1);
+      updateActivity(request, reply, item, now);
     });
   });
 };
