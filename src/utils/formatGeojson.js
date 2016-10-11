@@ -15,9 +15,6 @@ function handleData(data, file, es) {
       length: 25
     }).toLowerCase();
     var time = Math.round((new Date()).getTime() / 1000);
-    data.properties = _.mapObject(data.properties, function(v, k) {
-      return v.replace(/"/g, '').replace(/\n/g, '').replace(/\\/g, '').replace(/[^\w\s]/gi, '');
-    });
     data.properties._key = key;
     data.properties._time = time;
     var row = `${JSON.stringify(data)}\n`;
