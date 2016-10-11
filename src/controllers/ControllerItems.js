@@ -6,10 +6,11 @@ var client = require('./../utils/connection.js');
 var updateActivity = function(request, reply, item, now) {
   var idtask = request.params.idtask;
   var data = request.payload;
+  var action = {};
   if (item instanceof Array) {
     var activityToInsert = [];
     for (var i = 0; i < item.length; i++) {
-      var action = {
+      action = {
         time: now,
         key: item[i].properties._key,
         action: data.action,
@@ -30,7 +31,7 @@ var updateActivity = function(request, reply, item, now) {
       if (err) console.log(err);
     });
   } else {
-    var action = {
+    action = {
       time: now,
       key: item.properties._key,
       action: data.action,
@@ -179,7 +180,6 @@ module.exports.getAItem = function(request, reply) {
     }
   });
 };
-
 
 module.exports.getGroupItems = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
