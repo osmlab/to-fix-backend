@@ -172,7 +172,7 @@ module.exports.createTasks = function(request, reply) {
           reply(task);
         });
       } else {
-        reply(boom.badData('The data is bad and you should fix it'));
+        reply(boom.badData(config.messages.badData));
       }
     });
   } else {
@@ -377,7 +377,7 @@ module.exports.deleteTasks = function(request, reply) {
       reply(resp);
     });
   } else {
-    return reply(boom.badRequest('password does not match'));
+    return reply(boom.badRequest(config.messages.wrongPassword));
   }
 };
 

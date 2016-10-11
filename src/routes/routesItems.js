@@ -16,7 +16,24 @@ module.exports = [{
         idtask: Joi.string().required()
       }
     },
-    handler: ControllerItems.getItem
+    handler: ControllerItems.getAItem
+  }
+}, {
+  method: 'POST',
+  path: '/tasks/{idtask}/items/{numitems}',
+  config: {
+    description: 'Return a  group of items randomly, min: 2 , max: 50',
+    validate: {
+      payload: {
+        user: Joi.string().required(),
+        editor: Joi.string().required()
+      },
+      params: {
+        idtask: Joi.string().required(),
+        numitems: Joi.number().integer().min(2).max(50).required()
+      }
+    },
+    handler: ControllerItems.getGroupItems
   }
 }, {
   method: 'GET',
