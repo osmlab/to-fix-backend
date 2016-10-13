@@ -90,7 +90,7 @@ module.exports.createTasks = function(request, reply) {
           if (!indexExists()) {
             client.indices.create({
               index: 'tofix' //=database
-            }, function(err, resp) {
+            }, function(err) {
               if (err) return reply(boom.badRequest(err));
               // console.log('create index', resp);
               cb();
@@ -149,7 +149,7 @@ module.exports.createTasks = function(request, reply) {
             index: 'tofix',
             //id: task.idtask + '_stats'
             type: task.idtask + '_stats'
-          }, function(err, resp) {
+          }, function(err) {
             // if (err) return reply(boom.badRequest(err));
             cb();
           });
@@ -162,7 +162,7 @@ module.exports.createTasks = function(request, reply) {
             id: task.idtask,
             type: 'tasks',
             body: task
-          }, function(err, resp) {
+          }, function(err) {
             if (err) return reply(boom.badRequest(err));
             cb();
           });
@@ -239,6 +239,7 @@ module.exports.updateTasks = function(request, reply) {
                 type: idtask,
                 scroll: '3s'
               }, function getMore(err, resp) {
+                if (err) return reply(boom.badRequest(err));
                 resp.hits.hits.forEach(function(v) {
                   if (!(v._source.properties._tofix && v._source.properties._tofix[v._source.properties._tofix.length - 1].action === 'noterror')) {
                     bulkToRemove.push({
@@ -269,7 +270,7 @@ module.exports.updateTasks = function(request, reply) {
                 id: task.idtask,
                 type: task.idtask,
                 body: bulkToRemove
-              }, function(err, resp) {
+              }, function(err) {
                 if (err) return reply(boom.badRequest(err));
                 cb();
               });
@@ -327,7 +328,7 @@ module.exports.updateTasks = function(request, reply) {
                     value: task.value
                   }
                 }
-              }, function(err, resp) {
+              }, function(err) {
                 if (err) console.log(err);
                 cb();
               });
@@ -350,7 +351,7 @@ module.exports.updateTasks = function(request, reply) {
               value: task.value
             }
           }
-        }, function(err, resp) {
+        }, function(err) {
           if (err) return reply(boom.badRequest(err));
           reply(task);
         });

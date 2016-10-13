@@ -27,7 +27,7 @@ var updateActivity = function(request, reply, item, now) {
     }
     client.bulk({
       body: activityToInsert
-    }, function(err, resp) {
+    }, function(err) {
       if (err) console.log(err);
     });
   } else {
@@ -42,7 +42,7 @@ var updateActivity = function(request, reply, item, now) {
       index: 'tofix',
       type: idtask + '_stats',
       body: action
-    }, function(err, resp) {
+    }, function(err) {
       if (err) console.log(err);
     });
   }
@@ -68,7 +68,7 @@ var updateStatsInTask = function(request, reply, numitems) {
           value: task.value
         }
       }
-    }, function(err, resp) {
+    }, function(err) {
       if (err) console.log(err);
     });
   });
@@ -172,7 +172,7 @@ module.exports.getAItem = function(request, reply) {
       reply(item);
       //we know all new request is for edition
       request.payload.action = 'edit';
-      updateItemEdit(request, reply, item, now, function(err, resp) {
+      updateItemEdit(request, reply, item, now, function(err) {
         if (err) console.log(err);
         updateStatsInTask(request, reply, 1);
         updateActivity(request, reply, item, now);
@@ -214,7 +214,7 @@ module.exports.getGroupItems = function(request, reply) {
       reply(items);
       // we know all new request is for edition
       request.payload.action = 'edit';
-      updateItemEdit(request, reply, items, now, function(err, resp) {
+      updateItemEdit(request, reply, items, now, function(err) {
         if (err) console.log(err);
         updateStatsInTask(request, reply, numitems);
         updateActivity(request, reply, items, now);
@@ -313,6 +313,7 @@ module.exports.getAllItemsByAction = function(request, reply) {
     type: idtask,
     scroll: '3s'
   }, function getMore(err, resp) {
+    if (err) return reply(boom.badRequest(err));
     resp.hits.hits.forEach(function(v) {
       if (v._source.properties._tofix && v._source.properties._tofix[v._source.properties._tofix.length - 1].action === action) {
         ItemsByAction.push(v._source);
