@@ -233,35 +233,32 @@ module.exports.updateTasks = function(request, reply) {
               });
             });
             q.defer(function(cb) {
-              //Load Items to remove.
-              client.count({
+              var numItems = 0;
+              client.search({
                 index: 'tofix',
-                type: task.idtask
-              }, function(err, res) {
-                if (err) return reply(boom.badRequest(err));
-                client.search({
-                  index: 'tofix',
-                  type: idtask,
-                  body: {
-                    size: res.count,
-                    query: {
-                      match_all: {}
-                    }
-                  }
-                }, function(err, resp) {
-                  if (err) return reply(boom.badRequest(err));
-                  resp.hits.hits.forEach(function(v) {
-                    //add here create the backup
+                type: idtask,
+                scroll: '3s'
+              }, function getMore(err, resp) {
+                resp.hits.hits.forEach(function(v) {
+                  if (!(v._source.properties._tofix && v._source.properties._tofix[v._source.properties._tofix.length - 1].action === 'noterror')) {
                     bulkToRemove.push({
                       delete: {
                         _index: 'tofix',
-                        _type: task.idtask,
+                        _type: idtask,
                         _id: v._id
                       }
                     });
-                  });
-                  cb();
+                  }
+                  numItems++;
                 });
+                if (resp.hits.total !== numItems) {
+                  client.scroll({
+                    scrollId: resp._scroll_id,
+                    scroll: '3s'
+                  }, getMore);
+                } else {
+                  cb();
+                }
               });
             });
 
