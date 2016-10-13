@@ -282,6 +282,7 @@ module.exports.updateItem = function(request, reply) {
   });
 };
 
+//remove later this function
 module.exports.getAllItems = function(request, reply) {
   var idtask = request.params.idtask;
   client.search({
@@ -298,6 +299,33 @@ module.exports.getAllItems = function(request, reply) {
     var items = resp.hits.hits.map(function(v) {
       return v._source;
     });
-    reply(items);
+    return reply(items);
+  });
+};
+
+module.exports.getAllItemsByAction = function(request, reply) {
+  var idtask = request.params.idtask;
+  var action = request.params.action;
+  var numItems = 0;
+  var ItemsByAction = [];
+  client.search({
+    index: 'tofix',
+    type: idtask,
+    scroll: '3s'
+  }, function getMore(err, resp) {
+    resp.hits.hits.forEach(function(v) {
+      if (v._source.properties._tofix && v._source.properties._tofix[v._source.properties._tofix.length - 1].action === action) {
+        ItemsByAction.push(v._source);
+      }
+      numItems++;
+    });
+    if (resp.hits.total !== numItems) {
+      client.scroll({
+        scrollId: resp._scroll_id,
+        scroll: '3s'
+      }, getMore);
+    } else {
+      return reply(ItemsByAction);
+    }
   });
 };
