@@ -91,4 +91,19 @@ module.exports = [{
     },
     handler: ControllerItems.getAllItems
   }
+}, {
+  method: 'POST',
+  path: '/tasks/{idtask}/items/unlocked',
+  config: {
+    description: 'Unlocked group of items',
+    validate: {
+      payload: {
+        groupIds: Joi.string().required()
+      },
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: ControllerItems.UnlockedItems
+  }
 }];

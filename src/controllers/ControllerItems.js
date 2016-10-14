@@ -1,5 +1,6 @@
 'use strict';
 var boom = require('boom');
+var _ = require('lodash');
 var config = require('./../configs/config');
 var client = require('./../utils/connection.js');
 
@@ -333,6 +334,53 @@ module.exports.getAllItemsByAction = function(request, reply) {
   });
 };
 
+module.exports.UnlockedItems = function(request, reply) {
+  var idtask = request.params.idtask;
+  var groupIds = request.payload.groupIds.split(',');
+  var now = Math.round((new Date()).getTime() / 1000);
+  var itemsToUnlocked = [];
+  client.mget({
+    index: 'tofix',
+    type: idtask,
+    body: {
+      ids: groupIds
+    }
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    resp.docs.forEach(function(val) {
+      var keyItem = val._source.properties._key;
+      var lastAction = val._source.properties._tofix[val._source.properties._tofix.length - 1].action;
+      if (lastAction === 'fixed' || lastAction === 'noterror') {
+        groupIds = _.pull(groupIds, keyItem);
+      }
+    });
+    for (var i = 0; i < groupIds.length; i++) {
+      itemsToUnlocked.push({
+        update: {
+          _index: 'tofix',
+          _type: idtask,
+          _id: groupIds[i]
+        }
+      }, {
+        doc: {
+          'properties': {
+            _time: now
+          }
+        }
+      });
+    }
+    client.bulk({
+      body: itemsToUnlocked
+    }, function(err) {
+      if (err) return reply(boom.badRequest(err));
+      return reply({
+        status: 'unlocked',
+        groupIds: groupIds
+      });
+    });
+  });
+};
+
 function setTaskAsCompleted(idtask) {
   client.get({
     index: 'tofix',
@@ -344,7 +392,8 @@ function setTaskAsCompleted(idtask) {
     console.log(task);
     var stats = task.value.stats[task.value.stats.length - 1];
     if ((stats.fixed + stats.noterror) >= stats.items) {
-      task.isCompleted = true; //task is completed 
+      //task is completed
+      task.isCompleted = true;
       client.update({
         index: 'tofix',
         type: 'tasks',
