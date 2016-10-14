@@ -89,10 +89,9 @@ module.exports.createTasks = function(request, reply) {
         q.defer(function(cb) {
           if (!indexExists()) {
             client.indices.create({
-              index: 'tofix' //=database
+              index: 'tofix'
             }, function(err) {
               if (err) return reply(boom.badRequest(err));
-              // console.log('create index', resp);
               cb();
             });
           } else {
@@ -126,7 +125,8 @@ module.exports.createTasks = function(request, reply) {
 
         q.defer(function(cb) {
           // save data on type
-          var bulkChunks = _.chunk(bulk, 2000);
+          
+          var bulkChunks = _.chunk(bulk, config.arrayChunks);
           var counter = 0;
           var errorsCounter = 0;
 
@@ -158,12 +158,10 @@ module.exports.createTasks = function(request, reply) {
           }
           saveData(bulkChunks[0]);
         });
-        // need to remove this option, check out later
         q.defer(function(cb) {
           // create stats document for each task
           client.create({
             index: 'tofix',
-            //id: task.idtask + '_stats'
             type: task.idtask + '_stats'
           }, function(err) {
             // if (err) return reply(boom.badRequest(err));
@@ -234,7 +232,6 @@ module.exports.updateTasks = function(request, reply) {
         var file = fs.createWriteStream(geojsonFile);
         file.on('error', function(err) {
           if (err) return reply(boom.badRequest(err));
-          console.error(err);
         });
         data.file.pipe(file);
         data.file.on('end', function(err) {
@@ -317,7 +314,7 @@ module.exports.updateTasks = function(request, reply) {
 
             q.defer(function(cb) {
               // update data on type
-              var bulkChunks = _.chunk(bulk, 2000);
+              var bulkChunks = _.chunk(bulk, config.arrayChunks);
               var counter = 0;
               var errorsCounter = 0;
 
@@ -362,14 +359,13 @@ module.exports.updateTasks = function(request, reply) {
                   }
                 }
               }, function(err) {
-                if (err) console.log(err);
+                if (err) return reply(boom.badRequest(err));
                 cb();
               });
             });
 
             q.await(function(error) {
-              if (error) return reply(err);
-              console.log(JSON.stringify(task));
+              if (error) return reply(boom.badRequest(err));
               reply(task);
             });
           }

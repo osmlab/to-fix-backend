@@ -8,3 +8,4 @@ module.exports.messages = {
   dataGone: 'The task is already finished or the items are already working by someone else.',
   wrongPassword: 'password does not match.'
 };
+module.exports.arrayChunks = 2000;
