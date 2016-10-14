@@ -52,7 +52,7 @@ module.exports.createTasks = function(request, reply) {
       idtask: data.name.concat(randomString({
         length: 5
       })).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
-      status: true,
+      isCompleted: false,
       value: {
         name: data.name,
         description: data.description,
@@ -206,7 +206,7 @@ module.exports.updateTasks = function(request, reply) {
       var result = resp._source;
       var task = {
         idtask: idtask,
-        status: data.status,
+        isCompleted: data.isCompleted,
         value: {
           name: data.name,
           description: data.description,
@@ -352,9 +352,7 @@ module.exports.updateTasks = function(request, reply) {
                 type: 'tasks',
                 id: task.idtask,
                 body: {
-                  doc: {
-                    value: task.value
-                  }
+                  doc: task
                 }
               }, function(err) {
                 if (err) return reply(boom.badRequest(err));
@@ -374,9 +372,7 @@ module.exports.updateTasks = function(request, reply) {
           type: 'tasks',
           id: task.idtask,
           body: {
-            doc: {
-              value: task.value
-            }
+            doc: task
           }
         }, function(err) {
           if (err) return reply(boom.badRequest(err));

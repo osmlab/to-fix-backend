@@ -55,7 +55,7 @@ module.exports = [{
         description: Joi.string().required(),
         changesetComment: Joi.string().required(),
         password: Joi.string().required(),
-        status: Joi.string().required(), // false = if a task is flagged as finished by user
+        isCompleted: Joi.string().required(), // false = if a task is flagged as completed by user
         file: Joi.object()
       }
     },

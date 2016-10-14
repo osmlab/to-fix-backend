@@ -167,6 +167,7 @@ module.exports.getAItem = function(request, reply) {
     if (err) return reply(boom.badRequest(err));
     if (resp.hits.hits.length === 0) {
       reply(boom.resourceGone(config.messages.dataGone));
+      setTaskAsCompleted(idtask);
     } else {
       var item = resp.hits.hits[0]._source;
       reply(item);
@@ -207,6 +208,7 @@ module.exports.getGroupItems = function(request, reply) {
     if (err) return reply(boom.badRequest(err));
     if (resp.hits.hits.length === 0) {
       reply(boom.resourceGone(config.messages.dataGone));
+      setTaskAsCompleted(idtask);
     } else {
       var items = resp.hits.hits.map(function(v) {
         return v._source;
@@ -330,3 +332,31 @@ module.exports.getAllItemsByAction = function(request, reply) {
     }
   });
 };
+
+function setTaskAsCompleted(idtask) {
+  client.get({
+    index: 'tofix',
+    type: 'tasks',
+    id: idtask
+  }, function(err, resp) {
+    if (err) console.log(err);
+    var task = resp._source;
+    console.log(task);
+    var stats = task.value.stats[task.value.stats.length - 1];
+    if ((stats.fixed + stats.noterror) >= stats.items) {
+      task.isCompleted = true; //task is completed 
+      client.update({
+        index: 'tofix',
+        type: 'tasks',
+        id: idtask,
+        body: {
+          doc: {
+            isCompleted: task.isCompleted
+          }
+        }
+      }, function(err) {
+        if (err) console.log(err);
+      });
+    }
+  });
+}
