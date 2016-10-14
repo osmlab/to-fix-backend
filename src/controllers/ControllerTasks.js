@@ -125,7 +125,6 @@ module.exports.createTasks = function(request, reply) {
 
         q.defer(function(cb) {
           // save data on type
-          
           var bulkChunks = _.chunk(bulk, config.arrayChunks);
           var counter = 0;
           var errorsCounter = 0;
@@ -207,14 +206,13 @@ module.exports.updateTasks = function(request, reply) {
       var result = resp._source;
       var task = {
         idtask: idtask,
-        status: result.status,
+        status: data.status,
         value: {
           name: data.name,
           description: data.description,
           updated: Math.round((new Date()).getTime() / 1000),
           changesetComment: data.changesetComment,
-          stats: result.value.stats,
-          status: data.status
+          stats: result.value.stats
         }
       };
       var bulk = [];
