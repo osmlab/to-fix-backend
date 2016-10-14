@@ -3,7 +3,7 @@ var boom = require('boom');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
-var _ = require('underscore');
+var _ = require('lodash');
 var geojsonhint = require('geojsonhint');
 var randomString = require('random-string');
 var d3 = require('d3-queue');
@@ -126,22 +126,38 @@ module.exports.createTasks = function(request, reply) {
 
         q.defer(function(cb) {
           // save data on type
-          client.bulk({
-            maxRetries: 5,
-            index: 'tofix',
-            id: task.idtask,
-            type: task.idtask,
-            body: bulk
-          }, function(err, resp) {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log(resp.items);
-              cb();
-            }
-          });
-        });
+          var bulkChunks = _.chunk(bulk, 2000);
+          var counter = 0;
+          var errorsCounter = 0;
 
+          function saveData(bulkChunk) {
+            client.bulk({
+              maxRetries: 5,
+              index: 'tofix',
+              id: task.idtask,
+              type: task.idtask,
+              body: bulkChunk
+            }, function(err) {
+              if (err) {
+                //try 3 times to save the chunk
+                errorsCounter++;
+                if (errorsCounter === 3) {
+                  return reply(boom.badRequest(err));
+                } else {
+                  saveData(bulkChunks[counter]);
+                }
+              } else {
+                counter++;
+                if (bulkChunks.length > counter) {
+                  saveData(bulkChunks[counter]);
+                } else {
+                  cb();
+                }
+              }
+            });
+          }
+          saveData(bulkChunks[0]);
+        });
         // need to remove this option, check out later
         q.defer(function(cb) {
           // create stats document for each task
@@ -237,7 +253,7 @@ module.exports.updateTasks = function(request, reply) {
               client.search({
                 index: 'tofix',
                 type: idtask,
-                scroll: '3s'
+                scroll: '15s'
               }, function getMore(err, resp) {
                 if (err) return reply(boom.badRequest(err));
                 resp.hits.hits.forEach(function(v) {
@@ -255,7 +271,7 @@ module.exports.updateTasks = function(request, reply) {
                 if (resp.hits.total !== numItems) {
                   client.scroll({
                     scrollId: resp._scroll_id,
-                    scroll: '3s'
+                    scroll: '15s'
                   }, getMore);
                 } else {
                   cb();
@@ -301,20 +317,37 @@ module.exports.updateTasks = function(request, reply) {
 
             q.defer(function(cb) {
               // update data on type
-              client.bulk({
-                maxRetries: 5,
-                index: 'tofix',
-                id: task.idtask,
-                type: task.idtask,
-                body: bulk
-              }, function(err, resp) {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log(resp.items);
-                  cb();
-                }
-              });
+              var bulkChunks = _.chunk(bulk, 2000);
+              var counter = 0;
+              var errorsCounter = 0;
+
+              function saveData(bulkChunk) {
+                client.bulk({
+                  maxRetries: 5,
+                  index: 'tofix',
+                  id: task.idtask,
+                  type: task.idtask,
+                  body: bulkChunk
+                }, function(err) {
+                  if (err) {
+                    //try 3 times to save the chunk
+                    errorsCounter++;
+                    if (errorsCounter === 3) {
+                      return reply(boom.badRequest(err));
+                    } else {
+                      saveData(bulkChunks[counter]);
+                    }
+                  } else {
+                    counter++;
+                    if (bulkChunks.length > counter) {
+                      saveData(bulkChunks[counter]);
+                    } else {
+                      cb();
+                    }
+                  }
+                });
+              }
+              saveData(bulkChunks[0]);
             });
 
             q.defer(function(cb) {
