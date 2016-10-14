@@ -95,7 +95,7 @@ module.exports = [{
   method: 'POST',
   path: '/tasks/{idtask}/items/unlocked',
   config: {
-    description: 'Unlocked group of items',
+    description: 'Unlocked group of items, those items should be separated by comma',
     validate: {
       payload: {
         groupIds: Joi.string().required()
