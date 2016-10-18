@@ -252,15 +252,13 @@ module.exports.updateTasks = function(request, reply) {
               }, function getMore(err, resp) {
                 if (err) return reply(boom.badRequest(err));
                 resp.hits.hits.forEach(function(v) {
-                  if (!(v._source.properties._tofix && v._source.properties._tofix[v._source.properties._tofix.length - 1].action === 'noterror')) {
-                    bulkToRemove.push({
-                      delete: {
-                        _index: 'tofix',
-                        _type: idtask,
-                        _id: v._id
-                      }
-                    });
-                  }
+                  bulkToRemove.push({
+                    delete: {
+                      _index: 'tofix',
+                      _type: idtask,
+                      _id: v._id
+                    }
+                  });
                   numItems++;
                 });
                 if (resp.hits.total !== numItems) {
