@@ -313,20 +313,20 @@ module.exports.getAllItemsByAction = function(request, reply) {
   var ItemsByAction = [];
   client.search({
     index: 'tofix',
-    type: idtask,
-    scroll: '3s'
+    type: idtask + '_stats',
+    scroll: '10s'
   }, function getMore(err, resp) {
     if (err) return reply(boom.badRequest(err));
     resp.hits.hits.forEach(function(v) {
-      if (v._source.properties._tofix && v._source.properties._tofix[v._source.properties._tofix.length - 1].action === action) {
-        ItemsByAction.push(v._source);
+      if (v._source.action === action) {
+        ItemsByAction.push(v._source.key);
       }
       numItems++;
     });
     if (resp.hits.total !== numItems) {
       client.scroll({
         scrollId: resp._scroll_id,
-        scroll: '3s'
+        scroll: '10s'
       }, getMore);
     } else {
       return reply(ItemsByAction);
