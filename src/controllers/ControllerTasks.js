@@ -25,6 +25,7 @@ module.exports.listTasks = function(request, reply) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var tasks = resp.hits.hits.map(function(v) {
+      v._source.value.stats = v._source.value.stats[v._source.value.stats.length - 1];
       return v._source;
     });
     reply({
@@ -162,8 +163,7 @@ module.exports.createTasks = function(request, reply) {
           client.create({
             index: 'tofix',
             type: task.idtask + '_stats'
-          }, function(err) {
-            // if (err) return reply(boom.badRequest(err));
+          }, function() {
             cb();
           });
         });

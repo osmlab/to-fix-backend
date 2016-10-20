@@ -1,6 +1,5 @@
 'use strict';
 var fs = require('fs');
-var randomString = require('random-string');
 var JSONStream = require('JSONStream');
 var eventStream = require('event-stream');
 var os = require('os');
