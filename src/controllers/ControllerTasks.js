@@ -206,7 +206,7 @@ module.exports.updateTasks = function(request, reply) {
       var result = resp._source;
       var task = {
         idtask: idtask,
-        isCompleted: (data.isCompleted === "false") ? false : true,
+        isCompleted: (data.isCompleted === 'false') ? false : true,
         value: {
           name: data.name,
           description: data.description,
