@@ -8,24 +8,24 @@ var geojsonhint = require('geojsonhint');
 var randomString = require('random-string');
 var d3 = require('d3-queue');
 var readline = require('readline');
-var config = require('./../configs/config');
-var format = require('./../utils/formatGeojson');
-// var client = require('./../utils/connection.js');
-var folder = os.tmpDir();
 var AWS = require('aws-sdk');
 var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
+var config = require('./../configs/config');
+var format = require('./../utils/formatGeojson');
+
+var folder = os.tmpDir();
 var creds = new AWS.ECSCredentials();
 creds.get();
 var client;
 creds.refresh(function(err) {
   if (err) throw err;
   var amazonES = {
-    region: 'us-east-1',
+    region: config.region,
     credentials: creds
   };
   client = new elasticsearch.Client({
-    host: process.env.ElasticHost || 'localhost:9200',
+    host: process.env.ElasticHost,
     log: 'trace',
     connectionClass: AwsEsConnector,
     amazonES: amazonES
@@ -225,7 +225,7 @@ module.exports.updateTasks = function(request, reply) {
       var result = resp._source;
       var task = {
         idtask: idtask,
-        isCompleted: (data.isCompleted === 'false') ? false : true,
+        isCompleted: data.isCompleted !== 'false',
         value: {
           name: data.name,
           description: data.description,

@@ -9,3 +9,5 @@ module.exports.messages = {
   wrongPassword: 'password does not match.'
 };
 module.exports.arrayChunks = 2000;
+//AWS
+module.exports.region = 'us-east-1';

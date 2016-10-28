@@ -1,22 +1,22 @@
 'use strict';
 var boom = require('boom');
 var _ = require('lodash');
-var config = require('./../configs/config');
-// var client = require('./../utils/connection.js');
 var AWS = require('aws-sdk');
 var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
+var config = require('./../configs/config');
+
 var creds = new AWS.ECSCredentials();
 creds.get();
 var client;
 creds.refresh(function(err) {
   if (err) throw err;
   var amazonES = {
-    region: 'us-east-1',
+    region: config.region,
     credentials: creds
   };
   client = new elasticsearch.Client({
-    host: process.env.ElasticHost || 'localhost:9200',
+    host: process.env.ElasticHost,
     log: 'trace',
     connectionClass: AwsEsConnector,
     amazonES: amazonES
