@@ -13,24 +13,29 @@ var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
 var config = require('./../configs/config');
 var format = require('./../utils/formatGeojson');
+var localClient = require('./../utils/connection');
 
 var folder = os.tmpDir();
-var creds = new AWS.ECSCredentials();
-creds.get();
 var client;
-creds.refresh(function(err) {
-  if (err) throw err;
-  var amazonES = {
-    region: config.region,
-    credentials: creds
-  };
-  client = new elasticsearch.Client({
-    host: process.env.ElasticHost,
-    log: 'trace',
-    connectionClass: AwsEsConnector,
-    amazonES: amazonES
+if (process.env.NODE_ENV === 'production') {
+  var creds = new AWS.ECSCredentials();
+  creds.get();
+  creds.refresh(function(err) {
+    if (err) throw err;
+    var amazonES = {
+      region: config.region,
+      credentials: creds
+    };
+    client = new elasticsearch.Client({
+      host: process.env.ElasticHost,
+      log: 'trace',
+      connectionClass: AwsEsConnector,
+      amazonES: amazonES
+    });
   });
-});
+} else {
+  client = localClient.connect();
+}
 
 module.exports.listTasks = function(request, reply) {
   client.search({
