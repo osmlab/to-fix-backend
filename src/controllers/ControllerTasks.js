@@ -182,16 +182,15 @@ module.exports.createTasks = function(request, reply) {
           }
           saveData(bulkChunks[0]);
         });
-        q.defer(function(cb) {
-          // create stats document for each task
-          client.create({
-            index: 'tofix',
-            type: task.idtask + '_stats'
-          }, function() {
-            cb();
-          });
-        });
-
+        // q.defer(function(cb) {
+        //   // create stats document for each task
+        //   client.create({
+        //     index: 'tofix',
+        //     type: task.idtask + '_stats'
+        //   }, function() {
+        //     cb();
+        //   });
+        // });
         q.defer(function(cb) {
           // save the task on document
           client.create({
@@ -426,6 +425,7 @@ module.exports.deleteTasks = function(request, reply) {
 
 module.exports.listTasksActivity = function(request, reply) {
   var idtask = request.params.idtask;
+  var timestamp = Math.round((new Date()).getTime());
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
@@ -452,20 +452,36 @@ module.exports.listTasksActivity = function(request, reply) {
       }
     }
   }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var activity = resp.hits.hits.map(function(v) {
-      return v._source;
-    });
-    return reply({
-      updated: Math.round((new Date()).getTime() / 1000),
-      data: activity
-    });
+    if (err) {
+      client.indices.existsType({
+        index: 'tofix',
+        type: idtask + '_stats'
+      }, function(error, response) {
+        if (!response) {
+          return reply({
+            updated: timestamp,
+            data: []
+          });
+        } else {
+          return reply(boom.badRequest(err));
+        }
+      });
+    } else {
+      var activity = resp.hits.hits.map(function(v) {
+        return v._source;
+      });
+      return reply({
+        updated: timestamp,
+        data: activity
+      });
+    }
   });
 };
 
 module.exports.listTasksActivityByUser = function(request, reply) {
   var idtask = request.params.idtask;
   var user = request.params.user;
+  var timestamp = Math.round((new Date()).getTime());
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
@@ -497,19 +513,35 @@ module.exports.listTasksActivityByUser = function(request, reply) {
       }
     }
   }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var activity = resp.hits.hits.map(function(v) {
-      return v._source;
-    });
-    return reply({
-      updated: Math.round((new Date()).getTime() / 1000),
-      data: activity
-    });
+    if (err) {
+      client.indices.existsType({
+        index: 'tofix',
+        type: idtask + '_stats'
+      }, function(error, response) {
+        if (!response) {
+          return reply({
+            updated: timestamp,
+            data: []
+          });
+        } else {
+          return reply(boom.badRequest(err));
+        }
+      });
+    } else {
+      var activity = resp.hits.hits.map(function(v) {
+        return v._source;
+      });
+      return reply({
+        updated: timestamp,
+        data: activity
+      });
+    }
   });
 };
 
 module.exports.trackStats = function(request, reply) {
   var idtask = request.params.idtask;
+  var timestamp = Math.round((new Date()).getTime());
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
@@ -536,29 +568,44 @@ module.exports.trackStats = function(request, reply) {
       }
     }
   }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var activity = resp.hits.hits;
-    var data = {};
-    activity.forEach(function(v) {
-      v = v._source;
-      if (!data[v.user]) {
-        data[v.user] = {
-          edit: 0,
-          fixed: 0,
-          noterror: 0,
-          skip: 0,
-          user: v.user
-        };
-        data[v.user][v.action] = data[v.user][v.action] + 1;
-      } else {
-        data[v.user][v.action] = data[v.user][v.action] + 1;
-      }
-    });
+    if (err) {
+      client.indices.existsType({
+        index: 'tofix',
+        type: idtask + '_stats'
+      }, function(error, response) {
+        if (!response) {
+          return reply({
+            updated: timestamp,
+            stats: []
+          });
+        } else {
+          return reply(boom.badRequest(err));
+        }
+      });
+    } else {
+      var activity = resp.hits.hits;
+      var data = {};
+      activity.forEach(function(v) {
+        v = v._source;
+        if (!data[v.user]) {
+          data[v.user] = {
+            edit: 0,
+            fixed: 0,
+            noterror: 0,
+            skip: 0,
+            user: v.user
+          };
+          data[v.user][v.action] = data[v.user][v.action] + 1;
+        } else {
+          data[v.user][v.action] = data[v.user][v.action] + 1;
+        }
+      });
 
-    reply({
-      updated: Math.round((new Date()).getTime() / 1000),
-      stats: _.values(data)
-    });
+      reply({
+        updated: Math.round((new Date()).getTime() / 1000),
+        stats: _.values(data)
+      });
+    }
   });
 };
 
