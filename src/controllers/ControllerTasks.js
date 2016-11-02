@@ -429,47 +429,27 @@ module.exports.listTasksActivity = function(request, reply) {
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
+  var numItems = 0;
+  var activity = [];
   client.search({
     index: 'tofix',
     type: idtask + '_stats',
-    body: {
-      sort: {
-        'time': {
-          order: 'desc'
-        }
-      },
-      query: {
-        bool: {
-          must: [{
-            range: {
-              time: {
-                gte: from,
-                lte: to
-              }
-            }
-          }]
-        }
+    scroll: '2s'
+  }, function getMore(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    resp.hits.hits.forEach(function(v) {
+      v = v._source;
+      if (v.time >= from && v.time <= to) {
+        activity.push(v);
       }
-    }
-  }, function(err, resp) {
-    if (err) {
-      client.indices.existsType({
-        index: 'tofix',
-        type: idtask + '_stats'
-      }, function(error, response) {
-        if (!response) {
-          return reply({
-            updated: timestamp,
-            data: []
-          });
-        } else {
-          return reply(boom.badRequest(err));
-        }
-      });
+      numItems++;
+    });
+    if (resp.hits.total !== numItems) {
+      client.scroll({
+        scrollId: resp._scroll_id,
+        scroll: '2s'
+      }, getMore);
     } else {
-      var activity = resp.hits.hits.map(function(v) {
-        return v._source;
-      });
       return reply({
         updated: timestamp,
         data: activity
@@ -485,52 +465,27 @@ module.exports.listTasksActivityByUser = function(request, reply) {
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
+  var numItems = 0;
+  var activity = [];
   client.search({
     index: 'tofix',
     type: idtask + '_stats',
-    body: {
-      sort: {
-        'time': {
-          order: 'desc'
-        }
-      },
-      query: {
-        bool: {
-          must: [{
-            range: {
-              time: {
-                gte: from,
-                lte: to
-              }
-            }
-          }]
-        }
-      },
-      filter: {
-        term: {
-          user: user
-        }
+    scroll: '2s'
+  }, function getMore(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    resp.hits.hits.forEach(function(v) {
+      v = v._source;
+      if (v.time >= from && v.time <= to && v.user === user) {
+        activity.push(v);
       }
-    }
-  }, function(err, resp) {
-    if (err) {
-      client.indices.existsType({
-        index: 'tofix',
-        type: idtask + '_stats'
-      }, function(error, response) {
-        if (!response) {
-          return reply({
-            updated: timestamp,
-            data: []
-          });
-        } else {
-          return reply(boom.badRequest(err));
-        }
-      });
+      numItems++;
+    });
+    if (resp.hits.total !== numItems) {
+      client.scroll({
+        scrollId: resp._scroll_id,
+        scroll: '2s'
+      }, getMore);
     } else {
-      var activity = resp.hits.hits.map(function(v) {
-        return v._source;
-      });
       return reply({
         updated: timestamp,
         data: activity
@@ -545,50 +500,18 @@ module.exports.trackStats = function(request, reply) {
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
+  var dataUsers = {};
+  var dataDate = {};
+  var numItems = 0;
   client.search({
     index: 'tofix',
     type: idtask + '_stats',
-    body: {
-      sort: {
-        'time': {
-          order: 'desc'
-        }
-      },
-      query: {
-        bool: {
-          must: [{
-            range: {
-              time: {
-                gte: from,
-                lte: to
-              }
-            }
-          }]
-        }
-      }
-    }
-  }, function(err, resp) {
-    if (err) {
-      client.indices.existsType({
-        index: 'tofix',
-        type: idtask + '_stats'
-      }, function(error, response) {
-        if (!response) {
-          return reply({
-            updated: timestamp,
-            stats: []
-          });
-        } else {
-          return reply(boom.badRequest(err));
-        }
-      });
-    } else {
-      var activity = resp.hits.hits;
-      var dataUsers = {};
-      var dataDate = {};
-
-      activity.forEach(function(v) {
-        v = v._source;
+    scroll: '2s'
+  }, function getMore(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    resp.hits.hits.forEach(function(v) {
+      v = v._source;
+      if (v.time >= from && v.time <= to) {
         //Filter dataUsers per user
         if (!dataUsers[v.user]) {
           dataUsers[v.user] = {
@@ -618,17 +541,23 @@ module.exports.trackStats = function(request, reply) {
         } else {
           dataDate[day][v.action] = dataDate[day][v.action] + 1;
         }
-      });
-
+      }
+      numItems++;
+    });
+    if (resp.hits.total !== numItems) {
+      client.scroll({
+        scrollId: resp._scroll_id,
+        scroll: '2s'
+      }, getMore);
+    } else {
       reply({
-        updated: Math.round((new Date()).getTime() / 1000),
+        updated: timestamp,
         statsUsers: _.values(dataUsers),
         statsDate: _.values(dataDate)
       });
     }
   });
 };
-
 
 function indexExists() {
   return client.indices.exists({

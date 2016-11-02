@@ -45,8 +45,7 @@ var updateActivity = function(request, reply, item, now) {
       activityToInsert.push({
         index: {
           _index: 'tofix',
-          _type: idtask + '_stats',
-          _id: item[i].properties._key
+          _type: idtask + '_stats'
         }
       }, action);
     }
