@@ -584,33 +584,59 @@ module.exports.trackStats = function(request, reply) {
       });
     } else {
       var activity = resp.hits.hits;
-      var data = {};
+      var dataUsers = {};
+      var dataDate = {};
+
       activity.forEach(function(v) {
         v = v._source;
-        if (!data[v.user]) {
-          data[v.user] = {
+        //Filter dataUsers per user
+        if (!dataUsers[v.user]) {
+          dataUsers[v.user] = {
             edit: 0,
             fixed: 0,
             noterror: 0,
             skip: 0,
             user: v.user
           };
-          data[v.user][v.action] = data[v.user][v.action] + 1;
+          dataUsers[v.user][v.action] = dataUsers[v.user][v.action] + 1;
         } else {
-          data[v.user][v.action] = data[v.user][v.action] + 1;
+          dataUsers[v.user][v.action] = dataUsers[v.user][v.action] + 1;
+        }
+        //Filter data per date, basically for each day
+        var d = new Date(v.time * 1000);
+        //Need to improve this, for now is ok
+        var day = getTimestamp((d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear() + ' 00:00:00');
+        if (!dataDate[day]) {
+          dataDate[day] = {
+            edit: 0,
+            fixed: 0,
+            noterror: 0,
+            skip: 0,
+            start: day
+          };
+          dataDate[day][v.action] = dataDate[day][v.action] + 1;
+        } else {
+          dataDate[day][v.action] = dataDate[day][v.action] + 1;
         }
       });
 
       reply({
         updated: Math.round((new Date()).getTime() / 1000),
-        stats: _.values(data)
+        statsUsers: _.values(dataUsers),
+        statsDate: _.values(dataDate)
       });
     }
   });
 };
 
+
 function indexExists() {
   return client.indices.exists({
     index: 'tofix'
   });
+}
+
+function getTimestamp(strDate) {
+  var datum = Date.parse(strDate);
+  return datum / 1000;
 }
