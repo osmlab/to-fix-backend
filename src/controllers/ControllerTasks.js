@@ -42,6 +42,7 @@ module.exports.listTasks = function(request, reply) {
     index: 'tofix',
     type: 'tasks',
     body: {
+      size: 500,
       query: {
         match_all: {}
       }
