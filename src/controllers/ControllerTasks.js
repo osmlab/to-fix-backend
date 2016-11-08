@@ -79,6 +79,7 @@ module.exports.createTasks = function(request, reply) {
         length: 5
       })).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
       isCompleted: false,
+      isAllItemsLoad: false,
       value: {
         name: data.name,
         description: data.description,
@@ -163,6 +164,7 @@ module.exports.createTasks = function(request, reply) {
               type: task.idtask,
               body: bulkChunk
             }, function(err) {
+
               if (err) {
                 //try 3 times to save the chunk
                 errorsCounter++;
@@ -176,22 +178,27 @@ module.exports.createTasks = function(request, reply) {
                 if (bulkChunks.length > counter) {
                   saveData(bulkChunks[counter]);
                 } else {
-                  cb();
+                   //Update isAllItemsLoad=true when all items were uploaded in elasticsearch
+                  client.update({
+                    index: 'tofix',
+                    type: 'tasks',
+                    id: task.idtask,
+                    body: {
+                      doc: {
+                        isAllItemsLoad: true
+                      }
+                    }
+                  }, function(err) {
+                    if (err) console.log(err);
+                  });
                 }
               }
             });
           }
           saveData(bulkChunks[0]);
+          //no waste time on waiting to upload all data to elasticSearch
+          cb();
         });
-        // q.defer(function(cb) {
-        //   // create stats document for each task
-        //   client.create({
-        //     index: 'tofix',
-        //     type: task.idtask + '_stats'
-        //   }, function() {
-        //     cb();
-        //   });
-        // });
         q.defer(function(cb) {
           // save the task on document
           client.create({

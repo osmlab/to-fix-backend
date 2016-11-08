@@ -92,6 +92,18 @@ module.exports = [{
     handler: ControllerItems.getAllItems
   }
 }, {
+  method: 'GET',
+  path: '/tasks/{idtask}/count',
+  config: {
+    description: 'Returns the amount of item that exists in the task',
+    validate: {
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: ControllerItems.countItems
+  }
+}, {
   method: 'POST',
   path: '/tasks/{idtask}/items/unlocked',
   config: {

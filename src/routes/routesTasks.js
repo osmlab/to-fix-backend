@@ -60,7 +60,7 @@ module.exports = [{
       }
     },
     payload: {
-      maxBytes: 300000000,
+      maxBytes: 50000000,
       output: 'stream',
       parse: true,
       allow: 'multipart/form-data'

@@ -329,6 +329,20 @@ module.exports.getAllItems = function(request, reply) {
   });
 };
 
+//count tems in type
+module.exports.countItems = function(request, reply) {
+  var idtask = request.params.idtask;
+  client.count({
+    index: 'tofix',
+    type: idtask
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    return reply({
+      count: resp.count
+    });
+  });
+};
+
 module.exports.getAllItemsByAction = function(request, reply) {
   var idtask = request.params.idtask;
   var action = request.params.action;
