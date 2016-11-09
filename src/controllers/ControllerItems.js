@@ -169,6 +169,8 @@ var updateItemEdit = function(request, reply, item, now, done) {
 module.exports.getAItem = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
+  request.payload.user = request.payload.user || 'anonymous';
+  request.payload.editor = request.payload.editor || 'unknown';
   client.search({
     index: 'tofix',
     type: idtask,
@@ -210,6 +212,8 @@ module.exports.getGroupItems = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
   var numitems = request.params.numitems;
+  request.payload.user = request.payload.user || 'anonymous';
+  request.payload.editor = request.payload.editor || 'unknown';
   client.search({
     index: 'tofix',
     type: idtask,

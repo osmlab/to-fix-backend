@@ -9,8 +9,8 @@ module.exports = [{
     description: 'Return a item randomly',
     validate: {
       payload: {
-        user: Joi.string().required(),
-        editor: Joi.string().required()
+        user: Joi.string().allow(''),
+        editor: Joi.string().allow('')
       },
       params: {
         idtask: Joi.string().required()
@@ -25,8 +25,8 @@ module.exports = [{
     description: 'Return a  group of items randomly, min: 2 , max: 50',
     validate: {
       payload: {
-        user: Joi.string().required(),
-        editor: Joi.string().required()
+        user: Joi.string().allow(''),
+        editor: Joi.string().allow('')
       },
       params: {
         idtask: Joi.string().required(),
