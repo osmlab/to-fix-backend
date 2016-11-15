@@ -196,11 +196,12 @@ module.exports.getAItem = function(request, reply) {
       setTaskAsCompleted(idtask);
     } else {
       var item = resp.hits.hits[0]._source;
-      reply(item);
+
       //we know all new request is for edition
       request.payload.action = 'edit';
       updateItemEdit(request, reply, item, now, function(err) {
         if (err) console.log(err);
+        reply(item);
         updateStatsInTask(request, reply, 1);
         updateActivity(request, reply, item, now);
       });
