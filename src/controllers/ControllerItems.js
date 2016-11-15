@@ -286,7 +286,7 @@ module.exports.updateItem = function(request, reply) {
     });
     var maxNum = config.maxNum;
     if (data.action === 'skip') {
-      maxNum = now + config.lockPeriod;
+      maxNum = now + config.skipItem;
     }
     item.properties._time = maxNum;
     client.update({
@@ -312,14 +312,13 @@ module.exports.updateItem = function(request, reply) {
   });
 };
 
-//remove later this function
 module.exports.getAllItems = function(request, reply) {
   var idtask = request.params.idtask;
   client.search({
     index: 'tofix',
     type: idtask,
     body: {
-      size: 1000, //get item using pagination - need to fix here
+      size: 100,
       query: {
         match_all: {}
       }

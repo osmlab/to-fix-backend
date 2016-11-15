@@ -2,6 +2,7 @@
 module.exports.lockPeriod = 10 * 60; //for an item 10 min
 module.exports.lockPeriodGroup = 60 * 60; //for an hour
 module.exports.maxNum = 2147483647;
+module.exports.skipItem = 30; //half minute for skip items
 module.exports.password = process.env.UploadPassword;
 module.exports.messages = {
   badData: 'The data is bad and you should fix it.',
@@ -9,5 +10,4 @@ module.exports.messages = {
   wrongPassword: 'password does not match.'
 };
 module.exports.arrayChunks = 2000;
-//AWS
 module.exports.region = 'us-east-1';
