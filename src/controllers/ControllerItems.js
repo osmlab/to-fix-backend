@@ -286,7 +286,7 @@ module.exports.updateItem = function(request, reply) {
     });
     var maxNum = config.maxNum;
     if (data.action === 'skip') {
-      maxNum = now + config.skipItem;
+      maxNum = now;
     }
     item.properties._time = maxNum;
     client.update({
