@@ -55,7 +55,7 @@ module.exports = [{
     description: 'Update a item with an action(fixed or noterror)',
     validate: {
       payload: {
-        action: Joi.string().required(),
+        action: Joi.string().valid('fixed', 'noterror', 'skip').required(),
         user: Joi.string().required(),
         editor: Joi.string().required(),
         key: Joi.string().required()
