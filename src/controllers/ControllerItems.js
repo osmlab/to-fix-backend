@@ -176,16 +176,26 @@ module.exports.getAItem = function(request, reply) {
     type: idtask,
     body: {
       size: 1,
-      filter: {
-        bool: {
-          must: [{
-            range: {
-              'properties._time': {
-                lt: now,
-                gte: 0
-              }
+      query: {
+        function_score: {
+          filter: {
+            bool: {
+              must: [{
+                range: {
+                  'properties._time': {
+                    lt: now,
+                    gte: 0
+                  }
+                }
+              }]
             }
-          }]
+          },
+          functions: [{
+            random_score: {
+              seed: Math.random().toString()
+            }
+          }],
+          score_mode: 'sum'
         }
       }
     }
@@ -196,11 +206,10 @@ module.exports.getAItem = function(request, reply) {
       setTaskAsCompleted(idtask);
     } else {
       var item = resp.hits.hits[0]._source;
-
       //we know all new request is for edition
       request.payload.action = 'edit';
       updateItemEdit(request, reply, item, now, function(err) {
-        if (err) console.log(err);
+        if (err) return reply(boom.badRequest(err));
         reply(item);
         updateStatsInTask(request, reply, 1);
         updateActivity(request, reply, item, now);
@@ -220,16 +229,26 @@ module.exports.getGroupItems = function(request, reply) {
     type: idtask,
     body: {
       size: numitems,
-      filter: {
-        bool: {
-          must: [{
-            range: {
-              'properties._time': {
-                lt: now,
-                gte: 0
-              }
+      query: {
+        function_score: {
+          filter: {
+            bool: {
+              must: [{
+                range: {
+                  'properties._time': {
+                    lt: now,
+                    gte: 0
+                  }
+                }
+              }]
             }
-          }]
+          },
+          functions: [{
+            random_score: {
+              seed: Math.random().toString()
+            }
+          }],
+          score_mode: 'sum'
         }
       }
     }
@@ -242,11 +261,11 @@ module.exports.getGroupItems = function(request, reply) {
       var items = resp.hits.hits.map(function(v) {
         return v._source;
       });
-      reply(items);
       // we know all new request is for edition
       request.payload.action = 'edit';
       updateItemEdit(request, reply, items, now, function(err) {
-        if (err) console.log(err);
+        if (err) return reply(boom.badRequest(err));
+        reply(items);
         updateStatsInTask(request, reply, numitems);
         updateActivity(request, reply, items, now);
       });
