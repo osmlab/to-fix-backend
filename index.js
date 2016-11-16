@@ -1,47 +1,50 @@
-var hapi = require('hapi');
-var pg = require('pg');
-var routes = require('./routes');
-// var updateTask = require('./src/updateTask');
+'use strict';
+var Hapi = require('hapi');
+var Inert = require('inert');
+var Lout = require('lout');
+var Vision = require('vision');
+var Good = require('good');
+var Routes = require('./src/routes');
 
-var user = process.env.DBUsername || 'postgres';
-var password = process.env.DBPassword || '';
-var address = process.env.DBAddress || 'localhost';
-var database = process.env.Database || 'tofix';
-var path = process.env.UploadPath;
-// short term, to prevent the need from building out user authentication until later
-var uploadPassword = process.env.UploadPassword;
-if (!path) return console.log('env variable UploadPath must be set');
-if (!uploadPassword) return console.log('env variable UploadPassword must be set');
-// from the db connection
-var client;
-// seconds to lock each item
-var lockPeriod = 600;
-
-var conString = 'postgres://' +
-  user + ':' +
-  password + '@' +
-  address + '/' +
-  database;
-
-var server = new hapi.Server();
-var port = 80;
-
+var server = new Hapi.Server();
 server.connection({
-  port: port,
+  port: process.env.Port || 8000,
   routes: {
     cors: true
   }
 });
+var loutRegister = {
+  register: Lout,
+  options: {
+    endpoint: '/docs'
+  }
+};
+var good = {
+  register: Good,
+  options: {
+    reporters: {
+      console: [{
+        module: 'good-squeeze',
+        name: 'Squeeze',
+        args: [{
+          response: '*',
+          log: '*' //['error']
+        }]
+      }, {
+        module: 'good-console'
+      }, 'stdout']
+    }
+  }
+};
 
-var tasks = {};
-
-pg.connect(conString, function(err, c, d) {
-  if (err) return console.log(err);
-  console.log('connected to:', address);
-  client = c;
-  server.route(routes(client, conString, lockPeriod, tasks));
-  // updateTask(client,path);
+server.register([Vision, Inert, loutRegister, good], function(err) {
+  if (err) {
+    console.error('Failed loading plugins');
+  }
+  server.route(Routes);
   server.start(function() {
-    console.log('server on port', port);
+    console.log(`Server running at: ${server.info.uri}`);
   });
 });
+
+module.exports = server;
