@@ -67,17 +67,4 @@ module.exports = [{
     },
     handler: ControllerTasks.updateTasks
   }
-}, {
-  method: 'DELETE',
-  path: '/tasks',
-  config: {
-    description: 'Delete a specific task',
-    validate: {
-      payload: {
-        idtask: Joi.string().required(),
-        password: Joi.string().required()
-      }
-    },
-    handler: ControllerTasks.deleteTasks
-  }
 }];
