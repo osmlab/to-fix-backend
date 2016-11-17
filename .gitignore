@@ -2,7 +2,6 @@
 ###################
 *.csv
 *.gz
-*.geojson
 *.osc
 *.osm
 *.zip
