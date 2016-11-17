@@ -18,7 +18,6 @@ if (process.env.NODE_ENV === 'production') {
     };
     client = new elasticsearch.Client({
       host: process.env.ElasticHost,
-      log: 'trace',
       connectionClass: AwsEsConnector,
       amazonES: amazonES
     });
