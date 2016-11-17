@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "lint": "eslint *.js src/*/*.js;exit 0"
+    "lint": "eslint *.js src/*/*.js;exit 0",
+    "pretest": "npm run lint",
+    "test": "tape test/*.test.js"
   },
   "author": "Mapbox",
   "license": "BSD",
@@ -39,6 +41,7 @@
   },
   "devDependencies": {
     "eslint": "^2.8.0",
-    "eslint-config-mourner": "^2.0.1"
+    "eslint-config-mourner": "^2.0.1",
+    "tape": "^4.6.2"
   }
 }
