@@ -23,13 +23,11 @@ function handleData(data, file, es) {
   }
   var keys = _.keys(data.properties);
   for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    if (key.indexOf('@') > -1) {
-      key = key.replace(/@/g, '');
+    var key = keys[i].replace(/[^A-Za-z]/g, '_');
+    if (key !== keys[i]) {
       data.properties[key] = data.properties[keys[i]];
       delete data.properties[keys[i]];
     }
-
     if (ids.indexOf(key) > -1) {
       data.properties._osmId = data.properties[key];
       //for overpass geojson files
