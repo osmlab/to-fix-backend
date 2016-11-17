@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 'use strict';
 var boom = require('boom');
 var _ = require('lodash');

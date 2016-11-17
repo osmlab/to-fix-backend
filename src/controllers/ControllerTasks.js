@@ -36,6 +36,8 @@ if (process.env.NODE_ENV === 'production') {
   client = localClient.connect();
 }
 
+/* eslint-disable camelcase */
+
 module.exports.listTasks = function(request, reply) {
   client.search({
     index: 'tofix',
@@ -57,6 +59,8 @@ module.exports.listTasks = function(request, reply) {
     });
   });
 };
+
+/* eslint-enable camelcase */
 
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
@@ -136,14 +140,14 @@ module.exports.createTasks = function(request, reply) {
           rd.on('line', function(line) {
             var obj = JSON.parse(line);
             bulk.push({
-                index: {
-                  _index: 'tofix',
-                  _type: task.idtask,
-                  _id: obj.properties._key
-                }
-              },
-              obj
-            );
+              index: {
+                _index: 'tofix',
+                _type: task.idtask,
+                _id: obj.properties._key
+              }
+            },
+            obj
+          );
           }).on('close', function() {
             cb();
           });
@@ -325,14 +329,14 @@ module.exports.updateTasks = function(request, reply) {
               rd.on('line', function(line) {
                 var obj = JSON.parse(line);
                 bulk.push({
-                    index: {
-                      _index: 'tofix',
-                      _type: task.idtask,
-                      _id: obj.properties._key
-                    }
-                  },
-                  obj
-                );
+                  index: {
+                    _index: 'tofix',
+                    _type: task.idtask,
+                    _id: obj.properties._key
+                  }
+                },
+                obj
+              );
               }).on('close', function() {
                 cb();
               });
