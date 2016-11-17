@@ -45,6 +45,13 @@ function handleData(data, file, es) {
   });
 }
 
+/**
+ * Stream a GeoJSON file to count the number of rows
+ * @param {string} geojsonFile path to a local GeoJSON file
+ * @param {object} task metadata
+ * @param {function} cb success callback passing updated task as parameter
+ * @returns {object} task with `items` property
+ */
 module.exports.formatGeojson = function(geojsonFile, task, cb) {
   var numRows = 0;
   var file = path.join(folder, task.idtask);
