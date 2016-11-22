@@ -15,6 +15,11 @@ var config = require('./../configs/config');
 var format = require('./../utils/formatGeojson');
 var localClient = require('./../utils/connection');
 
+module.exports = {
+  indexExists,
+  taskObjects
+};
+
 var folder = os.tmpDir();
 var client;
 if (process.env.NODE_ENV === 'production') {
@@ -35,6 +40,8 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   client = localClient.connect();
 }
+
+/* eslint-disable camelcase */
 
 module.exports.listTasks = function(request, reply) {
   client.search({
@@ -58,6 +65,8 @@ module.exports.listTasks = function(request, reply) {
   });
 };
 
+/* eslint-enable camelcase */
+
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
   client.get({
@@ -73,25 +82,7 @@ module.exports.listTasksById = function(request, reply) {
 module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   if (data.password === config.password) {
-    var task = {
-      idtask: data.name.concat(randomString({
-        length: 5
-      })).replace(/[^a-zA-Z]+/g, '').toLowerCase(),
-      isCompleted: false,
-      isAllItemsLoad: false,
-      value: {
-        name: data.name,
-        description: data.description,
-        updated: Math.round((new Date()).getTime() / 1000),
-        changesetComment: data.changesetComment,
-        stats: [{
-          edit: 0,
-          fixed: 0,
-          noterror: 0,
-          skip: 0
-        }]
-      }
-    };
+    var task = taskObjects(data, null);
     var bulk = [];
     var name = data.file.hapi.filename;
     var geojsonFile = path.join(folder, name);
@@ -135,15 +126,14 @@ module.exports.createTasks = function(request, reply) {
           });
           rd.on('line', function(line) {
             var obj = JSON.parse(line);
-            bulk.push({
-                index: {
-                  _index: 'tofix',
-                  _type: task.idtask,
-                  _id: obj.properties._key
-                }
-              },
-              obj
-            );
+            var index = {
+              index: {
+                _index: 'tofix',
+                _type: task.idtask,
+                _id: obj.properties._key
+              }
+            };
+            bulk.push(index, obj);
           }).on('close', function() {
             cb();
           });
@@ -177,7 +167,7 @@ module.exports.createTasks = function(request, reply) {
                 if (bulkChunks.length > counter) {
                   saveData(bulkChunks[counter]);
                 } else {
-                   //Update isAllItemsLoad=true when all items were uploaded in elasticsearch
+                  //Update isAllItemsLoad=true when all items were uploaded in elasticsearch
                   client.update({
                     index: 'tofix',
                     type: 'tasks',
@@ -234,27 +224,10 @@ module.exports.updateTasks = function(request, reply) {
     }, function(err, resp) {
       if (err) return reply(boom.badRequest(err));
       var result = resp._source;
-      var task = {
-        idtask: idtask,
-        isCompleted: data.isCompleted !== 'false',
-        value: {
-          name: data.name,
-          description: data.description,
-          updated: Math.round((new Date()).getTime() / 1000),
-          changesetComment: data.changesetComment,
-          stats: result.value.stats
-        }
-      };
+      var task = taskObjects(data, result);
       var bulk = [];
       var bulkToRemove = [];
-
       if (data.file) {
-        task.value.stats.push({
-          edit: 0,
-          fixed: 0,
-          noterror: 0,
-          skip: 0
-        });
         var name = data.file.hapi.filename;
         var geojsonFile = path.join(folder, name);
         var file = fs.createWriteStream(geojsonFile);
@@ -324,15 +297,14 @@ module.exports.updateTasks = function(request, reply) {
               });
               rd.on('line', function(line) {
                 var obj = JSON.parse(line);
-                bulk.push({
-                    index: {
-                      _index: 'tofix',
-                      _type: task.idtask,
-                      _id: obj.properties._key
-                    }
-                  },
-                  obj
-                );
+                var index = {
+                  index: {
+                    _index: 'tofix',
+                    _type: task.idtask,
+                    _id: obj.properties._key
+                  }
+                };
+                bulk.push(index, obj);
               }).on('close', function() {
                 cb();
               });
@@ -430,8 +402,54 @@ module.exports.deleteTasks = function(request, reply) {
   }
 };
 
+/**
+ * Check if index exist or not
+ * @return {boolean} true, when the index exist
+ */
 function indexExists() {
   return client.indices.exists({
     index: 'tofix'
   });
+}
+
+/**
+ * Create or update task object
+ * @param  {object} payload data
+ * @param  {object} or {null} null to create a task and object to updat a task
+ * @return {object} object task
+ */
+function taskObjects(data, result) {
+  var idtask = data.name.concat(randomString({
+    length: 5
+  })).replace(/[^a-zA-Z]+/g, '').toLowerCase();
+  var status = {
+    edit: 0,
+    fixed: 0,
+    noterror: 0,
+    skip: 0
+  };
+  var stats = [status];
+  //to update a task
+  if (data.idtask) {
+    idtask = data.idtask;
+  }
+  if (result) {
+    stats = result.value.stats;
+    if (data.idtask && data.file) {
+      stats.push(status);
+    }
+  }
+
+  return {
+    idtask: idtask,
+    isCompleted: false,
+    isAllItemsLoad: false,
+    value: {
+      name: data.name,
+      description: data.description,
+      updated: Math.round((new Date()).getTime() / 1000),
+      changesetComment: data.changesetComment,
+      stats: stats
+    }
+  };
 }

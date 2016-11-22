@@ -1,0 +1,10 @@
+{
+  "type": "Feature",
+  "properties": {
+    "natural": "tree"
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-74.2200802, -13.1485214]
+  }
+}
