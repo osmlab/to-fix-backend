@@ -277,15 +277,19 @@ module.exports.updateTasks = function(request, reply) {
 
             q.defer(function(cb) {
               //remove items
-              client.bulk({
-                index: 'tofix',
-                id: task.idtask,
-                type: task.idtask,
-                body: bulkToRemove
-              }, function(err) {
-                if (err) return reply(boom.badRequest(err));
+              if (bulkToRemove.length > 0) {
+                client.bulk({
+                  index: 'tofix',
+                  id: task.idtask,
+                  type: task.idtask,
+                  body: bulkToRemove
+                }, function(err) {
+                  if (err) return reply(boom.badRequest(err));
+                  cb();
+                });
+              } else {
                 cb();
-              });
+              }
             });
 
             q.defer(function(cb) {
@@ -315,6 +319,14 @@ module.exports.updateTasks = function(request, reply) {
               var bulkChunks = _.chunk(bulk, config.arrayChunks);
               var counter = 0;
               var errorsCounter = 0;
+              if (bulk.length > 0) {
+                saveData(bulkChunks[0]);
+              } else {
+                task.isCompleted = true;
+                task.isAllItemsLoad = true;
+                task.value.stats[task.value.stats.length - 1].items = 0;
+                cb();
+              }
 
               function saveData(bulkChunk) {
                 client.bulk({
@@ -342,7 +354,6 @@ module.exports.updateTasks = function(request, reply) {
                   }
                 });
               }
-              saveData(bulkChunks[0]);
             });
 
             q.defer(function(cb) {
@@ -429,9 +440,11 @@ function taskObjects(data, result) {
     skip: 0
   };
   var stats = [status];
+  var isCompleted = false;
   //to update a task
   if (data.idtask) {
     idtask = data.idtask;
+    isCompleted = data.isCompleted !== 'false';
   }
   if (result) {
     stats = result.value.stats;
@@ -439,10 +452,9 @@ function taskObjects(data, result) {
       stats.push(status);
     }
   }
-
   return {
     idtask: idtask,
-    isCompleted: false,
+    isCompleted: isCompleted,
     isAllItemsLoad: false,
     value: {
       name: data.name,
