@@ -324,6 +324,7 @@ module.exports.updateTasks = function(request, reply) {
               } else {
                 task.isCompleted = true;
                 task.isAllItemsLoad = true;
+                task.value.stats[task.value.stats.length - 1].items = 0;
                 cb();
               }
 
