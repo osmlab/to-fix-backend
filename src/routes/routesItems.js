@@ -52,7 +52,7 @@ module.exports = [{
   method: 'PUT',
   path: '/tasks/{idtask}/items',
   config: {
-    description: 'Update a item with an action(fixed or noterror)',
+    description: 'Update a item with an action(fixed, noterror or skip)',
     validate: {
       payload: {
         action: Joi.string().valid('fixed', 'noterror', 'skip').required(),

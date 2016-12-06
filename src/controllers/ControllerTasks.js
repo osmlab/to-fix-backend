@@ -60,7 +60,7 @@ module.exports.listTasks = function(request, reply) {
       return v._source;
     });
     reply({
-      tasks: tasks
+      tasks: tasks.sortBy()
     });
   });
 };
@@ -324,6 +324,7 @@ module.exports.updateTasks = function(request, reply) {
               } else {
                 task.isCompleted = true;
                 task.isAllItemsLoad = true;
+                task.value.stats[task.value.stats.length - 1].items = 0;
                 cb();
               }
 
@@ -464,3 +465,10 @@ function taskObjects(data, result) {
     }
   };
 }
+
+/*eslint no-extend-native: ["error", { "exceptions": ["Array"] }]*/
+Array.prototype.sortBy = function() {
+  return this.slice(0).sort(function(a, b) {
+    return (a.value.updated > b.value.updated) ? 1 : (a.value.updated < b.value.updated) ? -1 : 0;
+  });
+};

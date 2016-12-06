@@ -1,6 +1,7 @@
 var taskObjects = require('./../src/controllers/ControllerTasks').taskObjects;
 var test = require('tape');
 
+// Get object task when we are creating a task
 test('Create a task object', function(t) {
   var data = {
     name: 'overlapped highways',
@@ -19,6 +20,7 @@ test('Create a task object', function(t) {
   t.end();
 });
 
+// Get object task when we are updating the task
 test('Update a task object', function(t) {
   var data = {
     idtask: 'overlappedhighwaysxxx',

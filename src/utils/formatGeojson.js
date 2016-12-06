@@ -70,17 +70,13 @@ function formatFeature(data) {
   } else if (data.geometry.type === 'Point') {
     data.properties._osmType = 'node';
   }
-  var keys = _.keys(data.properties);
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i].replace(/[^A-Za-z]/g, '_');
-    if (key !== keys[i]) {
-      data.properties[key] = data.properties[keys[i]];
-      delete data.properties[keys[i]];
-    }
-    if (ids.indexOf(key) > -1) {
-      data.properties._osmId = data.properties[key];
-      //for overpass geojson files
-      var typeId = data.properties._osmId.toString().split('\/');
+  data = replaceSC(data);
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i];
+    if (data.properties[id]) {
+      data.properties._osmId = data.properties[id];
+      //format overpass geojson files
+      var typeId = data.properties._osmId.toString().split('\_');
       if (typeId.length === 2) {
         data.properties._osmId = typeId[1];
         data.properties._osmType = typeId[0];
@@ -88,4 +84,22 @@ function formatFeature(data) {
     }
   }
   return data;
+}
+
+function replaceSC(obj) {
+  var keys = _.keys(obj);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i].replace(/[^A-Za-z]/g, '_');
+    if (key !== keys[i]) {
+      obj[key] = obj[keys[i]];
+      delete obj[keys[i]];
+    }
+    /*eslint valid-typeof: "error"*/
+    if ((typeof obj[key] === 'object' || obj[key] instanceof Object) && key !== 'geometry') {
+      obj[key] = replaceSC(obj[key]);
+    } else if (typeof obj[key] === 'string' || obj[key] instanceof String) {
+      obj[key] = obj[key].replace(/[^a-zA-Z0-9]/g, '_');
+    }
+  }
+  return obj;
 }

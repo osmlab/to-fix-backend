@@ -1,6 +1,7 @@
 var server = require('../index');
 var test = require('tape');
 
+//Confirms the server is working
 test('GET /', function (t) {
   server.inject('/', (res) => {
     t.equal(res.statusCode, 200, 'HTTP 200 OK');

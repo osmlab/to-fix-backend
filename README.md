@@ -6,6 +6,13 @@ The server component of to-fix which provides the API that interacts with the fr
 
 - ElasticHost - default: 'localhost:9200'
 - UploadPassword - required
+- EsIndex, default = 'tofix'
+
+## Environment variables for testing
+
+- ElasticHost - default: 'localhost:9200'
+- UploadPassword = test
+- EsIndex = test 
 
 ## Installation
 
