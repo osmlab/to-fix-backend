@@ -6,7 +6,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks',
   config: {
-    description: 'Returns all the list of existing tasks',
+    description: 'Returns the list of existing tasks',
     handler: ControllerTasks.listTasks
   }
 }, {
@@ -55,7 +55,7 @@ module.exports = [{
         description: Joi.string().required(),
         changesetComment: Joi.string().required(),
         password: Joi.string().required(),
-        isCompleted: Joi.string().required(), // false = if a task is flagged as completed by user
+        isCompleted: Joi.string().required(), // true = if a task is flagged as completed by user
         file: Joi.object()
       }
     },

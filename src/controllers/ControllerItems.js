@@ -470,3 +470,4 @@ function setTaskAsCompleted(idtask) {
     }
   });
 }
+
