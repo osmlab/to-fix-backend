@@ -1,0 +1,12 @@
+{
+  "server": {
+    "protocol": "http",
+    "host": "localhost:8000",
+    "transport": "session"
+  },
+  "openstreetmap": {
+    "key": "3JbsSK6fPxeoU8Utht0K0DmaPAPNl3Euu13YjESu",
+    "secret": "nB0oSE7qiJl3zhAiKrqrfLG1SmIIWzbGs9MzaMD9",
+    "callback": "/handle_openstreetmap_callback"
+  }
+}

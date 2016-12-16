@@ -4,6 +4,10 @@ var Inert = require('inert');
 var Lout = require('lout');
 var Vision = require('vision');
 var Good = require('good');
+var yar = require('yar');
+var Grant = require('grant-hapi');
+var grant = new Grant();
+var config = require('./config.json');
 var Routes = require('./src/routes');
 
 var server = new Hapi.Server();
@@ -28,7 +32,7 @@ var good = {
         name: 'Squeeze',
         args: [{
           response: '*',
-          log: '*' //['error']
+          log: ['error']
         }]
       }, {
         module: 'good-console'
@@ -37,11 +41,30 @@ var good = {
   }
 };
 
-server.register([Vision, Inert, loutRegister, good], function(err) {
+var session = {
+  register: yar,
+  options: {
+    maxCookieSize: 0,
+    cache: {
+      expiresIn: 24 * 60 * 60 * 1000
+    },
+    cookieOptions: {
+      password: process.env.Password || 'abcdefghigklmnopqrsdasdasdadadadsdtuvwxyz123456',
+      isSecure: false
+    }
+  }
+};
+
+var authConfig = {
+  register: grant,
+  options: config
+};
+
+server.route(Routes);
+server.register([Vision, Inert, loutRegister, good, session, authConfig], function(err) {
   if (err) {
     console.error('Failed loading plugins');
   }
-  server.route(Routes);
   server.start(function() {
     console.log(`Server running at: ${server.info.uri}`);
   });
