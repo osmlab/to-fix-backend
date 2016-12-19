@@ -5,7 +5,7 @@ module.exports = {
   connect: function() {
     var client = new elasticsearch.Client({
       host: process.env.ElasticHost || 'localhost:9200'
-        // log: 'trace'
+      // log: 'trace'
     });
     return client;
   }
