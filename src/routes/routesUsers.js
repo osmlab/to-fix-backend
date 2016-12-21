@@ -12,6 +12,10 @@ module.exports = [{
   handler: controllerUsers.userDetails
 }, {
   method: 'GET',
+  path: '/users',
+  handler: controllerUsers.listUsers
+}, {
+  method: 'GET',
   path: '/users/{user}',
   config: {
     description: 'Returns a user',
@@ -21,6 +25,18 @@ module.exports = [{
       }
     },
     handler: controllerUsers.getUser
+  }
+}, {
+  method: 'GET',
+  path: '/delete/{id}',
+  config: {
+    description: 'delele a user',
+    validate: {
+      params: {
+        id: Joi.string().required()
+      }
+    },
+    handler: controllerUsers.deleteUser
   }
 }, {
   method: 'POST',
