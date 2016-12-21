@@ -47,51 +47,119 @@ var reqData = {
 };
 
 module.exports.auth = function(req, reply) {
-  var response = (req.session || req.yar).get('grant').response;
-  var token = {
-    key: response.access_token,
-    secret: response.access_secret
-  };
-  request({
-    url: reqData.url,
-    method: reqData.method,
-    form: oauth.authorize(reqData, token)
-  }, function(error, response, body) {
-    if (error) return reply(boom.badRequest(error));
-    parseString(body, function(err, result) {
-      if (err) return reply(boom.badRequest(err));
-      var osmuser = {
-        id: result.osm.user[0]['$'].id,
-        display_name: result.osm.user[0]['$'].display_name,
-        img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null
-      };
-      reply(osmuser);
+  var token = isAthorized(req);
+  if (token) {
+    request({
+      url: reqData.url,
+      method: reqData.method,
+      form: oauth.authorize(reqData, token)
+    }, function(error, response, body) {
+      if (error) return reply(boom.badRequest(error));
+      parseString(body, function(err, result) {
+        if (err) return reply(boom.badRequest(err));
+        var osmuser = {
+          id: result.osm.user[0]['$'].id,
+          user: result.osm.user[0]['$'].display_name,
+          img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null,
+          role: 'editor'
+        };
+        //save a user
+        client.exists({
+          index: 'tofix',
+          type: 'users',
+          id: osmuser.user.toLowerCase()
+        }, function(error, exists) {
+          if (exists === true) {
+            return reply(osmuser);
+          } else {
+            client.create({
+              index: 'tofix',
+              type: 'users',
+              id: osmuser.user.toLowerCase(),
+              body: osmuser
+            }, function(err) {
+              if (err) return reply(boom.badRequest(err));
+              return reply(osmuser);
+            });
+          }
+        });
+      });
     });
-  });
+  } else {
+    return reply(boom.unauthorized('Bad authentications'));
+  }
 };
-
-/* eslint-enable camelcase */
 
 module.exports.userDetails = function(req, reply) {
-  var response = (req.session || req.yar).get('grant').response;
-  var token = {
-    key: response.access_token,
-    secret: response.access_secret
-  };
-  request({
-    url: reqData.url,
-    method: reqData.method,
-    form: oauth.authorize(reqData, token)
-  }, function(error, response, body) {
-    if (error) return reply(boom.badRequest(error));
-    parseString(body, function(err, result) {
-      if (err) return reply(boom.badRequest(err));
-      var osmuser = {
-        id: result.osm.user[0]['$'].id,
-        display_name: result.osm.user[0]['$'].display_name,
-        img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null
-      };
-      reply(osmuser);
+  var token = isAthorized(req);
+  if (token) {
+    request({
+      url: reqData.url,
+      method: reqData.method,
+      form: oauth.authorize(reqData, token)
+    }, function(error, response, body) {
+      if (error) return reply(boom.badRequest(error));
+      parseString(body, function(err, result) {
+        if (err) return reply(boom.badRequest(err));
+        var osmuser = {
+          id: result.osm.user[0]['$'].id,
+          user: result.osm.user[0]['$'].display_name,
+          img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null
+        };
+        reply(osmuser);
+      });
     });
+  } else {
+    return reply(boom.unauthorized('Bad authentications'));
+  }
+};
+
+module.exports.getUser = function(request, reply) {
+  var user = request.params.user;
+  client.get({
+    index: 'tofix',
+    type: 'users',
+    id: user.toLowerCase()
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    reply(resp._source);
   });
 };
+
+module.exports.changeRole = function(request, reply) {
+  var user = request.params.user;
+  var data = request.payload;
+  if (isAthorized(request)) {
+    client.update({
+      index: 'tofix',
+      type: 'users',
+      id: user.toLowerCase(),
+      body: {
+        doc: {
+          role: data.role
+        }
+      }
+    }, function(err, res) {
+      if (err) console.log(err);
+      return reply(res);
+    });
+  } else {
+    return reply(boom.unauthorized('Bad authentications'));
+  }
+};
+
+function isAthorized(request) {
+  if (request.session || request.yar) {
+    var resp = (request.session || request.yar).get('grant').response;
+    if (resp) {
+      return {
+        key: resp.access_token,
+        secret: resp.access_secret
+      };
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}

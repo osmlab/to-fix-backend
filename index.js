@@ -57,7 +57,7 @@ var session = {
 
 var authConfig = {
   register: grant,
-  options: config
+  options: config[process.env.NODE_ENV || 'development']
 };
 
 server.route(Routes);

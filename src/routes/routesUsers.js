@@ -1,4 +1,5 @@
 'use strict';
+var Joi = require('joi');
 var controllerUsers = require('./../controllers/ControllerUsers');
 
 module.exports = [{
@@ -7,6 +8,33 @@ module.exports = [{
   handler: controllerUsers.auth
 }, {
   method: 'GET',
-  path: '/user/details',
+  path: '/users/details',
   handler: controllerUsers.userDetails
+}, {
+  method: 'GET',
+  path: '/users/{user}',
+  config: {
+    description: 'Returns a user',
+    validate: {
+      params: {
+        user: Joi.string().required()
+      }
+    },
+    handler: controllerUsers.getUser
+  }
+}, {
+  method: 'POST',
+  path: '/users/{user}',
+  config: {
+    description: 'Change user role',
+    validate: {
+      payload: {
+        role: Joi.string().valid('superadmin', 'admin', 'editor').required()
+      },
+      params: {
+        user: Joi.string().required()
+      }
+    },
+    handler: controllerUsers.changeRole
+  }
 }];
