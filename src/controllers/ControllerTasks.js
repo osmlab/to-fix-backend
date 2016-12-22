@@ -392,14 +392,14 @@ module.exports.updateTasks = function(request, reply) {
       }
     });
   } else {
-    return reply(boom.badRequest('password does not match'));
+    return reply(boom.unauthorized('Bad authentications'));
   }
 };
 
 module.exports.deleteTasks = function(request, reply) {
   var data = request.payload;
   var idtask = data.idtask;
-  if (data.password === config.password) {
+  if (isAuthenticated(request, idtask)) {
     client.delete({
       index: config.index,
       type: 'tasks',
@@ -472,3 +472,16 @@ Array.prototype.sortBy = function() {
     return (a.value.updated > b.value.updated) ? 1 : (a.value.updated < b.value.updated) ? -1 : 0;
   });
 };
+
+function isAuthenticated(request, idtask) {
+  if (request.session || request.yar) {
+    var user = (request.session || request.yar).get('osmuser');
+    console.log(user);
+    if (user.role === 'superadmin') {
+      return user;
+    } else if (user.role === 'admin' && user.id === idtask) {
+      return user;
+    }
+  }
+  return null;
+}
