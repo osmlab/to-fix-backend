@@ -476,7 +476,6 @@ Array.prototype.sortBy = function() {
 function isAuthenticated(request, idtask) {
   if (request.session || request.yar) {
     var user = (request.session || request.yar).get('osmuser');
-    console.log(user);
     if (user.role === 'superadmin') {
       return user;
     } else if (user.role === 'admin' && user.id === idtask) {

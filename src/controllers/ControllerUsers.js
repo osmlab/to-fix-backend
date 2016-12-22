@@ -50,13 +50,10 @@ var reqData = {
 module.exports.auth = function(req, reply) {
   if (req.session || req.yar) {
     var resp = (req.session || req.yar).get('grant').response;
-    console.log(resp);
     var token = {
       key: resp.access_token,
       secret: resp.access_secret
     };
-    console.log(token);
-
     var q = d3.queue(1);
     var osmuser;
     var userExists = false;
@@ -228,7 +225,7 @@ module.exports.changeRole = function(request, reply) {
           }
         }
       }, function(err, resp) {
-        if (err) console.log(err);
+        if (err) return reply(boom.badRequest(err));
         return reply({
           index: resp._index,
           type: resp._type,
@@ -245,7 +242,6 @@ module.exports.changeRole = function(request, reply) {
 
 module.exports.deleteUser = function(request, reply) {
   var id = request.params.id;
-  console.log(id);
   client.delete({
     index: config.index,
     type: 'users',
