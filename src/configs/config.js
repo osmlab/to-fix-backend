@@ -10,6 +10,7 @@ module.exports.messages = {
 };
 module.exports.arrayChunks = 2000;
 module.exports.region = 'us-east-1';
+module.exports.index = process.env.EsIndex || 'tofix';
 module.exports.consumerKey = '3JbsSK6fPxeoU8Utht0K0DmaPAPNl3Euu13YjESu';
 module.exports.consumerSecret = 'nB0oSE7qiJl3zhAiKrqrfLG1SmIIWzbGs9MzaMD9';
 module.exports.osmApi = 'http://api.openstreetmap.org/api/0.6/';

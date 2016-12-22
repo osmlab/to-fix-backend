@@ -7,7 +7,7 @@ var Good = require('good');
 var yar = require('yar');
 var Grant = require('grant-hapi');
 var grant = new Grant();
-var config = require('./config.json');
+var config = require('./src/configs/config.json');
 var Routes = require('./src/routes');
 
 var server = new Hapi.Server();

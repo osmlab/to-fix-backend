@@ -10,7 +10,7 @@ var config = require('./../configs/config');
 var localClient = require('./../utils/connection');
 
 var client;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -45,7 +45,7 @@ var updateActivity = function(request, reply, item, now) {
       };
       activityToInsert.push({
         index: {
-          _index: 'tofix',
+          _index: config.index,
           _type: idtask + '_stats'
         }
       }, action);
@@ -64,7 +64,7 @@ var updateActivity = function(request, reply, item, now) {
       user: data.user
     };
     client.create({
-      index: 'tofix',
+      index: config.index,
       type: idtask + '_stats',
       body: action
     }, function(err) {
@@ -77,7 +77,7 @@ var updateStatsInTask = function(request, reply, numitems) {
   var idtask = request.params.idtask;
   var data = request.payload;
   client.get({
-    index: 'tofix',
+    index: config.index,
     type: 'tasks',
     id: idtask
   }, function(err, resp) {
@@ -85,7 +85,7 @@ var updateStatsInTask = function(request, reply, numitems) {
     var task = resp._source;
     task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
     client.update({
-      index: 'tofix',
+      index: config.index,
       type: 'tasks',
       id: task.idtask,
       body: {
@@ -124,7 +124,7 @@ var updateItemEdit = function(request, reply, item, now, done) {
       item[i].properties._time = now + config.lockPeriodGroup;
       itemsToUpdate.push({
         update: {
-          _index: 'tofix',
+          _index: config.index,
           _type: idtask,
           _id: item[i].properties._key
         }
@@ -155,7 +155,7 @@ var updateItemEdit = function(request, reply, item, now, done) {
     }
     item.properties._time = now + config.lockPeriod;
     client.update({
-      index: 'tofix',
+      index: config.index,
       type: idtask,
       id: item.properties._key,
       body: {
@@ -173,7 +173,7 @@ module.exports.getAItem = function(request, reply) {
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask,
     body: {
       size: 1,
@@ -226,7 +226,7 @@ module.exports.getGroupItems = function(request, reply) {
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask,
     body: {
       size: numitems,
@@ -278,7 +278,7 @@ module.exports.getItemById = function(request, reply) {
   var key = request.params.key;
   var idtask = request.params.idtask;
   client.get({
-    index: 'tofix',
+    index: config.index,
     type: idtask,
     id: key
   }, function(err, resp) {
@@ -293,7 +293,7 @@ module.exports.updateItem = function(request, reply) {
   var key = data.key;
   var now = Math.round((new Date()).getTime() / 1000);
   client.get({
-    index: 'tofix',
+    index: config.index,
     type: idtask,
     id: key
   }, function(err, resp) {
@@ -311,7 +311,7 @@ module.exports.updateItem = function(request, reply) {
     }
     item.properties._time = maxNum;
     client.update({
-      index: 'tofix',
+      index: config.index,
       type: idtask,
       id: key,
       body: {
@@ -336,7 +336,7 @@ module.exports.updateItem = function(request, reply) {
 module.exports.getAllItems = function(request, reply) {
   var idtask = request.params.idtask;
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask,
     body: {
       size: 100,
@@ -357,7 +357,7 @@ module.exports.getAllItems = function(request, reply) {
 module.exports.countItems = function(request, reply) {
   var idtask = request.params.idtask;
   client.count({
-    index: 'tofix',
+    index: config.index,
     type: idtask
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
@@ -373,7 +373,7 @@ module.exports.getAllItemsByAction = function(request, reply) {
   var numItems = 0;
   var ItemsByAction = [];
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask + '_stats',
     scroll: '10s'
   }, function getMore(err, resp) {
@@ -401,7 +401,7 @@ module.exports.UnlockedItems = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var itemsToUnlocked = [];
   client.mget({
-    index: 'tofix',
+    index: config.index,
     type: idtask,
     body: {
       ids: groupIds
@@ -418,7 +418,7 @@ module.exports.UnlockedItems = function(request, reply) {
     for (var i = 0; i < groupIds.length; i++) {
       itemsToUnlocked.push({
         update: {
-          _index: 'tofix',
+          _index: config.index,
           _type: idtask,
           _id: groupIds[i]
         }
@@ -444,7 +444,7 @@ module.exports.UnlockedItems = function(request, reply) {
 
 function setTaskAsCompleted(idtask) {
   client.get({
-    index: 'tofix',
+    index: config.index,
     type: 'tasks',
     id: idtask
   }, function(err, resp) {
@@ -456,7 +456,7 @@ function setTaskAsCompleted(idtask) {
       //task is completed
       task.isCompleted = true;
       client.update({
-        index: 'tofix',
+        index: config.index,
         type: 'tasks',
         id: idtask,
         body: {
@@ -470,4 +470,3 @@ function setTaskAsCompleted(idtask) {
     }
   });
 }
-

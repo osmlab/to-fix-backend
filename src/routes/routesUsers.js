@@ -39,7 +39,7 @@ module.exports = [{
     handler: controllerUsers.deleteUser
   }
 }, {
-  method: 'POST',
+  method: 'PUT',
   path: '/users/{user}',
   config: {
     description: 'Change user role',

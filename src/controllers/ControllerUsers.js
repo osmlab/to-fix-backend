@@ -12,7 +12,7 @@ var config = require('./../configs/config');
 var localClient = require('./../utils/connection');
 
 var client;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -48,8 +48,15 @@ var reqData = {
 };
 
 module.exports.auth = function(req, reply) {
-  var token = isAthorized(req);
-  if (token) {
+  if (req.session || req.yar) {
+    var resp = (req.session || req.yar).get('grant').response;
+    console.log(resp);
+    var token = {
+      key: resp.access_token,
+      secret: resp.access_secret
+    };
+    console.log(token);
+
     var q = d3.queue(1);
     var osmuser;
     var userExists = false;
@@ -76,7 +83,7 @@ module.exports.auth = function(req, reply) {
 
     q.defer(function(cb) {
       client.count({
-        index: 'tofix',
+        index: config.index,
         type: 'users'
       }, function(err, resp) {
         if (err) cb(err);
@@ -89,7 +96,7 @@ module.exports.auth = function(req, reply) {
 
     q.defer(function(cb) {
       client.exists({
-        index: 'tofix',
+        index: config.index,
         type: 'users',
         id: osmuser.id
       }, function(err, exists) {
@@ -97,7 +104,7 @@ module.exports.auth = function(req, reply) {
         if (exists === true) {
           userExists = true;
           client.get({
-            index: 'tofix',
+            index: config.index,
             type: 'users',
             id: osmuser.id
           }, function(err, resp) {
@@ -113,7 +120,7 @@ module.exports.auth = function(req, reply) {
     q.defer(function(cb) {
       if (!userExists) {
         client.create({
-          index: 'tofix',
+          index: config.index,
           type: 'users',
           id: osmuser.id,
           body: osmuser
@@ -136,24 +143,9 @@ module.exports.auth = function(req, reply) {
 };
 
 module.exports.userDetails = function(req, reply) {
-  var token = isAthorized(req);
-  if (token) {
-    request({
-      url: reqData.url,
-      method: reqData.method,
-      form: oauth.authorize(reqData, token)
-    }, function(error, response, body) {
-      if (error) return reply(boom.badRequest(error));
-      parseString(body, function(err, result) {
-        if (err) return reply(boom.badRequest(err));
-        var osmuser = {
-          id: result.osm.user[0]['$'].id,
-          user: result.osm.user[0]['$'].display_name,
-          img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null
-        };
-        reply(osmuser);
-      });
-    });
+  if (req.session || req.yar) {
+    var user = (request.session || request.yar).get('osmuser');
+    return reply(user);
   } else {
     return reply(boom.unauthorized('Bad authentications'));
   }
@@ -161,8 +153,9 @@ module.exports.userDetails = function(req, reply) {
 
 module.exports.getUser = function(request, reply) {
   var user = request.params.user;
+  // reply(isAuthenticated(request));
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: 'users',
     body: {
       query: {
@@ -184,7 +177,7 @@ module.exports.getUser = function(request, reply) {
 
 module.exports.listUsers = function(request, reply) {
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: 'users',
     body: {
       size: 200,
@@ -207,30 +200,54 @@ module.exports.listUsers = function(request, reply) {
 module.exports.changeRole = function(request, reply) {
   var user = request.params.user;
   var data = request.payload;
-  // if (isAthorized(request)) {
-  client.update({
-    index: 'tofix',
-    type: 'users',
-    id: user.toLowerCase(),
-    body: {
-      doc: {
-        role: data.role
+  if (isAuthenticated(request)) {
+    client.search({
+      index: config.index,
+      type: 'users',
+      body: {
+        query: {
+          filtered: {
+            query: {
+              match: {
+                user: user
+              }
+            }
+          }
+        }
       }
-    }
-  }, function(err, res) {
-    if (err) console.log(err);
-    return reply(res);
-  });
-  // } else {
-  //   return reply(boom.unauthorized('Bad authentications'));
-  // }
+    }, function(err, resp) {
+      if (err) return reply(boom.badRequest(err));
+      var id = resp.hits.hits[0]._source.id;
+      client.update({
+        index: config.index,
+        type: 'users',
+        id: id,
+        body: {
+          doc: {
+            role: data.role
+          }
+        }
+      }, function(err, resp) {
+        if (err) console.log(err);
+        return reply({
+          index: resp._index,
+          type: resp._type,
+          key: resp._id,
+          user: user,
+          status: 'updated'
+        });
+      });
+    });
+  } else {
+    return reply(boom.unauthorized('Bad authentications'));
+  }
 };
 
 module.exports.deleteUser = function(request, reply) {
   var id = request.params.id;
   console.log(id);
   client.delete({
-    index: 'tofix',
+    index: config.index,
     type: 'users',
     id: id
   }, function(err, resp) {
@@ -239,18 +256,12 @@ module.exports.deleteUser = function(request, reply) {
   });
 };
 
-function isAthorized(request) {
+function isAuthenticated(request) {
   if (request.session || request.yar) {
-    var resp = (request.session || request.yar).get('grant').response;
-    if (resp) {
-      return {
-        key: resp.access_token,
-        secret: resp.access_secret
-      };
-    } else {
-      return false;
+    var user = (request.session || request.yar).get('osmuser');
+    if (user.role === 'superadmin') {
+      return user;
     }
-  } else {
-    return false;
   }
+  return null;
 }

@@ -8,7 +8,7 @@ var config = require('./../configs/config');
 var localClient = require('./../utils/connection');
 
 var client;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -36,7 +36,7 @@ module.exports.listTasksActivity = function(request, reply) {
   var numItems = 0;
   var activity = [];
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask + '_stats',
     scroll: '2s'
   }, function getMore(err, resp) {
@@ -72,7 +72,7 @@ module.exports.listTasksActivityByUser = function(request, reply) {
   var numItems = 0;
   var activity = [];
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask + '_stats',
     scroll: '2s'
   }, function getMore(err, resp) {
@@ -108,7 +108,7 @@ module.exports.trackStats = function(request, reply) {
   var dataDate = {};
   var numItems = 0;
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: idtask + '_stats',
     scroll: '2s'
   }, function getMore(err, resp) {

@@ -22,7 +22,7 @@ module.exports = {
 
 var folder = os.tmpDir();
 var client;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -45,7 +45,7 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports.listTasks = function(request, reply) {
   client.search({
-    index: 'tofix',
+    index: config.index,
     type: 'tasks',
     body: {
       size: 500,
@@ -70,7 +70,7 @@ module.exports.listTasks = function(request, reply) {
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
   client.get({
-    index: 'tofix',
+    index: config.index,
     type: 'tasks',
     id: idtask
   }, function(err, resp) {
@@ -106,7 +106,7 @@ module.exports.createTasks = function(request, reply) {
         q.defer(function(cb) {
           if (!indexExists()) {
             client.indices.create({
-              index: 'tofix'
+              index: config.index
             }, function(err) {
               if (err) return reply(boom.badRequest(err));
               cb();
@@ -128,7 +128,7 @@ module.exports.createTasks = function(request, reply) {
             var obj = JSON.parse(line);
             var index = {
               index: {
-                _index: 'tofix',
+                _index: config.index,
                 _type: task.idtask,
                 _id: obj.properties._key
               }
@@ -148,7 +148,7 @@ module.exports.createTasks = function(request, reply) {
           function saveData(bulkChunk) {
             client.bulk({
               maxRetries: 5,
-              index: 'tofix',
+              index: config.index,
               id: task.idtask,
               type: task.idtask,
               body: bulkChunk
@@ -169,7 +169,7 @@ module.exports.createTasks = function(request, reply) {
                 } else {
                   //Update isAllItemsLoad=true when all items were uploaded in elasticsearch
                   client.update({
-                    index: 'tofix',
+                    index: config.index,
                     type: 'tasks',
                     id: task.idtask,
                     body: {
@@ -191,7 +191,7 @@ module.exports.createTasks = function(request, reply) {
         q.defer(function(cb) {
           // save the task on document
           client.create({
-            index: 'tofix',
+            index: config.index,
             id: task.idtask,
             type: 'tasks',
             body: task
@@ -218,7 +218,7 @@ module.exports.updateTasks = function(request, reply) {
   var idtask = data.idtask;
   if (data.password === config.password) {
     client.get({
-      index: 'tofix',
+      index: config.index,
       type: 'tasks',
       id: idtask
     }, function(err, resp) {
@@ -249,7 +249,7 @@ module.exports.updateTasks = function(request, reply) {
             q.defer(function(cb) {
               var numItems = 0;
               client.search({
-                index: 'tofix',
+                index: config.index,
                 type: idtask,
                 scroll: '15s'
               }, function getMore(err, resp) {
@@ -257,7 +257,7 @@ module.exports.updateTasks = function(request, reply) {
                 resp.hits.hits.forEach(function(v) {
                   bulkToRemove.push({
                     delete: {
-                      _index: 'tofix',
+                      _index: config.index,
                       _type: idtask,
                       _id: v._id
                     }
@@ -279,7 +279,7 @@ module.exports.updateTasks = function(request, reply) {
               //remove items
               if (bulkToRemove.length > 0) {
                 client.bulk({
-                  index: 'tofix',
+                  index: config.index,
                   id: task.idtask,
                   type: task.idtask,
                   body: bulkToRemove
@@ -303,7 +303,7 @@ module.exports.updateTasks = function(request, reply) {
                 var obj = JSON.parse(line);
                 var index = {
                   index: {
-                    _index: 'tofix',
+                    _index: config.index,
                     _type: task.idtask,
                     _id: obj.properties._key
                   }
@@ -331,7 +331,7 @@ module.exports.updateTasks = function(request, reply) {
               function saveData(bulkChunk) {
                 client.bulk({
                   maxRetries: 5,
-                  index: 'tofix',
+                  index: config.index,
                   id: task.idtask,
                   type: task.idtask,
                   body: bulkChunk
@@ -359,7 +359,7 @@ module.exports.updateTasks = function(request, reply) {
             q.defer(function(cb) {
               // update the task
               client.update({
-                index: 'tofix',
+                index: config.index,
                 type: 'tasks',
                 id: task.idtask,
                 body: {
@@ -379,7 +379,7 @@ module.exports.updateTasks = function(request, reply) {
         });
       } else {
         client.update({
-          index: 'tofix',
+          index: config.index,
           type: 'tasks',
           id: task.idtask,
           body: {
@@ -401,7 +401,7 @@ module.exports.deleteTasks = function(request, reply) {
   var idtask = data.idtask;
   if (data.password === config.password) {
     client.delete({
-      index: 'tofix',
+      index: config.index,
       type: 'tasks',
       id: idtask
     }, function(err, resp) {
@@ -419,7 +419,7 @@ module.exports.deleteTasks = function(request, reply) {
  */
 function indexExists() {
   return client.indices.exists({
-    index: 'tofix'
+    index: config.index
   });
 }
 
