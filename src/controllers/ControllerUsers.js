@@ -1,5 +1,5 @@
 'use strict';
-var request = require('request');
+var requestClient = require('request');
 var oAuth = require('oauth-1.0a');
 var crypto = require('crypto');
 var AWS = require('aws-sdk');
@@ -47,9 +47,9 @@ var reqData = {
   method: 'GET'
 };
 
-module.exports.auth = function(req, reply) {
-  if (req.session || req.yar) {
-    var resp = (req.session || req.yar).get('grant').response;
+module.exports.auth = function(request, reply) {
+  if (request.session || request.yar) {
+    var resp = (request.session || request.yar).get('grant').response;
     var token = {
       key: resp.access_token,
       secret: resp.access_secret
@@ -59,7 +59,7 @@ module.exports.auth = function(req, reply) {
     var userExists = false;
 
     q.defer(function(cb) {
-      request({
+      requestClient({
         url: reqData.url,
         method: reqData.method,
         form: oauth.authorize(reqData, token)
@@ -67,7 +67,6 @@ module.exports.auth = function(req, reply) {
         if (error) cb(error);
         parseString(body, function(err, result) {
           if (err) cb(err);
-          console.log(result);
           osmuser = {
             id: result.osm.user[0]['$'].id,
             user: result.osm.user[0]['$'].display_name,
@@ -132,7 +131,7 @@ module.exports.auth = function(req, reply) {
     });
     q.await(function(error) {
       if (error) return reply(boom.unauthorized('Bad authentications'));
-      req.yar.set('osmuser', osmuser);
+      request.yar.set('osmuser', osmuser);
       return reply(osmuser);
     });
   } else {
@@ -140,9 +139,9 @@ module.exports.auth = function(req, reply) {
   }
 };
 
-module.exports.userDetails = function(req, reply) {
-  if (req.session || req.yar) {
-    var user = (request.session || request.yar).get('osmuser');
+module.exports.userDetails = function(request, reply) {
+  if (request.session || request.yar) {
+    var user = request.yar.get('osmuser');
     return reply(user);
   } else {
     return reply(boom.unauthorized('Bad authentications'));
@@ -151,7 +150,6 @@ module.exports.userDetails = function(req, reply) {
 
 module.exports.getUser = function(request, reply) {
   var user = request.params.user;
-  // reply(isAuthenticated(request));
   client.search({
     index: config.index,
     type: 'users',
