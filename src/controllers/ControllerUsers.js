@@ -9,8 +9,8 @@ var parseString = require('xml2js').parseString;
 var AwsEsConnector = require('http-aws-es');
 var d3 = require('d3-queue');
 var config = require('./../configs/config');
+var osmAuthconfig = require('./../configs/config.json')[process.env.NODE_ENV || 'development'];
 var localClient = require('./../utils/connection');
-
 var client;
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
@@ -34,8 +34,8 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
 /* eslint-disable camelcase */
 var oauth = oAuth({
   consumer: {
-    key: config.consumerKey,
-    secret: config.consumerSecret
+    key: osmAuthconfig.openstreetmap.key,
+    secret: osmAuthconfig.openstreetmap.secret
   },
   signature_method: 'HMAC-SHA1',
   hash_function: function(base_string, key) {
@@ -67,6 +67,7 @@ module.exports.auth = function(req, reply) {
         if (error) cb(error);
         parseString(body, function(err, result) {
           if (err) cb(err);
+          console.log(result);
           osmuser = {
             id: result.osm.user[0]['$'].id,
             user: result.osm.user[0]['$'].display_name,

@@ -6,32 +6,32 @@
       "transport": "session"
     },
     "openstreetmap": {
-      "key": "3JbsSK6fPxeoU8Utht0K0DmaPAPNl3Euu13YjESu",
-      "secret": "nB0oSE7qiJl3zhAiKrqrfLG1SmIIWzbGs9MzaMD9",
+      "key": "RH1JmODigeWQQFvS2HgCMhoCGsHCLIEfcg2tTdSf",
+      "secret": "DlwdhXQbk8Tw2Ab0ARueAa4m29ePotoaFHp31OHR",
       "callback": "/handle_openstreetmap_callback"
     }
   },
   "staging": {
     "server": {
-      "protocol": "http",
-      "host": "https://build-to-fix-staging.tilestream.net",
+      "protocol": "https",
+      "host": "build-to-fix-staging.tilestream.net",
       "transport": "session"
     },
     "openstreetmap": {
-      "key": "3JbsSK6fPxeoU8Utht0K0DmaPAPNl3Euu13YjESu",
-      "secret": "nB0oSE7qiJl3zhAiKrqrfLG1SmIIWzbGs9MzaMD9",
+      "key": "5aAVKGBVB5OdxOXUD1UhJz6gqJJuFxwZ3CkxsDTP",
+      "secret": "RNu6uS3EONNiYJHrDgeLaW5YEGQrtsouBI0TIsBg",
       "callback": "/handle_openstreetmap_callback"
     }
   },
   "production": {
     "server": {
       "protocol": "https",
-      "host": "https://build-to-fix-production.mapbox.com",
+      "host": "build-to-fix-production.mapbox.com",
       "transport": "session"
     },
     "openstreetmap": {
-      "key": "3JbsSK6fPxeoU8Utht0K0DmaPAPNl3Euu13YjESu",
-      "secret": "nB0oSE7qiJl3zhAiKrqrfLG1SmIIWzbGs9MzaMD9",
+      "key": "jntMVZGnR6hecKrMQkFTlmsIqDQp975X0wknnO3f",
+      "secret": "dfxGllTLeNI1XJngt3mTNfLJRRxZ17FSnscslbu4",
       "callback": "/handle_openstreetmap_callback"
     }
   }
