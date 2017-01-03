@@ -214,6 +214,7 @@ module.exports.getAItem = function(request, reply) {
         reply(item);
         updateStatsInTask(request, reply, 1);
         updateActivity(request, reply, item, now);
+        trackStats(request);
       });
     }
   });
@@ -471,3 +472,85 @@ function setTaskAsCompleted(idtask) {
   });
 }
 
+function getTimestamp(date) {
+  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 12:00:00';
+  var datum = Date.parse(strDate);
+  return datum / 1000;
+}
+
+function trackStats(request) {
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  var stats;
+  var timestampDay = getTimestamp(new Date());
+  client.get({
+    index: 'tofix',
+    type: idtask + '_trackstats',
+    id: timestampDay
+  }, function(err, resp) {
+    if (err) console.log(err);
+    if (resp.found) {
+      //When  exist the stats
+      stats = statsFormat(resp._source, data, timestampDay);
+      client.update({
+        index: 'tofix',
+        type: idtask + '_trackstats',
+        id: timestampDay,
+        body: {
+          doc: stats
+        }
+      }, function(err) {
+        if (err) console.log(err);
+      });
+
+    } else {
+      //When does not exist any stats
+      stats = statsFormat(null, data, timestampDay);
+      client.create({
+        index: 'tofix',
+        type: idtask + '_trackstats',
+        id: timestampDay,
+        body: stats
+      }, function(err) {
+        if (err) console.log(err);
+      });
+    }
+  });
+}
+
+function statsFormat(stats, data, timestampDay) {
+  if (stats) {
+    stats[data.action] = stats[data.action] + 1;
+    if (!stats[data.user]) {
+      stats[data.user] = {
+        edit: 0,
+        skip: 0,
+        fixed: 0,
+        noterror: 0
+      };
+    }
+    if (!stats[data.user][data.editor]) {
+      stats[data.user][data.editor] = 0;
+    }
+    stats[data.user][data.action] = stats[data.user][data.action] + 1;
+    stats[data.user][data.editor] = stats[data.user][data.editor] + 1;
+  } else {
+    stats = {
+      start: timestampDay,
+      edit: 0,
+      skip: 0,
+      fixed: 0,
+      noterror: 0
+    };
+    stats[data.user] = {
+      edit: 0,
+      skip: 0,
+      fixed: 0,
+      noterror: 0
+    };
+    stats[data.action] = stats[data.action] + 1;
+    stats[data.user][data.action] = stats[data.user][data.action] + 1;
+    stats[data.user][data.editor] = 1;
+  }
+  return stats;
+}

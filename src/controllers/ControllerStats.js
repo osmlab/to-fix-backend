@@ -105,49 +105,48 @@ module.exports.trackStats = function(request, reply) {
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
   var dataUsers = {};
-  var dataDate = {};
+  var dataDate = [];
   var numItems = 0;
   client.search({
     index: 'tofix',
-    type: idtask + '_stats',
+    type: idtask + '_trackstats',
     scroll: '2s'
   }, function getMore(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    resp.hits.hits.forEach(function(v) {
-      v = v._source;
-      if (v.time >= from && v.time <= to) {
-        //Filter dataUsers per user
-        if (!dataUsers[v.user]) {
-          dataUsers[v.user] = {
-            edit: 0,
-            fixed: 0,
-            noterror: 0,
-            skip: 0,
-            user: v.user
-          };
-          dataUsers[v.user][v.action] = dataUsers[v.user][v.action] + 1;
-        } else {
-          dataUsers[v.user][v.action] = dataUsers[v.user][v.action] + 1;
-        }
-        //Filter data per date, basically for each day
-        var d = new Date(v.time * 1000);
-        //Need to improve this, for now is ok
-        var day = getTimestamp((d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear() + ' 00:00:00');
-        if (!dataDate[day]) {
-          dataDate[day] = {
-            edit: 0,
-            fixed: 0,
-            noterror: 0,
-            skip: 0,
-            start: day
-          };
-          dataDate[day][v.action] = dataDate[day][v.action] + 1;
-        } else {
-          dataDate[day][v.action] = dataDate[day][v.action] + 1;
-        }
+    resp.hits.hits.forEach(function(obj) {
+      obj = obj._source;
+      if (obj.start >= from && obj.start <= to) {
+        var statsDay = {
+          start: obj.start,
+          edit: obj.edit,
+          skip: obj.skip,
+          fixed: obj.fixed,
+          noterror: obj.noterror
+        };
+        dataDate.push(statsDay);
+        _.each(obj, function(val, key) {
+          if (_.isObject(val)) {
+            val.user = key;
+            if (!dataUsers[key]) {
+              dataUsers[key] = val;
+            } else {
+              var user = dataUsers[key];
+              _.each(val, function(v, k) {
+                if (!_.isString(v)) {
+                  if (user[k]) {
+                    user[k] = user[k] + v;
+                  } else {
+                    user[k] = v;
+                  }
+                }
+              });
+            }
+          }
+        });
       }
       numItems++;
     });
+
     if (resp.hits.total !== numItems) {
       client.scroll({
         scrollId: resp._scroll_id,
@@ -156,14 +155,9 @@ module.exports.trackStats = function(request, reply) {
     } else {
       reply({
         updated: timestamp,
-        statsUsers: _.values(dataUsers),
-        statsDate: _.values(dataDate)
+        statsUsers: dataUsers,
+        statsDate: dataDate
       });
     }
   });
 };
-
-function getTimestamp(strDate) {
-  var datum = Date.parse(strDate);
-  return datum / 1000;
-}
