@@ -214,7 +214,7 @@ module.exports.getAItem = function(request, reply) {
         reply(item);
         updateStatsInTask(request, reply, 1);
         updateActivity(request, reply, item, now);
-        trackStats(request);
+        trackStats(request, 1);
       });
     }
   });
@@ -270,6 +270,7 @@ module.exports.getGroupItems = function(request, reply) {
         reply(items);
         updateStatsInTask(request, reply, numitems);
         updateActivity(request, reply, items, now);
+        trackStats(request, numitems);
       });
     }
   });
@@ -451,7 +452,6 @@ function setTaskAsCompleted(idtask) {
   }, function(err, resp) {
     if (err) console.log(err);
     var task = resp._source;
-    console.log(task);
     var stats = task.value.stats[task.value.stats.length - 1];
     if ((stats.fixed + stats.noterror) >= stats.items) {
       //task is completed
@@ -473,12 +473,12 @@ function setTaskAsCompleted(idtask) {
 }
 
 function getTimestamp(date) {
-  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 12:00:00';
+  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 00:00:00';
   var datum = Date.parse(strDate);
   return datum / 1000;
 }
 
-function trackStats(request) {
+function trackStats(request, numitems) {
   var idtask = request.params.idtask;
   var data = request.payload;
   var stats;
@@ -491,7 +491,7 @@ function trackStats(request) {
     if (err) console.log(err);
     if (resp.found) {
       //When  exist the stats
-      stats = statsFormat(resp._source, data, timestampDay);
+      stats = statsFormat(resp._source, data, timestampDay, numitems);
       client.update({
         index: 'tofix',
         type: idtask + '_trackstats',
@@ -505,7 +505,7 @@ function trackStats(request) {
 
     } else {
       //When does not exist any stats
-      stats = statsFormat(null, data, timestampDay);
+      stats = statsFormat(null, data, timestampDay, numitems);
       client.create({
         index: 'tofix',
         type: idtask + '_trackstats',
@@ -518,9 +518,9 @@ function trackStats(request) {
   });
 }
 
-function statsFormat(stats, data, timestampDay) {
+function statsFormat(stats, data, timestampDay, numitems) {
   if (stats) {
-    stats[data.action] = stats[data.action] + 1;
+    stats[data.action] = stats[data.action] + numitems;
     if (!stats[data.user]) {
       stats[data.user] = {
         edit: 0,
@@ -532,8 +532,8 @@ function statsFormat(stats, data, timestampDay) {
     if (!stats[data.user][data.editor]) {
       stats[data.user][data.editor] = 0;
     }
-    stats[data.user][data.action] = stats[data.user][data.action] + 1;
-    stats[data.user][data.editor] = stats[data.user][data.editor] + 1;
+    stats[data.user][data.action] = stats[data.user][data.action] + numitems;
+    stats[data.user][data.editor] = stats[data.user][data.editor] + numitems;
   } else {
     stats = {
       start: timestampDay,
@@ -548,9 +548,9 @@ function statsFormat(stats, data, timestampDay) {
       fixed: 0,
       noterror: 0
     };
-    stats[data.action] = stats[data.action] + 1;
-    stats[data.user][data.action] = stats[data.user][data.action] + 1;
-    stats[data.user][data.editor] = 1;
+    stats[data.action] = stats[data.action] + numitems;
+    stats[data.user][data.action] = stats[data.user][data.action] + numitems;
+    stats[data.user][data.editor] = numitems;
   }
   return stats;
 }
