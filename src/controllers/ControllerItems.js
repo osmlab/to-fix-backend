@@ -473,7 +473,7 @@ function setTaskAsCompleted(idtask) {
 }
 
 function getTimestamp(date) {
-  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 00:00:00';
+  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 13:00:00';
   var datum = Date.parse(strDate);
   return datum / 1000;
 }
@@ -483,6 +483,7 @@ function trackStats(request, numitems) {
   var data = request.payload;
   var stats;
   var timestampDay = getTimestamp(new Date());
+
   client.get({
     index: 'tofix',
     type: idtask + '_trackstats',
