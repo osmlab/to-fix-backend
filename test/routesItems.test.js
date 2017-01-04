@@ -29,40 +29,45 @@ server.inject('/tasks', (res) => {
   var key;
   // Return group of items, exactly 2, and lock it and save the user an editor 
   test(`POST /tasks/${task.idtask}/items/2`, function(t) {
-    var options = {
-      method: 'POST',
-      url: `/tasks/${task.idtask}/items/2`,
-      payload: {
-        user: 'rub21',
-        editor: 'josm'
-      }
-    };
-    server.inject(options, (res) => {
-      items = res.result;
-      key = items[1].properties._key;
-      keys = items[0].properties._key + ',' + items[1].properties._key;
-      t.equal(res.statusCode, 200, 'HTTP 200 OK');
-      t.equal(items.length, 2, 'Feature OK');
-      t.equal(items[0].properties._tofix.length, 1, 'Num Editions 1 OK');
-      t.end();
-    });
+    setTimeout(function() {
+      var options = {
+        method: 'POST',
+        url: `/tasks/${task.idtask}/items/2`,
+        payload: {
+          user: 'rub21',
+          editor: 'josm'
+        }
+      };
+      server.inject(options, (res) => {
+        items = res.result;
+        key = items[1].properties._key;
+        keys = items[0].properties._key + ',' + items[1].properties._key;
+        t.equal(res.statusCode, 200, 'HTTP 200 OK');
+        t.equal(items.length, 2, 'Feature OK');
+        t.equal(items[0].properties._tofix.length, 1, 'Num Editions 1 OK');
+        t.end();
+      });
+    }, 1000);
   });
 
   //Unlocked group of items
   test(`POST /tasks/{idtask}/items/unlocked`, function(t) {
-    var options = {
-      method: 'POST',
-      url: `/tasks/${task.idtask}/items/unlocked`,
-      payload: {
-        groupIds: keys
-      }
-    };
-    server.inject(options, (res) => {
-      t.equal(res.statusCode, 200, 'HTTP 200 OK');
-      t.equal(res.result.status, 'unlocked', 'Unlocked OK');
-      t.equal(res.result.groupIds.length, 2, 'length of ids OK');
-      t.end();
-    });
+    setTimeout(function() {
+
+      var options = {
+        method: 'POST',
+        url: `/tasks/${task.idtask}/items/unlocked`,
+        payload: {
+          groupIds: keys
+        }
+      };
+      server.inject(options, (res) => {
+        t.equal(res.statusCode, 200, 'HTTP 200 OK');
+        t.equal(res.result.status, 'unlocked', 'Unlocked OK');
+        t.equal(res.result.groupIds.length, 2, 'length of ids OK');
+        t.end();
+      });
+    }, 1000);
   });
 
   // Return a item

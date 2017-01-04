@@ -42,7 +42,6 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
 }
 
 /* eslint-disable camelcase */
-
 module.exports.listTasks = function(request, reply) {
   client.search({
     index: config.index,
@@ -64,7 +63,6 @@ module.exports.listTasks = function(request, reply) {
     });
   });
 };
-
 /* eslint-enable camelcase */
 
 module.exports.listTasksById = function(request, reply) {
