@@ -3,7 +3,8 @@
     "server": {
       "protocol": "http",
       "host": "localhost:8000",
-      "transport": "session"
+      "transport": "session",
+      "redirect": "https://localhost:3000/oauth-complete.html"
     },
     "openstreetmap": {
       "key": "RH1JmODigeWQQFvS2HgCMhoCGsHCLIEfcg2tTdSf",
@@ -15,7 +16,8 @@
     "server": {
       "protocol": "https",
       "host": "build-to-fix-staging.tilestream.net",
-      "transport": "session"
+      "transport": "session",
+      "redirect": "https://localhost:3000/oauth-complete.html"
     },
     "openstreetmap": {
       "key": "5aAVKGBVB5OdxOXUD1UhJz6gqJJuFxwZ3CkxsDTP",
@@ -27,7 +29,8 @@
     "server": {
       "protocol": "https",
       "host": "build-to-fix-production.mapbox.com",
-      "transport": "session"
+      "transport": "session",
+      "redirect": "https://to-fix.github.io/oauth-complete.html"
     },
     "openstreetmap": {
       "key": "jntMVZGnR6hecKrMQkFTlmsIqDQp975X0wknnO3f",

@@ -132,7 +132,10 @@ module.exports.auth = function(request, reply) {
     q.await(function(error) {
       if (error) return reply(boom.unauthorized('Bad authentications'));
       request.yar.set('osmuser', osmuser);
-      return reply(osmuser);
+      var qs = Object.keys(osmuser).map(function(key) {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(osmuser[key]);
+      }).join('&');
+      reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
     });
   } else {
     return reply(boom.unauthorized('Bad authentications'));
