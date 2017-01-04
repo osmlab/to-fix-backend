@@ -42,7 +42,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 /* eslint-disable camelcase */
-
 module.exports.listTasks = function(request, reply) {
   client.search({
     index: 'tofix',
@@ -64,7 +63,6 @@ module.exports.listTasks = function(request, reply) {
     });
   });
 };
-
 /* eslint-enable camelcase */
 
 module.exports.listTasksById = function(request, reply) {
