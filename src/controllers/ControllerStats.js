@@ -156,7 +156,7 @@ module.exports.trackStats = function(request, reply) {
     } else {
       reply({
         updated: timestamp,
-        statsUsers: dataUsers,
+        statsUsers: _.values(dataUsers),
         statsDate: dataDate
       });
     }
