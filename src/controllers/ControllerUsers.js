@@ -136,6 +136,7 @@ module.exports.auth = function(request, reply) {
         return encodeURIComponent(key) + '=' + encodeURIComponent(osmuser[key]);
       }).join('&');
       reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
+      // return reply(osmuser);
     });
   } else {
     return reply(boom.unauthorized('Bad authentications'));
@@ -143,7 +144,7 @@ module.exports.auth = function(request, reply) {
 };
 
 module.exports.userDetails = function(request, reply) {
-  if (request.session || request.yar) {
+  if (request.yar && request.yar.get('osmuser')) {
     var user = request.yar.get('osmuser');
     return reply(user);
   } else {
@@ -188,7 +189,6 @@ module.exports.listUsers = function(request, reply) {
     if (err) return reply(boom.badRequest(err));
     var users = resp.hits.hits.map(function(v) {
       return v._source;
-      // return v;
     });
     reply({
       users: users
@@ -252,6 +252,17 @@ module.exports.deleteUser = function(request, reply) {
     if (err) return reply(boom.badRequest(err));
     reply(resp);
   });
+};
+
+module.exports.logout = function(request, reply) {
+  if (request.yar && request.yar.get('osmuser')) {
+    request.yar.reset();
+    return reply({
+      logout: 'successful'
+    });
+  } else {
+    return reply(boom.unauthorized('Bad authentications'));
+  }
 };
 
 function isAuthenticated(request) {

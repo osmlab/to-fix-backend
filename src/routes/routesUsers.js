@@ -41,4 +41,11 @@ module.exports = [{
     },
     handler: controllerUsers.changeRole
   }
+}, {
+  method: 'GET',
+  path: '/logout',
+  config: {
+    description: 'Log Out',
+    handler: controllerUsers.logout
+  }
 }];

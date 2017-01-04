@@ -50,7 +50,7 @@ var session = {
     },
     cookieOptions: {
       password: process.env.Password || 'abcdefghigklmnopqrsdasdasdadadadsdtuvwxyz123456',
-      isSecure: process.env.NODE_ENV !== 'development'
+      isSecure: false //process.env.NODE_ENV !== 'development'
     }
   }
 };
