@@ -331,6 +331,7 @@ module.exports.updateItem = function(request, reply) {
       });
       updateStatsInTask(request, reply, 1);
       updateActivity(request, reply, item, now);
+      trackStats(request, 1);
     });
   });
 };
