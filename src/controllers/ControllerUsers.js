@@ -165,15 +165,6 @@ module.exports.auth = function(request, reply) {
   }
 };
 
-module.exports.userDetails = function(request, reply) {
-  if (request.yar && request.yar.get('osmuser')) {
-    var user = request.yar.get('osmuser');
-    return reply(user);
-  } else {
-    return reply(boom.unauthorized('Bad authentications'));
-  }
-};
-
 module.exports.getUser = function(request, reply) {
   var user = request.params.user;
   client.search({
@@ -228,7 +219,7 @@ module.exports.changeRole = function(request, reply) {
         filtered: {
           query: {
             match: {
-              user: request.params.user
+              user: data.user
             }
           }
         }
@@ -287,10 +278,6 @@ module.exports.deleteUser = function(request, reply) {
       reply(resp);
     });
   });
-};
-
-module.exports.logout = function(request, reply) {
-  console.log(request, reply);
 };
 
 function indexExists() {

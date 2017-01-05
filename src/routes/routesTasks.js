@@ -77,7 +77,7 @@ module.exports = [{
   method: 'DELETE',
   path: '/tasks',
   config: {
-    description: 'Update a task',
+    description: 'Delete a task',
     auth: {
       strategies: ['jwt'],
       scope: ['superadmin', 'admin']

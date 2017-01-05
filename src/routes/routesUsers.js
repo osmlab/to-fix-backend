@@ -8,10 +8,6 @@ module.exports = [{
   handler: controllerUsers.auth
 }, {
   method: 'GET',
-  path: '/users/details',
-  handler: controllerUsers.userDetails
-}, {
-  method: 'GET',
   path: '/users',
   handler: controllerUsers.listUsers
 }, {
@@ -28,7 +24,7 @@ module.exports = [{
   }
 }, {
   method: 'PUT',
-  path: '/users/{user}',
+  path: '/users',
   config: {
     auth: {
       strategies: ['jwt'],
@@ -37,10 +33,8 @@ module.exports = [{
     description: 'Change user role',
     validate: {
       payload: {
+        user: Joi.string().required(),
         role: Joi.string().valid('superadmin', 'admin', 'editor').required()
-      },
-      params: {
-        user: Joi.string().required()
       }
     },
     handler: controllerUsers.changeRole
@@ -60,12 +54,5 @@ module.exports = [{
       }
     },
     handler: controllerUsers.deleteUser
-  }
-}, {
-  method: 'GET',
-  path: '/logout',
-  config: {
-    description: 'Log Out',
-    handler: controllerUsers.logout
   }
 }];
