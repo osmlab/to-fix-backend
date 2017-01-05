@@ -14,7 +14,7 @@ module.exports = [{
   method: 'GET',
   path: '/users/{user}',
   config: {
-    description: 'Returns a user',
+    description: 'Returns user detail',
     validate: {
       params: {
         user: Joi.string().required()
