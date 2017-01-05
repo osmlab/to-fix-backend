@@ -158,8 +158,8 @@ module.exports.auth = function(request, reply) {
       var qs = Object.keys(osmuser).map(function(key) {
         return encodeURIComponent(key) + '=' + encodeURIComponent(osmuser[key]);
       }).join('&');
-      // reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
-      return reply(osmuser);
+      reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
+      // return reply(osmuser);
     });
   } else {
     return reply(boom.unauthorized('Bad authentications'));
