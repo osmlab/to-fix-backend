@@ -261,14 +261,31 @@ module.exports.changeRole = function(request, reply) {
 };
 
 module.exports.deleteUser = function(request, reply) {
-  var id = request.params.id;
-  client.delete({
+  client.search({
     index: config.index,
     type: 'users',
-    id: id
+    body: {
+      query: {
+        filtered: {
+          query: {
+            match: {
+              user: request.payload.user
+            }
+          }
+        }
+      }
+    }
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    reply(resp);
+    var user = resp.hits.hits[0]._source;
+    client.delete({
+      index: config.index,
+      type: 'users',
+      id: user.id
+    }, function(err, resp) {
+      if (err) return reply(boom.badRequest(err));
+      reply(resp);
+    });
   });
 };
 

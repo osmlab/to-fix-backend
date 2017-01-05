@@ -26,7 +26,6 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
 }
 
 module.exports.validate = function(decoded, request, callback) {
-  console.log(decoded);
   client.get({
     index: config.index,
     type: 'users',

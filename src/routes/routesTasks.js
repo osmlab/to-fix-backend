@@ -45,8 +45,7 @@ module.exports = [{
       parse: true,
       allow: 'multipart/form-data'
     },
-    handler: ControllerTasks.createTasks,
-    cors: true
+    handler: ControllerTasks.createTasks
   }
 }, {
   method: 'PUT',

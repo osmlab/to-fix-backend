@@ -47,7 +47,7 @@ module.exports = [{
   }
 }, {
   method: 'DELETE',
-  path: '/users/{user}',
+  path: '/users',
   config: {
     auth: {
       strategies: ['jwt'],
@@ -55,7 +55,7 @@ module.exports = [{
     },
     description: 'Delete a user',
     validate: {
-      params: {
+      payload: {
         user: Joi.string().required()
       }
     },
