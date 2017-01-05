@@ -57,6 +57,7 @@ module.exports.auth = function(request, reply) {
       key: resp.access_token,
       secret: resp.access_secret
     };
+
     var q = d3.queue(1);
     var osmuser;
     var userExists = false;
