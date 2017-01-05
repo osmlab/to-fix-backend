@@ -30,6 +30,10 @@ module.exports = [{
   method: 'PUT',
   path: '/users/{user}',
   config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
     description: 'Change user role',
     validate: {
       payload: {
@@ -40,6 +44,22 @@ module.exports = [{
       }
     },
     handler: controllerUsers.changeRole
+  }
+}, {
+  method: 'DELETE',
+  path: '/users/{user}',
+  config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
+    description: 'Delete a user',
+    validate: {
+      params: {
+        user: Joi.string().required()
+      }
+    },
+    handler: controllerUsers.deleteUser
   }
 }, {
   method: 'GET',

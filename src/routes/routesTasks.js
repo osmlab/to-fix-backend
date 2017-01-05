@@ -26,6 +26,10 @@ module.exports = [{
   path: '/tasks',
   config: {
     description: 'Create a task',
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin']
+    },
     validate: {
       payload: {
         name: Joi.string().required(),
@@ -41,13 +45,18 @@ module.exports = [{
       parse: true,
       allow: 'multipart/form-data'
     },
-    handler: ControllerTasks.createTasks
+    handler: ControllerTasks.createTasks,
+    cors: true
   }
 }, {
   method: 'PUT',
   path: '/tasks',
   config: {
     description: 'Update a task',
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin']
+    },
     validate: {
       payload: {
         idtask: Joi.string().required(),
@@ -66,5 +75,21 @@ module.exports = [{
       allow: 'multipart/form-data'
     },
     handler: ControllerTasks.updateTasks
+  }
+}, {
+  method: 'DELETE',
+  path: '/tasks',
+  config: {
+    description: 'Update a task',
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin']
+    },
+    validate: {
+      payload: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: ControllerTasks.deleteTasks
   }
 }];

@@ -8,10 +8,13 @@ var elasticsearch = require('elasticsearch');
 var parseString = require('xml2js').parseString;
 var AwsEsConnector = require('http-aws-es');
 var d3 = require('d3-queue');
+var JWT = require('jsonwebtoken');
+
 var config = require('./../configs/config');
 var osmAuthconfig = require('./../configs/config.json')[process.env.NODE_ENV || 'development'];
 var localClient = require('./../utils/connection');
 var client;
+
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
   creds.get();
@@ -71,21 +74,38 @@ module.exports.auth = function(request, reply) {
             id: result.osm.user[0]['$'].id,
             user: result.osm.user[0]['$'].display_name,
             img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null,
-            role: 'editor'
+            role: 'editor',
+            scope: ['editor']
           };
           cb();
         });
       });
     });
 
+    //Check if the index exist
     q.defer(function(cb) {
-      client.count({
+      if (!indexExists()) {
+        client.indices.create({
+          index: config.index
+        }, function(err) {
+          if (err) return reply(boom.badRequest(err));
+          cb();
+        });
+      } else {
+        cb();
+      }
+    });
+
+    //Check if the type exist
+    q.defer(function(cb) {
+      client.indices.existsType({
         index: config.index,
         type: 'users'
       }, function(err, resp) {
         if (err) cb(err);
-        if (resp.count === 0) {
+        if (!resp) {
           osmuser.role = 'superadmin';
+          osmuser.scope[0] = 'superadmin';
         }
         cb();
       });
@@ -131,12 +151,14 @@ module.exports.auth = function(request, reply) {
     });
     q.await(function(error) {
       if (error) return reply(boom.unauthorized('Bad authentications'));
-      request.yar.set('osmuser', osmuser);
+      // request.yar.set('osmuser', osmuser);
+      var token = getToken(osmuser);
+      osmuser.token = token;
       var qs = Object.keys(osmuser).map(function(key) {
         return encodeURIComponent(key) + '=' + encodeURIComponent(osmuser[key]);
       }).join('&');
-      reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
-      // return reply(osmuser);
+      // reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
+      return reply(osmuser);
     });
   } else {
     return reply(boom.unauthorized('Bad authentications'));
@@ -197,49 +219,45 @@ module.exports.listUsers = function(request, reply) {
 };
 
 module.exports.changeRole = function(request, reply) {
-  var user = request.params.user;
   var data = request.payload;
-  if (isAuthenticated(request)) {
-    client.search({
-      index: config.index,
-      type: 'users',
-      body: {
-        query: {
-          filtered: {
-            query: {
-              match: {
-                user: user
-              }
+  client.search({
+    index: config.index,
+    type: 'users',
+    body: {
+      query: {
+        filtered: {
+          query: {
+            match: {
+              user: request.params.user
             }
           }
         }
       }
+    }
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    var user = resp.hits.hits[0]._source;
+    var id = user.id;
+    user.role = data.role;
+    user.scope[0] = data.role;
+    client.update({
+      index: config.index,
+      type: 'users',
+      id: id,
+      body: {
+        doc: user
+      }
     }, function(err, resp) {
       if (err) return reply(boom.badRequest(err));
-      var id = resp.hits.hits[0]._source.id;
-      client.update({
-        index: config.index,
-        type: 'users',
-        id: id,
-        body: {
-          doc: {
-            role: data.role
-          }
-        }
-      }, function(err, resp) {
-        if (err) return reply(boom.badRequest(err));
-        return reply({
-          index: resp._index,
-          type: resp._type,
-          key: resp._id,
-          user: user,
-          status: 'updated'
-        });
+      return reply({
+        index: resp._index,
+        type: resp._type,
+        key: resp._id,
+        user: user,
+        status: 'updated'
       });
     });
-  } else {
-    return reply(boom.unauthorized('Bad authentications'));
-  }
+  });
 };
 
 module.exports.deleteUser = function(request, reply) {
@@ -255,22 +273,18 @@ module.exports.deleteUser = function(request, reply) {
 };
 
 module.exports.logout = function(request, reply) {
-  if (request.yar && request.yar.get('osmuser')) {
-    request.yar.reset();
-    return reply({
-      logout: 'successful'
-    });
-  } else {
-    return reply(boom.unauthorized('Bad authentications'));
-  }
+  console.log(request, reply);
 };
 
-function isAuthenticated(request) {
-  if (request.session || request.yar) {
-    var user = (request.session || request.yar).get('osmuser');
-    if (user.role === 'superadmin') {
-      return user;
-    }
-  }
-  return null;
+function indexExists() {
+  return client.indices.exists({
+    index: config.index
+  });
+}
+
+function getToken(osmuser) {
+  var secretKey = process.env.JWT || 'kiraargos';
+  return JWT.sign(osmuser, secretKey, {
+    expiresIn: '30d'
+  });
 }
