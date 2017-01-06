@@ -9,11 +9,22 @@ module.exports = [{
 }, {
   method: 'GET',
   path: '/users',
-  handler: controllerUsers.listUsers
+  config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
+    description: 'Returns  list of users',
+    handler: controllerUsers.listUsers
+  }
 }, {
   method: 'GET',
   path: '/users/{user}',
   config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
     description: 'Returns user detail',
     validate: {
       params: {
@@ -54,5 +65,16 @@ module.exports = [{
       }
     },
     handler: controllerUsers.deleteUser
+  }
+}, {
+  method: 'GET',
+  path: '/user/details',
+  config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin', 'editor']
+    },
+    description: 'Return User detail',
+    handler: controllerUsers.userDetails
   }
 }];

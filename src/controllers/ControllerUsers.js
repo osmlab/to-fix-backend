@@ -280,6 +280,10 @@ module.exports.deleteUser = function(request, reply) {
   });
 };
 
+module.exports.userDetails = function(request, reply) {
+  reply(request.auth.credentials);
+};
+
 function indexExists() {
   return client.indices.exists({
     index: config.index
