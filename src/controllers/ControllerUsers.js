@@ -291,8 +291,12 @@ function indexExists() {
 }
 
 function getToken(osmuser) {
+  var time = '90d';
+  if (osmuser.role === 'superadmin') {
+    time = '366d';
+  }
   var secretKey = process.env.JWT || 'kiraargos';
   return JWT.sign(osmuser, secretKey, {
-    expiresIn: '30d'
+    expiresIn: time
   });
 }
