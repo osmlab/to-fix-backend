@@ -188,7 +188,6 @@ module.exports.getUser = function(request, reply) {
   });
 };
 
-
 module.exports.listUsers = function(request, reply) {
   client.search({
     index: config.index,

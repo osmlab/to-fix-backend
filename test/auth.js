@@ -19,9 +19,24 @@ module.exports = function(cb) {
   var request = {
     yar: yar
   };
+  var reply = {
+    redirect: function(auth) {
+      cb(unserialize(auth));
+    }
+  };
   controllerUsers.auth(request, reply);
-
-  function reply(auth) {
-    cb(auth);
-  }
+  // function reply(auth) {
+  //   cb(auth);
+  // }
 };
+
+function unserialize(str) {
+  str = decodeURIComponent(str);
+  var chunks = str.split('&'),
+    obj = {};
+  for (var c = 0; c < chunks.length; c++) {
+    var split = chunks[c].split('=', 2);
+    obj[split[0]] = split[1];
+  }
+  return obj;
+}
