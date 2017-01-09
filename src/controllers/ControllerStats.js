@@ -8,7 +8,7 @@ var config = require('./../configs/config');
 var localClient = require('./../utils/connection');
 
 var client;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -114,7 +114,6 @@ module.exports.trackStats = function(request, reply) {
       }
       numItems++;
     });
-
     if (resp.hits.total !== numItems) {
       client.scroll({
         scrollId: resp._scroll_id,
