@@ -34,33 +34,43 @@ module.exports.listTasksActivity = function(request, reply) {
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
-  client.search({
+  var size = 50;
+  client.count({
     index: 'tofix',
-    type: idtask + '_stats',
-    body: {
-      query: {
-        match_all: {}
-      },
-      size: 200,
-      sort: [{
-        _timestamp: {
-          order: 'desc'
-        }
-      }]
+    type: idtask + '_stats'
+  }, function(error, resp) {
+    if (resp.count < size) {
+      size = resp.count;
     }
-  }, function(error, response) {
-    /*eslint-disable array-callback-return*/
-    var lastActivity = response.hits.hits.map(function(act) {
-      if (act._source.time >= from && act._source.time <= to) {
-        return act._source;
+    client.search({
+      index: 'tofix',
+      type: idtask + '_stats',
+      body: {
+        query: {
+          match_all: {}
+        },
+        size: size,
+        sort: [{
+          _timestamp: {
+            order: 'desc'
+          }
+        }]
       }
-    });
-    return reply({
-      updated: timestamp,
-      data: lastActivity
+    }, function(error, response) {
+      /*eslint-disable array-callback-return*/
+      var lastActivity = response.hits.hits.map(function(act) {
+        if (act._source.time >= from && act._source.time <= to) {
+          return act._source;
+        }
+      });
+      return reply({
+        updated: timestamp,
+        data: lastActivity
+      });
     });
   });
 };
+
 /* eslint-enable camelcase */
 
 module.exports.listTasksActivityByUser = function(request, reply) {
