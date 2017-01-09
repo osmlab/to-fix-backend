@@ -7,7 +7,7 @@
     "start": "node index.js",
     "lint": "eslint *.js src/*/*.js;exit 0",
     "pretest": "npm run lint",
-    "test": "UploadPassword=test EsIndex=test tape test/*.test.js | tap-spec"
+    "test": "EsIndex=test tape test/*.test.js | tap-spec"
   },
   "author": "Mapbox",
   "license": "BSD",

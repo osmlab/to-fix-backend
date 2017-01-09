@@ -1,5 +1,5 @@
-var server = require('../index');
-var test = require('tape');
+// var server = require('../index');
+// var test = require('tape');
 
 // server.inject('/tasks', (res) => {
 //   var task = res.result.tasks[res.result.tasks.length - 1];
