@@ -31,9 +31,6 @@ if (process.env.NODE_ENV === 'production') {
 module.exports.listTasksActivity = function(request, reply) {
   var idtask = request.params.idtask;
   var timestamp = Math.round((new Date()).getTime());
-  var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
-  var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
-  if (from === to) to = to + 86400;
   var size = 50;
   client.count({
     index: 'tofix',
@@ -59,53 +56,13 @@ module.exports.listTasksActivity = function(request, reply) {
     }, function(error, response) {
       /*eslint-disable array-callback-return*/
       var lastActivity = response.hits.hits.map(function(act) {
-        if (act._source.time >= from && act._source.time <= to) {
-          return act._source;
-        }
+        return act._source;
       });
       return reply({
         updated: timestamp,
         data: lastActivity
       });
     });
-  });
-};
-
-/* eslint-enable camelcase */
-
-module.exports.listTasksActivityByUser = function(request, reply) {
-  var idtask = request.params.idtask;
-  var user = request.params.user;
-  var timestamp = Math.round((new Date()).getTime());
-  var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
-  var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
-  if (from === to) to = to + 86400;
-  var numItems = 0;
-  var activity = [];
-  client.search({
-    index: 'tofix',
-    type: idtask + '_stats',
-    scroll: '2s'
-  }, function getMore(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    resp.hits.hits.forEach(function(v) {
-      v = v._source;
-      if (v.time >= from && v.time <= to && v.user === user) {
-        activity.push(v);
-      }
-      numItems++;
-    });
-    if (resp.hits.total !== numItems) {
-      client.scroll({
-        scrollId: resp._scroll_id,
-        scroll: '2s'
-      }, getMore);
-    } else {
-      return reply({
-        updated: timestamp,
-        data: activity
-      });
-    }
   });
 };
 
