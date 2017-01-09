@@ -4,32 +4,15 @@ var ControllerStats = require('./../controllers/ControllerStats');
 
 module.exports = [{
   method: 'GET',
-  path: '/tasks/{idtask}/activity/{from}/{to}',
+  path: '/tasks/{idtask}/activity',
   config: {
-    description: 'Return activity in the task, e.g: /tasks/{idtask}/activity/from:2016-11-01/to:2016-11-30',
+    description: 'Return last activities in the task',
     validate: {
       params: {
-        idtask: Joi.string().required(),
-        from: Joi.string().required(),
-        to: Joi.string().required()
+        idtask: Joi.string().required()
       }
     },
     handler: ControllerStats.listTasksActivity
-  }
-}, {
-  method: 'GET',
-  path: '/tasks/{idtask}/activity/{user}/{from}/{to}',
-  config: {
-    description: 'Return the user activity in the task, e.g: /tasks/{idtask}/activity/{user}/from:2016-11-01/to:2016-11-30',
-    validate: {
-      params: {
-        idtask: Joi.string().required(),
-        user: Joi.string().required(),
-        from: Joi.string().required(),
-        to: Joi.string().required()
-      }
-    },
-    handler: ControllerStats.listTasksActivityByUser
   }
 }, {
   method: 'GET',
