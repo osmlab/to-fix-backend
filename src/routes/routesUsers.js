@@ -10,10 +10,10 @@ module.exports = [{
   method: 'GET',
   path: '/users',
   config: {
-    auth: {
-      strategies: ['jwt'],
-      scope: ['superadmin']
-    },
+    // auth: {
+    //   strategies: ['jwt'],
+    //   scope: ['superadmin']
+    // },
     description: 'Returns  list of users',
     handler: controllerUsers.listUsers
   }
@@ -45,7 +45,7 @@ module.exports = [{
     validate: {
       payload: {
         user: Joi.string().required(),
-        role: Joi.string().valid('superadmin', 'admin', 'editor').required()
+        role: Joi.string().valid('superadmin', 'machine', 'admin', 'editor').required()
       }
     },
     handler: controllerUsers.changeRole
@@ -72,9 +72,20 @@ module.exports = [{
   config: {
     auth: {
       strategies: ['jwt'],
-      scope: ['superadmin', 'admin', 'editor']
+      scope: ['superadmin', 'machine', 'admin', 'editor']
     },
     description: 'Return User detail',
     handler: controllerUsers.userDetails
+  }
+}, {
+  method: ['GET', 'POST'],
+  path: '/logout',
+  config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'machine', 'admin', 'editor']
+    },
+    description: 'Loging out',
+    handler: controllerUsers.logout
   }
 }];

@@ -35,7 +35,7 @@ module.exports.validate = function(decoded, request, callback) {
       return callback(err, false);
     } else {
       var osmUser = resp._source;
-      if (osmUser.user === decoded.user) {
+      if (osmUser.user === decoded.user && osmUser.idsession === decoded.idsession) {
         return callback(null, true);
       } else {
         return callback(null, false);

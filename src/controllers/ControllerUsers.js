@@ -9,6 +9,7 @@ var parseString = require('xml2js').parseString;
 var AwsEsConnector = require('http-aws-es');
 var d3 = require('d3-queue');
 var JWT = require('jsonwebtoken');
+var shortid = require('shortid');
 
 var config = require('./../configs/config');
 var osmAuthconfig = require('./../configs/config.json')[process.env.NODE_ENV || 'development'];
@@ -76,7 +77,8 @@ module.exports.auth = function(request, reply) {
             user: result.osm.user[0]['$'].display_name,
             img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null,
             role: 'editor',
-            scope: ['editor']
+            scope: ['editor'],
+            idsession: shortid.generate()
           };
           cb();
         });
@@ -119,8 +121,8 @@ module.exports.auth = function(request, reply) {
         id: osmuser.id
       }, function(err, exists) {
         if (err) cb(err);
-        if (exists === true) {
-          userExists = true;
+        userExists = exists;
+        if (exists) {
           client.get({
             index: config.index,
             type: 'users',
@@ -128,6 +130,7 @@ module.exports.auth = function(request, reply) {
           }, function(err, resp) {
             if (err) cb(err);
             osmuser = resp._source;
+            osmuser.idsession = shortid.generate();
             cb();
           });
         } else {
@@ -135,8 +138,10 @@ module.exports.auth = function(request, reply) {
         }
       });
     });
+
     q.defer(function(cb) {
       if (!userExists) {
+        //save user if not exist
         client.create({
           index: config.index,
           type: 'users',
@@ -147,12 +152,23 @@ module.exports.auth = function(request, reply) {
           cb();
         });
       } else {
-        cb();
+        //update a user if exist
+        client.update({
+          index: config.index,
+          type: 'users',
+          id: osmuser.id,
+          body: {
+            doc: osmuser
+          }
+        }, function(err) {
+          if (err) cb(err);
+          cb();
+        });
       }
     });
+
     q.await(function(error) {
       if (error) return reply(boom.unauthorized('Bad authentications'));
-      // request.yar.set('osmuser', osmuser);
       var token = getToken(osmuser);
       osmuser.token = token;
       var qs = Object.keys(osmuser).map(function(key) {
@@ -284,6 +300,32 @@ module.exports.userDetails = function(request, reply) {
   reply(request.auth.credentials);
 };
 
+module.exports.logout = function(request, reply) {
+  var decoded = request.auth.credentials;
+  client.get({
+    index: config.index,
+    type: 'users',
+    id: decoded.id
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    var osmuser = resp._source;
+    osmuser.idsession = null;
+    client.update({
+      index: config.index,
+      type: 'users',
+      id: decoded.id,
+      body: {
+        doc: osmuser
+      }
+    }, function(err) {
+      if (err) return reply(boom.badRequest(err));
+      return reply({
+        status: 'Logout successful'
+      });
+    });
+  });
+};
+
 function indexExists() {
   return client.indices.exists({
     index: config.index
@@ -291,8 +333,8 @@ function indexExists() {
 }
 
 function getToken(osmuser) {
-  var time = '90d';
-  if (osmuser.role === 'superadmin') {
+  var time = '1d';
+  if (osmuser.role === 'machine') {
     time = '366d';
   }
   var secretKey = process.env.JWT || 'kiraargos';
