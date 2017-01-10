@@ -10,10 +10,10 @@ module.exports = [{
   method: 'GET',
   path: '/users',
   config: {
-    // auth: {
-    //   strategies: ['jwt'],
-    //   scope: ['superadmin']
-    // },
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
     description: 'Returns  list of users',
     handler: controllerUsers.listUsers
   }
