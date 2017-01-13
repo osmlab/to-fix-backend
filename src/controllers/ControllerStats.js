@@ -8,7 +8,7 @@ var config = require('./../configs/config');
 var localClient = require('./../utils/connection');
 
 var client;
-if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+if (config.envType) {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
       credentials: creds
     };
     client = new elasticsearch.Client({
-      host: process.env.ElasticHost,
+      host: config.ElasticHost,
       connectionClass: AwsEsConnector,
       amazonES: amazonES
     });

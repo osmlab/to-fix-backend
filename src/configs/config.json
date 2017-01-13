@@ -30,7 +30,7 @@
       "protocol": "https",
       "host": "build-to-fix-production.mapbox.com",
       "transport": "session",
-      "redirect": "https://to-fix.github.io/oauth-complete.html"
+      "redirect": "https://osmlab.github.io/to-fix/oauth-complete.html"
     },
     "openstreetmap": {
       "key": "jntMVZGnR6hecKrMQkFTlmsIqDQp975X0wknnO3f",

@@ -8,13 +8,14 @@ var yar = require('yar');
 var Grant = require('grant-hapi');
 var grant = new Grant();
 var hajwt2 = require('hapi-auth-jwt2');
-var config = require('./src/configs/config.json');
+var configServer = require('./src/configs/config.json');
+var config = require('./src/configs/config');
 var Routes = require('./src/routes');
 var validate = require('./src/utils/validate').validate;
 
 var server = new Hapi.Server();
 server.connection({
-  port: process.env.Port || 8000,
+  port: config.Port,
   routes: {
     cors: true
   }
@@ -51,7 +52,7 @@ var session = {
       expiresIn: 24 * 60 * 60 * 1000
     },
     cookieOptions: {
-      password: process.env.Password || 'abcdefghigklmnopqrsdasdasdadadadsdtuvwxyz123456',
+      password: config.sessionPassword,
       isSecure: false //process.env.NODE_ENV !== 'development'
     }
   }
@@ -59,20 +60,18 @@ var session = {
 
 var authConfig = {
   register: grant,
-  options: config[process.env.NODE_ENV || 'development']
+  options: configServer[config.NODE_ENV]
 };
 
 server.register([Vision, Inert, loutRegister, good, authConfig, session, hajwt2], function(err) {
   if (err) console.error('Failed loading plugins');
-
   server.auth.strategy('jwt', 'jwt', {
-    key: process.env.JWT || 'kiraargos',
+    key: config.JWT,
     validateFunc: validate,
     verifyOptions: {
       algorithms: ['HS256']
     }
   });
-  // server.auth.default('jwt');
   server.start(function() {
     console.log(`Server running at: ${server.info.uri}`);
   });

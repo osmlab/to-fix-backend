@@ -10,13 +10,12 @@ var AwsEsConnector = require('http-aws-es');
 var d3 = require('d3-queue');
 var JWT = require('jsonwebtoken');
 var shortid = require('shortid');
-
 var config = require('./../configs/config');
-var osmAuthconfig = require('./../configs/config.json')[process.env.NODE_ENV || 'development'];
+var osmAuthconfig = require('./../configs/config.json')[config.NODE_ENV];
 var localClient = require('./../utils/connection');
 var client;
 
-if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+if (config.envType) {
   var creds = new AWS.ECSCredentials();
   creds.get();
   creds.refresh(function(err) {
@@ -26,7 +25,7 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
       credentials: creds
     };
     client = new elasticsearch.Client({
-      host: process.env.ElasticHost,
+      host: config.ElasticHost,
       connectionClass: AwsEsConnector,
       amazonES: amazonES
     });
@@ -337,7 +336,7 @@ function getToken(osmuser) {
   if (osmuser.role === 'machine') {
     time = '366d';
   }
-  var secretKey = process.env.JWT || 'kiraargos';
+  var secretKey = config.JWT;
   return JWT.sign(osmuser, secretKey, {
     expiresIn: time
   });
