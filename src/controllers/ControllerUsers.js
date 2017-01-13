@@ -71,15 +71,20 @@ module.exports.auth = function(request, reply) {
         if (error) cb(error);
         parseString(body, function(err, result) {
           if (err) cb(err);
-          osmuser = {
-            id: result.osm.user[0]['$'].id,
-            user: result.osm.user[0]['$'].display_name,
-            img: result.osm.user[0].img ? result.osm.user[0].img[0]['$'].href : null,
-            role: 'editor',
-            scope: ['editor'],
-            idsession: shortid.generate()
-          };
-          cb();
+          var user = result.osm.user;
+          if (user) {
+            osmuser = {
+              id: user[0]['$'].id,
+              user: user[0]['$'].display_name,
+              img: user[0].img ? user[0].img[0]['$'].href : null,
+              role: 'editor',
+              scope: ['editor'],
+              idsession: shortid.generate()
+            };
+            cb();
+          } else {
+            cb(new Error());
+          }
         });
       });
     });
