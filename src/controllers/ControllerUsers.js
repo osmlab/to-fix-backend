@@ -172,17 +172,16 @@ module.exports.auth = function(request, reply) {
     });
 
     q.await(function(error) {
-      if (error) return reply(boom.unauthorized('Bad authentications'));
+      if (error) return reply(boom.unauthorized('Authentication failure'));
       var token = getToken(osmuser);
       osmuser.token = token;
       var qs = Object.keys(osmuser).map(function(key) {
         return encodeURIComponent(key) + '=' + encodeURIComponent(osmuser[key]);
       }).join('&');
       reply.redirect(`${osmAuthconfig.server.redirect}?${qs}`);
-      // return reply(osmuser);
     });
   } else {
-    return reply(boom.unauthorized('Bad authentications'));
+    return reply(boom.unauthorized('Authentication failure'));
   }
 };
 
