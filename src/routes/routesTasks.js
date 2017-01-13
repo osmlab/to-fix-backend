@@ -53,7 +53,7 @@ module.exports = [{
     description: 'Update a task',
     auth: {
       strategies: ['jwt'],
-      scope: ['superadmin', 'admin']
+      scope: ['superadmin', 'admin', 'machine']
     },
     validate: {
       payload: {
