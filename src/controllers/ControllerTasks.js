@@ -111,27 +111,12 @@ module.exports.createTasks = function(request, reply) {
         } else {
           cb();
         }
-
       });
 
       q.defer(function(cb) {
-        //set all features in a array to insert massive features  on my type
-        var rd = readline.createInterface({
-          input: fs.createReadStream(path.join(folder, task.idtask)),
-          output: process.stdout,
-          terminal: false
-        });
-        rd.on('line', function(line) {
-          var obj = JSON.parse(line);
-          var index = {
-            index: {
-              _index: config.index,
-              _type: task.idtask,
-              _id: obj.properties._key
-            }
-          };
-          bulk.push(index, obj);
-        }).on('close', function() {
+        loadItems(task, function(err, data) {
+          if (err) cb(err);
+          bulk = data;
           cb();
         });
       });
@@ -286,23 +271,9 @@ module.exports.updateTasks = function(request, reply) {
           });
 
           q.defer(function(cb) {
-            //set all features in a array to insert massive features  on my type
-            var rd = readline.createInterface({
-              input: fs.createReadStream(path.join(folder, task.idtask)),
-              output: process.stdout,
-              terminal: false
-            });
-            rd.on('line', function(line) {
-              var obj = JSON.parse(line);
-              var index = {
-                index: {
-                  _index: config.index,
-                  _type: task.idtask,
-                  _id: obj.properties._key
-                }
-              };
-              bulk.push(index, obj);
-            }).on('close', function() {
+            loadItems(task, function(err, data) {
+              if (err) cb(err);
+              bulk = data;
               cb();
             });
           });
@@ -457,3 +428,28 @@ Array.prototype.sortBy = function() {
     return (a.value.updated > b.value.updated) ? 1 : (a.value.updated < b.value.updated) ? -1 : 0;
   });
 };
+
+function loadItems(task, done) {
+  //set all features in a array to insert massive features  on my type
+  var bulk = [];
+  var rd = readline.createInterface({
+    input: fs.createReadStream(path.join(folder, task.idtask)),
+    output: process.stdout,
+    terminal: false
+  });
+  rd.on('line', function(line) {
+    var obj = JSON.parse(line);
+    var index = {
+      index: {
+        _index: config.index,
+        _type: task.idtask,
+        _id: obj.properties._key
+      }
+    };
+    bulk.push(index, obj);
+  }).on('close', function() {
+    done(null, bulk);
+  }).on('error', function(e) {
+    done(e, null);
+  });
+}
