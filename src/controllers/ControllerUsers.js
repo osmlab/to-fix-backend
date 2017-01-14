@@ -186,24 +186,14 @@ module.exports.auth = function(request, reply) {
 };
 
 module.exports.getUser = function(request, reply) {
-  var user = request.params.user;
-  client.search({
+  var userId = request.params.userId;
+  client.get({
     index: config.index,
     type: 'users',
-    body: {
-      query: {
-        filtered: {
-          query: {
-            match: {
-              user: user
-            }
-          }
-        }
-      }
-    }
+    id: userId
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    reply(resp.hits.hits[0]._source);
+    reply(resp._source);
   });
 };
 
@@ -230,71 +220,40 @@ module.exports.listUsers = function(request, reply) {
 
 module.exports.changeRole = function(request, reply) {
   var data = request.payload;
-  client.search({
+  client.update({
     index: config.index,
     type: 'users',
+    id: data.userId,
     body: {
-      query: {
-        filtered: {
-          query: {
-            match: {
-              user: data.user
-            }
-          }
-        }
+      doc: {
+        role: data.role,
+        scope: [data.role]
       }
     }
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    var user = resp.hits.hits[0]._source;
-    var id = user.id;
-    user.role = data.role;
-    user.scope[0] = data.role;
-    client.update({
-      index: config.index,
-      type: 'users',
-      id: id,
-      body: {
-        doc: user
-      }
-    }, function(err, resp) {
-      if (err) return reply(boom.badRequest(err));
-      return reply({
-        index: resp._index,
-        type: resp._type,
-        key: resp._id,
-        user: user,
-        status: 'updated'
-      });
+    return reply({
+      index: resp._index,
+      type: resp._type,
+      key: resp._id,
+      status: 'updated'
     });
   });
 };
 
 module.exports.deleteUser = function(request, reply) {
-  client.search({
+  var data = request.payload;
+  client.delete({
     index: config.index,
     type: 'users',
-    body: {
-      query: {
-        filtered: {
-          query: {
-            match: {
-              user: request.payload.user
-            }
-          }
-        }
-      }
-    }
+    id: data.userId
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    var user = resp.hits.hits[0]._source;
-    client.delete({
-      index: config.index,
-      type: 'users',
-      id: user.id
-    }, function(err, resp) {
-      if (err) return reply(boom.badRequest(err));
-      reply(resp);
+    return reply({
+      index: resp._index,
+      type: resp._type,
+      key: resp._id,
+      status: 'deleted'
     });
   });
 };
