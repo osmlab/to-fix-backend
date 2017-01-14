@@ -53,9 +53,10 @@ module.exports.listTasksActivity = function(request, reply) {
           }
         }]
       }
-    }, function(error, response) {
+    }, function(err, resp) {
+      if (err) return reply(boom.badRequest(err));
       /*eslint-disable array-callback-return*/
-      var lastActivity = response.hits.hits.map(function(act) {
+      var lastActivity = resp.hits.hits.map(function(act) {
         return act._source;
       });
       return reply({
@@ -74,12 +75,24 @@ module.exports.trackStats = function(request, reply) {
   if (from === to) to = to + 86400;
   var dataUsers = {};
   var dataDate = [];
-  var numItems = 0;
   client.search({
     index: config.index,
     type: idtask + '_trackstats',
-    scroll: '2s'
-  }, function getMore(err, resp) {
+    body: {
+      query: {
+        constant_score: {
+          filter: {
+            range: {
+              start: {
+                gte: from,
+                lt: to
+              }
+            }
+          }
+        }
+      }
+    }
+  }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     resp.hits.hits.forEach(function(obj) {
       obj = obj._source;
@@ -112,19 +125,11 @@ module.exports.trackStats = function(request, reply) {
           }
         });
       }
-      numItems++;
     });
-    if (resp.hits.total !== numItems) {
-      client.scroll({
-        scrollId: resp._scroll_id,
-        scroll: '2s'
-      }, getMore);
-    } else {
-      reply({
-        updated: timestamp,
-        statsUsers: _.values(dataUsers),
-        statsDate: dataDate
-      });
-    }
+    reply({
+      updated: timestamp,
+      statsUsers: _.values(dataUsers),
+      statsDate: dataDate
+    });
   });
 };
