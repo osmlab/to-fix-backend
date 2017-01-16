@@ -79,7 +79,8 @@ module.exports.listTasksById = function(request, reply) {
 
 module.exports.createTasks = function(request, reply) {
   var data = request.payload;
-  var task = taskObjects(data, null);
+  var iduser = request.auth.credentials.id;
+  var task = taskObjects(data, iduser, null);
   var bulk = [];
   var name = data.file.hapi.filename;
   var geojsonFile = path.join(folder, name);
@@ -195,6 +196,7 @@ module.exports.createTasks = function(request, reply) {
 module.exports.updateTasks = function(request, reply) {
   var data = request.payload;
   var idtask = data.idtask;
+  var iduser = request.auth.credentials.id;
   client.get({
     index: config.index,
     type: 'tasks',
@@ -202,7 +204,8 @@ module.exports.updateTasks = function(request, reply) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var result = resp._source;
-    var task = taskObjects(data, result);
+    var task = taskObjects(data, iduser, result);
+    console.log(task);
     var bulk = [];
     var bulkToRemove = [];
     if (data.file) {
@@ -369,6 +372,30 @@ module.exports.deleteTasks = function(request, reply) {
   });
 };
 
+module.exports.verifyAdmin = function(request, reply) {
+  var data = request.payload;
+  var idtask = data.idtask;
+  var iduser = request.auth.credentials.id;
+  var role = request.auth.credentials.role;
+  if (role === 'superadmin' || role === 'machine') {
+    reply(request);
+  } else {
+    client.get({
+      index: config.index,
+      type: 'tasks',
+      id: idtask
+    }, function(err, resp) {
+      if (err) return reply(boom.badRequest(err));
+      var task = resp._source;
+      if (task.iduser === iduser && role === 'admin') {
+        reply(request);
+      } else {
+        reply(boom.forbidden('Insufficient scope'));
+      }
+    });
+  }
+};
+
 /**
  * Check if index exist or not
  * @return {boolean} true, when the index exist
@@ -385,7 +412,7 @@ function indexExists() {
  * @param  {object} or {null} null to create a task and object to updat a task
  * @return {object} object task
  */
-function taskObjects(data, result) {
+function taskObjects(data, iduser, result) {
   var idtask = data.name.concat(randomString({
     length: 5
   })).replace(/[^a-zA-Z]+/g, '').toLowerCase();
@@ -407,11 +434,13 @@ function taskObjects(data, result) {
     if (data.idtask && data.file) {
       stats.push(status);
     }
+    iduser = result.iduser;
   }
   return {
     idtask: idtask,
     isCompleted: isCompleted,
     isAllItemsLoad: false,
+    iduser: iduser,
     value: {
       name: data.name,
       description: data.description,

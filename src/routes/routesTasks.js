@@ -55,6 +55,9 @@ module.exports = [{
       strategies: ['jwt'],
       scope: ['superadmin', 'admin', 'machine']
     },
+    pre: [{
+      method: ControllerTasks.verifyAdmin
+    }],
     validate: {
       payload: {
         idtask: Joi.string().required(),
@@ -82,6 +85,9 @@ module.exports = [{
       strategies: ['jwt'],
       scope: ['superadmin', 'admin']
     },
+    pre: [{
+      method: ControllerTasks.verifyAdmin
+    }],
     validate: {
       payload: {
         idtask: Joi.string().required()

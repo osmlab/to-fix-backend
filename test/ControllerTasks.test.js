@@ -10,7 +10,7 @@ test('Create a task object', function(t) {
     password: 'xxx',
     file: null
   };
-  var task = taskObjects(data, null);
+  var task = taskObjects(data, 13453, null);
   t.equal(task.value.name, 'overlapped highways', 'name ok');
   t.equal(task.value.stats[0].edit, 0, 'edit, ok');
   t.equal(task.value.stats[0].fixed, 0, 'fixed, ok');
@@ -49,7 +49,7 @@ test('Update a task object', function(t) {
       }]
     }
   };
-  var task = taskObjects(data, result);
+  var task = taskObjects(data, 13453, result);
   t.equal(task.value.name, 'overlapped highways', 'name ok');
   t.equal(task.value.stats[2].edit, 0, 'edit, ok');
   t.equal(task.value.stats[2].fixed, 0, 'fixed, ok');
