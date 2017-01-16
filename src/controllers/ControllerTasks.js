@@ -372,7 +372,7 @@ module.exports.deleteTasks = function(request, reply) {
   });
 };
 
-module.exports.verifyAdmin = function(request, reply) {
+module.exports.verifyRole = function(request, reply) {
   var data = request.payload;
   var idtask = data.idtask;
   var iduser = request.auth.credentials.id;

@@ -186,11 +186,11 @@ module.exports.auth = function(request, reply) {
 };
 
 module.exports.getUser = function(request, reply) {
-  var userId = request.params.userId;
+  var iduser = request.params.iduser;
   client.get({
     index: config.index,
     type: 'users',
-    id: userId
+    id: iduser
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     reply(resp._source);
@@ -223,7 +223,7 @@ module.exports.changeRole = function(request, reply) {
   client.update({
     index: config.index,
     type: 'users',
-    id: data.userId,
+    id: data.iduser,
     body: {
       doc: {
         role: data.role,
@@ -246,7 +246,7 @@ module.exports.deleteUser = function(request, reply) {
   client.delete({
     index: config.index,
     type: 'users',
-    id: data.userId
+    id: data.iduser
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     return reply({

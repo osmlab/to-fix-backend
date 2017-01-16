@@ -19,7 +19,7 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/users/{userId}',
+  path: '/users/{iduser}',
   config: {
     auth: {
       strategies: ['jwt'],
@@ -28,7 +28,7 @@ module.exports = [{
     description: 'Returns user detail',
     validate: {
       params: {
-        userId: Joi.string().required()
+        iduser: Joi.string().required()
       }
     },
     handler: controllerUsers.getUser
@@ -44,7 +44,7 @@ module.exports = [{
     description: 'Change user role',
     validate: {
       payload: {
-        userId: Joi.string().required(),
+        iduser: Joi.string().required(),
         role: Joi.string().valid('superadmin', 'machine', 'admin', 'editor').required()
       }
     },
@@ -61,7 +61,7 @@ module.exports = [{
     description: 'Delete a user',
     validate: {
       payload: {
-        userId: Joi.string().required()
+        iduser: Joi.string().required()
       }
     },
     handler: controllerUsers.deleteUser

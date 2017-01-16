@@ -56,7 +56,7 @@ module.exports = [{
       scope: ['superadmin', 'admin', 'machine']
     },
     pre: [{
-      method: ControllerTasks.verifyAdmin
+      method: ControllerTasks.verifyRole
     }],
     validate: {
       payload: {
@@ -86,7 +86,7 @@ module.exports = [{
       scope: ['superadmin', 'admin']
     },
     pre: [{
-      method: ControllerTasks.verifyAdmin
+      method: ControllerTasks.verifyRole
     }],
     validate: {
       payload: {
