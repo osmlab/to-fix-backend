@@ -51,13 +51,12 @@ var reqData = {
 };
 
 module.exports.auth = function(request, reply) {
-  if (request.session || request.yar) {
-    var resp = (request.session || request.yar).get('grant').response;
+  if (request.yar) {
+    var resp = request.yar.get('grant').response;
     var token = {
       key: resp.access_token,
       secret: resp.access_secret
     };
-
     var q = d3.queue(1);
     var osmuser;
     var userExists = false;
