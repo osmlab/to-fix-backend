@@ -101,6 +101,7 @@ var updateStatsInTask = function(request, reply, numitems) {
 
 var updateItemEdit = function(request, reply, item, now, done) {
   var idtask = request.params.idtask;
+  var type = request.params.type;
   var data = request.payload;
   if (item instanceof Array) {
     //this is when requequest for many items
@@ -125,7 +126,7 @@ var updateItemEdit = function(request, reply, item, now, done) {
       itemsToUpdate.push({
         update: {
           _index: config.index,
-          _type: idtask,
+          _type: type,
           _id: item[i].properties._key
         }
       }, {
@@ -156,7 +157,7 @@ var updateItemEdit = function(request, reply, item, now, done) {
     item.properties._time = now + config.lockPeriod;
     client.update({
       index: config.index,
-      type: idtask,
+      type: type,
       id: item.properties._key,
       body: {
         doc: {
@@ -170,11 +171,12 @@ var updateItemEdit = function(request, reply, item, now, done) {
 module.exports.getAItem = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
+  var type = request.params.type;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
     index: config.index,
-    type: idtask,
+    type: type,
     body: {
       size: 1,
       query: {
@@ -201,7 +203,9 @@ module.exports.getAItem = function(request, reply) {
       }
     }
   }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
+    if (err) {
+      return reply(boom.badRequest(err));
+    }
     if (resp.hits.hits.length === 0) {
       reply(boom.resourceGone(config.messages.dataGone));
       setTaskAsCompleted(idtask);
@@ -291,12 +295,14 @@ module.exports.getItemById = function(request, reply) {
 
 module.exports.updateItem = function(request, reply) {
   var idtask = request.params.idtask;
+  var type = request.params.type;
   var data = request.payload;
   var key = data.key;
   var now = Math.round((new Date()).getTime() / 1000);
+  //Optimize here
   client.get({
     index: config.index,
-    type: idtask,
+    type: type,
     id: key
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
@@ -314,7 +320,7 @@ module.exports.updateItem = function(request, reply) {
     item.properties._time = maxNum;
     client.update({
       index: config.index,
-      type: idtask,
+      type: type,
       id: key,
       body: {
         doc: {

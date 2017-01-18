@@ -4,7 +4,7 @@ var ControllerItems = require('./../controllers/ControllerItems');
 
 module.exports = [{
   method: 'POST',
-  path: '/tasks/{idtask}/items',
+  path: '/tasks/{idtask}/{type}/items',
   config: {
     description: 'Return a item randomly',
     validate: {
@@ -13,7 +13,8 @@ module.exports = [{
         editor: Joi.string().allow('')
       },
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.getAItem
@@ -50,7 +51,7 @@ module.exports = [{
   }
 }, {
   method: 'PUT',
-  path: '/tasks/{idtask}/items',
+  path: '/tasks/{idtask}/{type}/items',
   config: {
     description: 'Update a item with an action(fixed, noterror or skip)',
     validate: {
@@ -61,7 +62,8 @@ module.exports = [{
         key: Joi.string().required()
       },
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.updateItem
