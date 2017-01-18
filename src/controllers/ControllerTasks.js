@@ -206,7 +206,6 @@ module.exports.updateTasks = function(request, reply) {
     var result = resp._source;
     var task = taskObjects(data, iduser, result);
     var bulk = [];
-    var bulkToRemove = [];
     if (data.file) {
       var name = data.file.hapi.filename;
       var geojsonFile = path.join(folder, name);

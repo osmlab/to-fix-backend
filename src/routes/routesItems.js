@@ -84,12 +84,13 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/items',
+  path: '/tasks/{idtask}/{type}/items',
   config: {
     description: 'Return the list of 100 first items in the task',
     validate: {
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.getAllItems
