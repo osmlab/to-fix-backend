@@ -270,7 +270,6 @@ module.exports.getAllItemsIdByAction = function(request, reply) {
 };
 
 module.exports.UnlockedItems = function(request, reply) {
-  var idtask = request.params.idtask;
   var type = request.params.type;
   var groupIds = request.payload.groupIds.split(',');
   var now = Math.round((new Date()).getTime() / 1000);
@@ -346,7 +345,7 @@ function setTaskAsCompleted(idtask) {
 }
 
 function getTimestamp(date) {
-  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 13:00:00';
+  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 00:00:00';
   var datum = Date.parse(strDate);
   return datum / 1000;
 }
@@ -356,7 +355,6 @@ function trackStats(request, numitems) {
   var data = request.payload;
   var stats;
   var timestampDay = getTimestamp(new Date());
-
   client.get({
     index: config.index,
     type: idtask + '_trackstats',
