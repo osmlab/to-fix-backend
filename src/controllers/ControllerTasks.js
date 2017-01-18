@@ -205,7 +205,6 @@ module.exports.updateTasks = function(request, reply) {
     if (err) return reply(boom.badRequest(err));
     var result = resp._source;
     var task = taskObjects(data, iduser, result);
-    console.log(task);
     var bulk = [];
     var bulkToRemove = [];
     if (data.file) {
