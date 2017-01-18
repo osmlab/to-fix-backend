@@ -201,21 +201,26 @@ module.exports.updateItem = function(request, reply) {
 
 module.exports.getAllItems = function(request, reply) {
   var type = request.params.type;
+  var items = [];
+  var numItems = 0;
   client.search({
     index: config.index,
     type: type,
-    body: {
-      size: 100,
-      query: {
-        match_all: {}
-      }
-    }
-  }, function(err, resp) {
+    scroll: '15s'
+  }, function getMore(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    var items = resp.hits.hits.map(function(v) {
-      return v._source;
+    resp.hits.hits.forEach(function(v) {
+      items.push(v._source);
+      numItems++;
     });
-    return reply(items);
+    if (resp.hits.total !== numItems) {
+      client.scroll({
+        scrollId: resp._scroll_id,
+        scroll: '15s'
+      }, getMore);
+    } else {
+      return reply(items);
+    }
   });
 };
 
