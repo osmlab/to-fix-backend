@@ -140,10 +140,10 @@ module.exports.getGroupItems = function(request, reply) {
 
 module.exports.getItemById = function(request, reply) {
   var key = request.params.key;
-  var idtask = request.params.idtask;
+  var type = request.params.type;
   client.get({
     index: config.index,
-    type: idtask,
+    type: type,
     id: key
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
@@ -227,18 +227,21 @@ module.exports.getAllItems = function(request, reply) {
 //count items in type
 module.exports.countItems = function(request, reply) {
   var idtask = request.params.idtask;
+  var type = request.params.type;
   client.count({
     index: config.index,
-    type: idtask
+    type: type
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     return reply({
-      count: resp.count
+      task: idtask,
+      type: type,
+      numitems: resp.count
     });
   });
 };
 
-module.exports.getAllItemsByAction = function(request, reply) {
+module.exports.getAllItemsIdByAction = function(request, reply) {
   var idtask = request.params.idtask;
   var action = request.params.action;
   var numItems = 0;
@@ -268,12 +271,13 @@ module.exports.getAllItemsByAction = function(request, reply) {
 
 module.exports.UnlockedItems = function(request, reply) {
   var idtask = request.params.idtask;
+  var type = request.params.type;
   var groupIds = request.payload.groupIds.split(',');
   var now = Math.round((new Date()).getTime() / 1000);
   var itemsToUnlocked = [];
   client.mget({
     index: config.index,
-    type: idtask,
+    type: type,
     body: {
       ids: groupIds
     }
@@ -290,7 +294,7 @@ module.exports.UnlockedItems = function(request, reply) {
       itemsToUnlocked.push({
         update: {
           _index: config.index,
-          _type: idtask,
+          _type: type,
           _id: groupIds[i]
         }
       }, {

@@ -39,12 +39,13 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/items/{key}',
+  path: '/tasks/{idtask}/{type}/items/{key}',
   config: {
     description: 'Return the data from a specific item',
     validate: {
       params: {
         idtask: Joi.string().required(),
+        type: Joi.string().required(),
         key: Joi.string().required()
       }
     },
@@ -80,7 +81,7 @@ module.exports = [{
         action: Joi.string().required()
       }
     },
-    handler: ControllerItems.getAllItemsByAction
+    handler: ControllerItems.getAllItemsIdByAction
   }
 }, {
   method: 'GET',
@@ -97,19 +98,20 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/count',
+  path: '/tasks/{idtask}/{type}/count',
   config: {
     description: 'Returns the amount of item that exists in the task',
     validate: {
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.countItems
   }
 }, {
   method: 'POST',
-  path: '/tasks/{idtask}/items/unlocked',
+  path: '/tasks/{idtask}/{type}/items/unlocked',
   config: {
     description: 'Unlocked group of items, those items should be separated by comma',
     validate: {
@@ -117,7 +119,8 @@ module.exports = [{
         groupIds: Joi.string().required()
       },
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.UnlockedItems
