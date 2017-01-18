@@ -21,7 +21,7 @@ module.exports = [{
   }
 }, {
   method: 'POST',
-  path: '/tasks/{idtask}/items/{numitems}',
+  path: '/tasks/{idtask}/{type}/items/{numitems}',
   config: {
     description: 'Return a  group of items randomly, min: 2 , max: 50',
     validate: {
@@ -31,6 +31,7 @@ module.exports = [{
       },
       params: {
         idtask: Joi.string().required(),
+        type: Joi.string().required(),
         numitems: Joi.number().integer().min(2).max(50).required()
       }
     },

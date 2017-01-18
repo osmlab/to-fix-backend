@@ -203,9 +203,7 @@ module.exports.getAItem = function(request, reply) {
       }
     }
   }, function(err, resp) {
-    if (err) {
-      return reply(boom.badRequest(err));
-    }
+    if (err) return reply(boom.badRequest(err));
     if (resp.hits.hits.length === 0) {
       reply(boom.resourceGone(config.messages.dataGone));
       setTaskAsCompleted(idtask);
@@ -227,12 +225,13 @@ module.exports.getAItem = function(request, reply) {
 module.exports.getGroupItems = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
+  var type = request.params.type;
   var numitems = request.params.numitems;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
     index: config.index,
-    type: idtask,
+    type: type,
     body: {
       size: numitems,
       query: {
