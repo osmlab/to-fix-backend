@@ -4,7 +4,7 @@ var ControllerItems = require('./../controllers/ControllerItems');
 
 module.exports = [{
   method: 'POST',
-  path: '/tasks/{idtask}/items',
+  path: '/tasks/{idtask}/{type}/items',
   config: {
     description: 'Return a item randomly',
     validate: {
@@ -13,14 +13,15 @@ module.exports = [{
         editor: Joi.string().allow('')
       },
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.getAItem
   }
 }, {
   method: 'POST',
-  path: '/tasks/{idtask}/items/{numitems}',
+  path: '/tasks/{idtask}/{type}/items/{numitems}',
   config: {
     description: 'Return a  group of items randomly, min: 2 , max: 50',
     validate: {
@@ -30,6 +31,7 @@ module.exports = [{
       },
       params: {
         idtask: Joi.string().required(),
+        type: Joi.string().required(),
         numitems: Joi.number().integer().min(2).max(50).required()
       }
     },
@@ -37,12 +39,13 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/items/{key}',
+  path: '/tasks/{idtask}/{type}/items/{key}',
   config: {
     description: 'Return the data from a specific item',
     validate: {
       params: {
         idtask: Joi.string().required(),
+        type: Joi.string().required(),
         key: Joi.string().required()
       }
     },
@@ -50,7 +53,7 @@ module.exports = [{
   }
 }, {
   method: 'PUT',
-  path: '/tasks/{idtask}/items',
+  path: '/tasks/{idtask}/{type}/items',
   config: {
     description: 'Update a item with an action(fixed, noterror or skip)',
     validate: {
@@ -61,7 +64,8 @@ module.exports = [{
         key: Joi.string().required()
       },
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.updateItem
@@ -77,35 +81,37 @@ module.exports = [{
         action: Joi.string().required()
       }
     },
-    handler: ControllerItems.getAllItemsByAction
+    handler: ControllerItems.getAllItemsIdByAction
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/items',
+  path: '/tasks/{idtask}/{type}/items',
   config: {
     description: 'Return the list of 100 first items in the task',
     validate: {
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.getAllItems
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/count',
+  path: '/tasks/{idtask}/{type}/count',
   config: {
     description: 'Returns the amount of item that exists in the task',
     validate: {
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.countItems
   }
 }, {
   method: 'POST',
-  path: '/tasks/{idtask}/items/unlocked',
+  path: '/tasks/{idtask}/{type}/items/unlocked',
   config: {
     description: 'Unlocked group of items, those items should be separated by comma',
     validate: {
@@ -113,7 +119,8 @@ module.exports = [{
         groupIds: Joi.string().required()
       },
       params: {
-        idtask: Joi.string().required()
+        idtask: Joi.string().required(),
+        type: Joi.string().required()
       }
     },
     handler: ControllerItems.UnlockedItems

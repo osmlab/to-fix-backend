@@ -29,152 +29,15 @@ if (config.envType) {
   client = localClient.connect();
 }
 
-var updateActivity = function(request, reply, item, now) {
-  var idtask = request.params.idtask;
-  var data = request.payload;
-  var action = {};
-  if (item instanceof Array) {
-    var activityToInsert = [];
-    for (var i = 0; i < item.length; i++) {
-      action = {
-        time: now,
-        key: item[i].properties._key,
-        action: data.action,
-        editor: data.editor,
-        user: data.user
-      };
-      activityToInsert.push({
-        index: {
-          _index: config.index,
-          _type: idtask + '_stats'
-        }
-      }, action);
-    }
-    client.bulk({
-      body: activityToInsert
-    }, function(err) {
-      if (err) console.log(err);
-    });
-  } else {
-    action = {
-      time: now,
-      key: item.properties._key,
-      action: data.action,
-      editor: data.editor,
-      user: data.user
-    };
-    client.create({
-      index: config.index,
-      type: idtask + '_stats',
-      body: action
-    }, function(err) {
-      if (err) console.log(err);
-    });
-  }
-};
-
-var updateStatsInTask = function(request, reply, numitems) {
-  var idtask = request.params.idtask;
-  var data = request.payload;
-  client.get({
-    index: config.index,
-    type: 'tasks',
-    id: idtask
-  }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var task = resp._source;
-    task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
-    client.update({
-      index: config.index,
-      type: 'tasks',
-      id: task.idtask,
-      body: {
-        doc: {
-          value: task.value
-        }
-      }
-    }, function(err) {
-      if (err) console.log(err);
-    });
-  });
-};
-
-var updateItemEdit = function(request, reply, item, now, done) {
-  var idtask = request.params.idtask;
-  var data = request.payload;
-  if (item instanceof Array) {
-    //this is when requequest for many items
-    var itemsToUpdate = [];
-    for (var i = 0; i < item.length; i++) {
-      if (item[i].properties._tofix) {
-        item[i].properties._tofix.push({
-          action: data.action,
-          user: data.user,
-          time: now,
-          editor: data.editor
-        });
-      } else {
-        item[i].properties._tofix = [{
-          action: data.action,
-          user: data.user,
-          time: now,
-          editor: data.editor
-        }];
-      }
-      item[i].properties._time = now + config.lockPeriodGroup;
-      itemsToUpdate.push({
-        update: {
-          _index: config.index,
-          _type: idtask,
-          _id: item[i].properties._key
-        }
-      }, {
-        doc: {
-          properties: item[i].properties
-        }
-      });
-    }
-    client.bulk({
-      body: itemsToUpdate
-    }, done);
-  } else { // to update a item
-    if (item.properties._tofix) {
-      item.properties._tofix.push({
-        action: data.action,
-        user: data.user,
-        time: now,
-        editor: data.editor
-      });
-    } else {
-      item.properties._tofix = [{
-        action: data.action,
-        user: data.user,
-        time: now,
-        editor: data.editor
-      }];
-    }
-    item.properties._time = now + config.lockPeriod;
-    client.update({
-      index: config.index,
-      type: idtask,
-      id: item.properties._key,
-      body: {
-        doc: {
-          properties: item.properties
-        }
-      }
-    }, done);
-  }
-};
-
 module.exports.getAItem = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
+  var type = request.params.type;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
     index: config.index,
-    type: idtask,
+    type: type,
     body: {
       size: 1,
       query: {
@@ -207,7 +70,6 @@ module.exports.getAItem = function(request, reply) {
       setTaskAsCompleted(idtask);
     } else {
       var item = resp.hits.hits[0]._source;
-      //we know all new request is for edition
       request.payload.action = 'edit';
       updateItemEdit(request, reply, item, now, function(err) {
         if (err) return reply(boom.badRequest(err));
@@ -223,12 +85,13 @@ module.exports.getAItem = function(request, reply) {
 module.exports.getGroupItems = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
+  var type = request.params.type;
   var numitems = request.params.numitems;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
     index: config.index,
-    type: idtask,
+    type: type,
     body: {
       size: numitems,
       query: {
@@ -263,7 +126,6 @@ module.exports.getGroupItems = function(request, reply) {
       var items = resp.hits.hits.map(function(v) {
         return v._source;
       });
-      // we know all new request is for edition
       request.payload.action = 'edit';
       updateItemEdit(request, reply, items, now, function(err) {
         if (err) return reply(boom.badRequest(err));
@@ -278,10 +140,10 @@ module.exports.getGroupItems = function(request, reply) {
 
 module.exports.getItemById = function(request, reply) {
   var key = request.params.key;
-  var idtask = request.params.idtask;
+  var type = request.params.type;
   client.get({
     index: config.index,
-    type: idtask,
+    type: type,
     id: key
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
@@ -290,13 +152,14 @@ module.exports.getItemById = function(request, reply) {
 };
 
 module.exports.updateItem = function(request, reply) {
-  var idtask = request.params.idtask;
+  var type = request.params.type;
   var data = request.payload;
   var key = data.key;
   var now = Math.round((new Date()).getTime() / 1000);
+  //Optimize here
   client.get({
     index: config.index,
-    type: idtask,
+    type: type,
     id: key
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
@@ -314,7 +177,7 @@ module.exports.updateItem = function(request, reply) {
     item.properties._time = maxNum;
     client.update({
       index: config.index,
-      type: idtask,
+      type: type,
       id: key,
       body: {
         doc: {
@@ -337,40 +200,48 @@ module.exports.updateItem = function(request, reply) {
 };
 
 module.exports.getAllItems = function(request, reply) {
-  var idtask = request.params.idtask;
+  var type = request.params.type;
+  var items = [];
+  var numItems = 0;
   client.search({
     index: config.index,
-    type: idtask,
-    body: {
-      size: 100,
-      query: {
-        match_all: {}
-      }
-    }
-  }, function(err, resp) {
+    type: type,
+    scroll: '15s'
+  }, function getMore(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    var items = resp.hits.hits.map(function(v) {
-      return v._source;
+    resp.hits.hits.forEach(function(v) {
+      items.push(v._source);
+      numItems++;
     });
-    return reply(items);
+    if (resp.hits.total !== numItems) {
+      client.scroll({
+        scrollId: resp._scroll_id,
+        scroll: '15s'
+      }, getMore);
+    } else {
+      return reply(items);
+    }
   });
 };
 
-//count tems in type
+//count items in type
 module.exports.countItems = function(request, reply) {
   var idtask = request.params.idtask;
+  var type = request.params.type;
   client.count({
     index: config.index,
-    type: idtask
+    type: type
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     return reply({
-      count: resp.count
+      task: idtask,
+      type: type,
+      numitems: resp.count
     });
   });
 };
 
-module.exports.getAllItemsByAction = function(request, reply) {
+module.exports.getAllItemsIdByAction = function(request, reply) {
   var idtask = request.params.idtask;
   var action = request.params.action;
   var numItems = 0;
@@ -399,13 +270,13 @@ module.exports.getAllItemsByAction = function(request, reply) {
 };
 
 module.exports.UnlockedItems = function(request, reply) {
-  var idtask = request.params.idtask;
+  var type = request.params.type;
   var groupIds = request.payload.groupIds.split(',');
   var now = Math.round((new Date()).getTime() / 1000);
   var itemsToUnlocked = [];
   client.mget({
     index: config.index,
-    type: idtask,
+    type: type,
     body: {
       ids: groupIds
     }
@@ -422,7 +293,7 @@ module.exports.UnlockedItems = function(request, reply) {
       itemsToUnlocked.push({
         update: {
           _index: config.index,
-          _type: idtask,
+          _type: type,
           _id: groupIds[i]
         }
       }, {
@@ -474,7 +345,7 @@ function setTaskAsCompleted(idtask) {
 }
 
 function getTimestamp(date) {
-  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 13:00:00';
+  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 00:00:00';
   var datum = Date.parse(strDate);
   return datum / 1000;
 }
@@ -484,7 +355,6 @@ function trackStats(request, numitems) {
   var data = request.payload;
   var stats;
   var timestampDay = getTimestamp(new Date());
-
   client.get({
     index: config.index,
     type: idtask + '_trackstats',
@@ -555,4 +425,142 @@ function statsFormat(stats, data, timestampDay, numitems) {
     stats[data.user][data.editor] = numitems;
   }
   return stats;
+}
+
+function updateActivity(request, reply, item, now) {
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  var action = {};
+  if (item instanceof Array) {
+    var activityToInsert = [];
+    for (var i = 0; i < item.length; i++) {
+      action = {
+        time: now,
+        key: item[i].properties._key,
+        action: data.action,
+        editor: data.editor,
+        user: data.user
+      };
+      activityToInsert.push({
+        index: {
+          _index: config.index,
+          _type: idtask + '_stats'
+        }
+      }, action);
+    }
+    client.bulk({
+      body: activityToInsert
+    }, function(err) {
+      if (err) console.log(err);
+    });
+  } else {
+    action = {
+      time: now,
+      key: item.properties._key,
+      action: data.action,
+      editor: data.editor,
+      user: data.user
+    };
+    client.create({
+      index: config.index,
+      type: idtask + '_stats',
+      body: action
+    }, function(err) {
+      if (err) console.log(err);
+    });
+  }
+}
+
+function updateStatsInTask(request, reply, numitems) {
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  client.get({
+    index: config.index,
+    type: 'tasks',
+    id: idtask
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    var task = resp._source;
+    task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
+    client.update({
+      index: config.index,
+      type: 'tasks',
+      id: task.idtask,
+      body: {
+        doc: {
+          value: task.value
+        }
+      }
+    }, function(err) {
+      if (err) console.log(err);
+    });
+  });
+}
+
+function updateItemEdit(request, reply, item, now, done) {
+  var type = request.params.type;
+  var data = request.payload;
+  if (item instanceof Array) {
+    //This is when requequest for many items
+    var itemsToUpdate = [];
+    for (var i = 0; i < item.length; i++) {
+      if (item[i].properties._tofix) {
+        item[i].properties._tofix.push({
+          action: data.action,
+          user: data.user,
+          time: now,
+          editor: data.editor
+        });
+      } else {
+        item[i].properties._tofix = [{
+          action: data.action,
+          user: data.user,
+          time: now,
+          editor: data.editor
+        }];
+      }
+      item[i].properties._time = now + config.lockPeriodGroup;
+      itemsToUpdate.push({
+        update: {
+          _index: config.index,
+          _type: type,
+          _id: item[i].properties._key
+        }
+      }, {
+        doc: {
+          properties: item[i].properties
+        }
+      });
+    }
+    client.bulk({
+      body: itemsToUpdate
+    }, done);
+  } else { // to update a item
+    if (item.properties._tofix) {
+      item.properties._tofix.push({
+        action: data.action,
+        user: data.user,
+        time: now,
+        editor: data.editor
+      });
+    } else {
+      item.properties._tofix = [{
+        action: data.action,
+        user: data.user,
+        time: now,
+        editor: data.editor
+      }];
+    }
+    item.properties._time = now + config.lockPeriod;
+    client.update({
+      index: config.index,
+      type: type,
+      id: item.properties._key,
+      body: {
+        doc: {
+          properties: item.properties
+        }
+      }
+    }, done);
+  }
 }

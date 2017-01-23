@@ -81,6 +81,7 @@ module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   var iduser = request.auth.credentials.id;
   var task = taskObjects(data, iduser, null);
+  console.log(task);
   var bulk = [];
   var name = data.file.hapi.filename;
   var geojsonFile = path.join(folder, name);
@@ -132,11 +133,10 @@ module.exports.createTasks = function(request, reply) {
           client.bulk({
             maxRetries: 5,
             index: config.index,
-            id: task.idtask,
-            type: task.idtask,
+            id: task.value.stats[task.value.stats.length - 1].type,
+            type: task.value.stats[task.value.stats.length - 1].type,
             body: bulkChunk
           }, function(err) {
-
             if (err) {
               //try 3 times to save the chunk
               errorsCounter++;
@@ -206,7 +206,6 @@ module.exports.updateTasks = function(request, reply) {
     var result = resp._source;
     var task = taskObjects(data, iduser, result);
     var bulk = [];
-    var bulkToRemove = [];
     if (data.file) {
       var name = data.file.hapi.filename;
       var geojsonFile = path.join(folder, name);
@@ -225,51 +224,6 @@ module.exports.updateTasks = function(request, reply) {
               task = currentTask;
               cb();
             });
-          });
-          q.defer(function(cb) {
-            var numItems = 0;
-            client.search({
-              index: config.index,
-              type: idtask,
-              scroll: '15s'
-            }, function getMore(err, resp) {
-              if (err) return reply(boom.badRequest(err));
-              resp.hits.hits.forEach(function(v) {
-                bulkToRemove.push({
-                  delete: {
-                    _index: config.index,
-                    _type: idtask,
-                    _id: v._id
-                  }
-                });
-                numItems++;
-              });
-              if (resp.hits.total !== numItems) {
-                client.scroll({
-                  scrollId: resp._scroll_id,
-                  scroll: '15s'
-                }, getMore);
-              } else {
-                cb();
-              }
-            });
-          });
-
-          q.defer(function(cb) {
-            //remove items
-            if (bulkToRemove.length > 0) {
-              client.bulk({
-                index: config.index,
-                id: task.idtask,
-                type: task.idtask,
-                body: bulkToRemove
-              }, function(err) {
-                if (err) return reply(boom.badRequest(err));
-                cb();
-              });
-            } else {
-              cb();
-            }
           });
 
           q.defer(function(cb) {
@@ -298,8 +252,8 @@ module.exports.updateTasks = function(request, reply) {
               client.bulk({
                 maxRetries: 5,
                 index: config.index,
-                id: task.idtask,
-                type: task.idtask,
+                id: task.value.stats[task.value.stats.length - 1].type,
+                type: task.value.stats[task.value.stats.length - 1].type,
                 body: bulkChunk
               }, function(err) {
                 if (err) {
@@ -419,7 +373,10 @@ function taskObjects(data, iduser, result) {
     edit: 0,
     fixed: 0,
     noterror: 0,
-    skip: 0
+    skip: 0,
+    type: randomString({
+      length: 15
+    }).replace(/[^a-zA-Z]+/g, '').toLowerCase()
   };
   var stats = [status];
   var isCompleted = false;
@@ -470,7 +427,7 @@ function loadItems(task, done) {
     var index = {
       index: {
         _index: config.index,
-        _type: task.idtask,
+        _type: task.value.stats[task.value.stats.length - 1].type,
         _id: obj.properties._key
       }
     };
