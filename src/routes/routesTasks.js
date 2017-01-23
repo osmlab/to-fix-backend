@@ -26,12 +26,15 @@ module.exports = [{
   path: '/tasks',
   config: {
     description: 'Create a task',
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin']
+    },
     validate: {
       payload: {
         name: Joi.string().required(),
         description: Joi.string().required(),
         changesetComment: Joi.string().required(),
-        password: Joi.string().required(),
         file: Joi.object().required()
       }
     },
@@ -48,13 +51,19 @@ module.exports = [{
   path: '/tasks',
   config: {
     description: 'Update a task',
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin', 'machine']
+    },
+    pre: [{
+      method: ControllerTasks.verifyRole
+    }],
     validate: {
       payload: {
         idtask: Joi.string().required(),
         name: Joi.string().required(),
         description: Joi.string().required(),
         changesetComment: Joi.string().required(),
-        password: Joi.string().required(),
         isCompleted: Joi.string().required(), // true = if a task is flagged as completed by user
         file: Joi.object()
       }
@@ -66,5 +75,24 @@ module.exports = [{
       allow: 'multipart/form-data'
     },
     handler: ControllerTasks.updateTasks
+  }
+}, {
+  method: 'DELETE',
+  path: '/tasks',
+  config: {
+    description: 'Delete a task',
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin', 'admin']
+    },
+    pre: [{
+      method: ControllerTasks.verifyRole
+    }],
+    validate: {
+      payload: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: ControllerTasks.deleteTasks
   }
 }];
