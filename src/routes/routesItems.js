@@ -6,7 +6,7 @@ module.exports = [{
   method: 'POST',
   path: '/tasks/{idtask}/{type}/items',
   config: {
-    description: 'Return a item randomly',
+    description: 'Returns a item randomly',
     validate: {
       payload: {
         user: Joi.string().allow(''),
@@ -23,7 +23,7 @@ module.exports = [{
   method: 'POST',
   path: '/tasks/{idtask}/{type}/items/{numitems}',
   config: {
-    description: 'Return a  group of items randomly, min: 2 , max: 50',
+    description: 'Returns a  group of items randomly, min: 2 , max: 50',
     validate: {
       payload: {
         user: Joi.string().allow(''),
@@ -41,7 +41,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/{type}/items/{key}',
   config: {
-    description: 'Return the data from a specific item',
+    description: 'Returns the data from a specific item',
     validate: {
       params: {
         idtask: Joi.string().required(),
@@ -74,7 +74,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/items/action/{action}',
   config: {
-    description: 'Return the list of id items from a task according an action',
+    description: 'Returns the list of items id from a task according an action',
     validate: {
       params: {
         idtask: Joi.string().required(),
@@ -87,7 +87,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/{type}/items',
   config: {
-    description: 'Return the list of 100 first items in the task',
+    description: 'Returns the list all items in the task, this could take some time',
     validate: {
       params: {
         idtask: Joi.string().required(),
@@ -100,7 +100,7 @@ module.exports = [{
   method: 'GET',
   path: '/tasks/{idtask}/{type}/count',
   config: {
-    description: 'Returns the amount of item that exists in the task',
+    description: 'Returns the number of item that exists in the task',
     validate: {
       params: {
         idtask: Joi.string().required(),
