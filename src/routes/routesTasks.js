@@ -95,4 +95,23 @@ module.exports = [{
     },
     handler: ControllerTasks.deleteTasks
   }
+}, {
+  method: ['POST'],
+  path: '/settingtask',
+  config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
+    description: 'Settings a obj',
+    validate: {
+      payload: {
+        index: Joi.string().required(),
+        type: Joi.string().required(),
+        id: Joi.string().required(),
+        obj: Joi.any()
+      }
+    },
+    handler: ControllerTasks.setting
+  }
 }];

@@ -349,6 +349,23 @@ module.exports.verifyRole = function(request, reply) {
   }
 };
 
+module.exports.setting = function(request, reply) {
+  var index = request.payload.index;
+  var type = request.payload.type;
+  var id = request.payload.id;
+  var obj = JSON.parse(request.payload.obj);
+  client.update({
+    index: index,
+    type: type,
+    id: id,
+    body: {
+      doc: obj
+    }
+  }, function(err) {
+    if (err) return reply(boom.badRequest(err));
+    reply(obj);
+  });
+};
 /**
  * Check if index exist or not
  * @return {boolean} true, when the index exist
