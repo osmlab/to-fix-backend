@@ -31,7 +31,7 @@ if (config.envType) {
 module.exports.listTasksActivity = function(request, reply) {
   var idtask = request.params.idtask;
   var timestamp = Math.round((new Date()).getTime());
-  var size = 50;
+  var size = 100;
   client.count({
     index: config.index,
     type: idtask + '_stats'
@@ -44,11 +44,20 @@ module.exports.listTasksActivity = function(request, reply) {
       type: idtask + '_stats',
       body: {
         query: {
-          match_all: {}
+          constant_score: {
+            filter: {
+              range: {
+                time: {
+                  gte: 0,
+                  lt: timestamp
+                }
+              }
+            }
+          }
         },
         size: size,
         sort: [{
-          _timestamp: {
+          time: {
             order: 'desc'
           }
         }]
