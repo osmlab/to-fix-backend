@@ -349,7 +349,7 @@ module.exports.verifyRole = function(request, reply) {
   }
 };
 
-module.exports.setting = function(request, reply) {
+module.exports.settingTasks = function(request, reply) {
   var index = request.payload.index;
   var type = request.payload.type;
   var id = request.payload.id;
@@ -366,6 +366,41 @@ module.exports.setting = function(request, reply) {
     reply(obj);
   });
 };
+
+module.exports.settingItems = function(request, reply) {
+  var index = request.payload.index;
+  var type = request.payload.type;
+  var items = JSON.parse(request.payload.obj);
+  var bulk = [];
+  var checkbulk = {};
+  for (var i = 0; i < items.length; i++) {
+    if (!checkbulk[items[i]]) {
+      var obj = {
+        key: items[i],
+        time: Math.round((new Date()).getTime())
+      };
+      var idx = {
+        index: {
+          _index: index,
+          _type: type,
+          _id: items[i]
+        }
+      };
+      bulk.push(idx, obj);
+      checkbulk[items[i]] = true;
+    }
+  }
+  client.bulk({
+    index: index,
+    id: type,
+    type: type,
+    body: bulk
+  }, function(err, resp) {
+    if (err) console.log(err);
+    reply(resp);
+  });
+};
+
 /**
  * Check if index exist or not
  * @return {boolean} true, when the index exist
