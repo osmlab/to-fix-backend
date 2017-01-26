@@ -194,6 +194,7 @@ module.exports.updateItem = function(request, reply) {
       });
       updateStatsInTask(request, reply, 1);
       updateActivity(request, reply, item, now);
+      saveNotErrorItems(request, item, now);
       trackStats(request, 1);
     });
   });
@@ -224,7 +225,6 @@ module.exports.getAllItems = function(request, reply) {
   });
 };
 
-//count items in type
 module.exports.countItems = function(request, reply) {
   var idtask = request.params.idtask;
   var type = request.params.type;
@@ -241,21 +241,18 @@ module.exports.countItems = function(request, reply) {
   });
 };
 
-module.exports.getAllItemsIdByAction = function(request, reply) {
+module.exports.getNoterrorItemsId = function(request, reply) {
   var idtask = request.params.idtask;
-  var action = request.params.action;
   var numItems = 0;
-  var ItemsByAction = [];
+  var noterrorItemsId = [];
   client.search({
     index: config.index,
-    type: idtask + '_stats',
+    type: idtask + '_noterror',
     scroll: '10s'
   }, function getMore(err, resp) {
     if (err) return reply(boom.badRequest(err));
     resp.hits.hits.forEach(function(v) {
-      if (v._source.action === action) {
-        ItemsByAction.push(v._source.key);
-      }
+      noterrorItemsId.push(v._source.key);
       numItems++;
     });
     if (resp.hits.total !== numItems) {
@@ -264,7 +261,7 @@ module.exports.getAllItemsIdByAction = function(request, reply) {
         scroll: '10s'
       }, getMore);
     } else {
-      return reply(ItemsByAction);
+      return reply(noterrorItemsId);
     }
   });
 };
@@ -464,6 +461,26 @@ function updateActivity(request, reply, item, now) {
     client.create({
       index: config.index,
       type: idtask + '_stats',
+      body: action
+    }, function(err) {
+      if (err) console.log(err);
+    });
+  }
+}
+
+function saveNotErrorItems(request, item, now) {
+  var idtask = request.params.idtask;
+  var data = request.payload;
+  if (data.action === 'noterror') {
+    var action = {};
+    action = {
+      time: now,
+      key: item.properties._key
+    };
+    client.create({
+      index: config.index,
+      type: idtask + '_noterror',
+      id: item.properties._key,
       body: action
     }, function(err) {
       if (err) console.log(err);

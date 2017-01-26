@@ -72,16 +72,15 @@ module.exports = [{
   }
 }, {
   method: 'GET',
-  path: '/tasks/{idtask}/items/action/{action}',
+  path: '/tasks/{idtask}/items/action/noterror',
   config: {
-    description: 'Returns the list of items id from a task according an action',
+    description: 'Returns the list of "noterror" items id',
     validate: {
       params: {
-        idtask: Joi.string().required(),
-        action: Joi.string().required()
+        idtask: Joi.string().required()
       }
     },
-    handler: ControllerItems.getAllItemsIdByAction
+    handler: ControllerItems.getNoterrorItemsId
   }
 }, {
   method: 'GET',
