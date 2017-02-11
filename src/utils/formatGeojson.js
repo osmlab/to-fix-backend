@@ -87,18 +87,24 @@ function formatFeature(data) {
 }
 
 function replaceSC(obj) {
-  var keys = _.keys(obj);
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i].replace(/[^A-Za-z]/g, '_');
-    if (key !== keys[i]) {
-      obj[key] = obj[keys[i]];
-      delete obj[keys[i]];
+  if (_.isArray(obj)) {
+    for (var k = 0; k < obj.length; k++) {
+      obj[k] = replaceSC(obj[k]);
     }
-    /*eslint valid-typeof: "error"*/
-    if ((typeof obj[key] === 'object' || obj[key] instanceof Object) && key !== 'geometry') {
-      obj[key] = replaceSC(obj[key]);
-    } else if (typeof obj[key] === 'string' || obj[key] instanceof String) {
-      obj[key] = obj[key].replace(/[^a-zA-Z0-9]/g, '_');
+  } else {
+    var keys = _.keys(obj);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i].replace(/[^A-Za-z]/g, '_');
+      if (key !== keys[i]) {
+        obj[key] = obj[keys[i]];
+        delete obj[keys[i]];
+      }
+      /*eslint valid-typeof: "error"*/
+      if (_.isObject(obj[key]) && key !== 'geometry') {
+        obj[key] = replaceSC(obj[key]);
+      } else if (typeof obj[key] === 'string' || obj[key] instanceof String) {
+        obj[key] = obj[key].replace(/[^a-zA-Z0-9]/g, '_');
+      }
     }
   }
   return obj;
