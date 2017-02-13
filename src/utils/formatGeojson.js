@@ -9,7 +9,7 @@ var _ = require('underscore');
 var folder = os.tmpDir();
 //These are the most usual ids which come in geojson files.
 var ids = ['id', '_id', '_fromWay', '_toWay'];
-
+var avoidDuplicates = [];
 module.exports = {
   formatGeojson,
   formatFeature
@@ -17,11 +17,16 @@ module.exports = {
 
 function handleData(data, file, es) {
   data = formatFeature(data);
-  var row = `${JSON.stringify(data)}\n`;
-  fs.appendFile(file, row, function(err) {
-    if (err) console.log(err);
+  if (avoidDuplicates.indexOf(data.properties._key) < 1) {
+    var row = `${JSON.stringify(data)}\n`;
+    fs.appendFile(file, row, function(err) {
+      if (err) console.log(err);
+      es.resume();
+    });
+    avoidDuplicates.push(data.properties._key);
+  } else {
     es.resume();
-  });
+  }
 }
 
 /**
@@ -32,6 +37,7 @@ function handleData(data, file, es) {
  * @returns {object} task with `items` property
  */
 function formatGeojson(geojsonFile, task, cb) {
+  avoidDuplicates = [];
   var numRows = 0;
   var file = path.join(folder, task.idtask);
   fs.writeFile(file, '');
@@ -45,7 +51,7 @@ function formatGeojson(geojsonFile, task, cb) {
     return data;
   }, function end() {
     task.value.stats[task.value.stats.length - 1].date = task.value.updated;
-    task.value.stats[task.value.stats.length - 1].items = numRows;
+    task.value.stats[task.value.stats.length - 1].items = avoidDuplicates.length;
     cb(task);
     this.emit('end');
   }));
