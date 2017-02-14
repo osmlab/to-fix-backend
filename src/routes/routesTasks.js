@@ -95,42 +95,4 @@ module.exports = [{
     },
     handler: ControllerTasks.deleteTasks
   }
-}, {
-  method: ['POST'],
-  path: '/setting/tasks',
-  config: {
-    auth: {
-      strategies: ['jwt'],
-      scope: ['superadmin']
-    },
-    description: 'Settings a obj',
-    validate: {
-      payload: {
-        index: Joi.string().required(),
-        type: Joi.string().required(),
-        id: Joi.string().required(),
-        obj: Joi.any()
-      }
-    },
-    handler: ControllerTasks.settingTasks
-  }
-}, {
-  method: ['POST'],
-  path: '/setting/items',
-  config: {
-    auth: {
-      strategies: ['jwt'],
-      scope: ['superadmin']
-    },
-    description: 'Settings items',
-    validate: {
-      payload: {
-        index: Joi.string().required(),
-        type: Joi.string().required(),
-        id: Joi.string().required(),
-        obj: Joi.any()
-      }
-    },
-    handler: ControllerTasks.settingItems
-  }
 }];
