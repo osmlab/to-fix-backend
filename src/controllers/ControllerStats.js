@@ -33,14 +33,14 @@ module.exports.listTasksActivity = function(request, reply) {
   var size = 100;
   client.count({
     index: config.index,
-    type: idtask + '_stats'
+    type: idtask + '_activity'
   }, function(error, resp) {
     if (resp.count < size) {
       size = resp.count;
     }
     client.search({
       index: config.index,
-      type: idtask + '_stats',
+      type: idtask + '_activity',
       body: {
         query: {
           constant_score: {

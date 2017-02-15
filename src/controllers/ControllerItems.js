@@ -441,7 +441,7 @@ function updateActivity(request, reply, item, now) {
       activityToInsert.push({
         index: {
           _index: config.index,
-          _type: idtask + '_stats'
+          _type: idtask + '_activity'
         }
       }, action);
     }
@@ -460,7 +460,7 @@ function updateActivity(request, reply, item, now) {
     };
     client.create({
       index: config.index,
-      type: idtask + '_stats',
+      type: idtask + '_activity',
       body: action
     }, function(err) {
       if (err) console.log(err);
