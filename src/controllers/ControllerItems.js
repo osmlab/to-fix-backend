@@ -32,7 +32,7 @@ if (config.envType) {
 module.exports.getAItem = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
-  var type = request.params.type;
+  var type = idtask + request.params.type;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
   client.search({
@@ -85,7 +85,7 @@ module.exports.getAItem = function(request, reply) {
 module.exports.getGroupItems = function(request, reply) {
   var now = Math.round((new Date()).getTime() / 1000);
   var idtask = request.params.idtask;
-  var type = request.params.type;
+  var type = idtask + request.params.type;
   var numitems = request.params.numitems;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
@@ -139,8 +139,9 @@ module.exports.getGroupItems = function(request, reply) {
 };
 
 module.exports.getItemById = function(request, reply) {
+  var idtask = request.params.idtask;
+  var type = idtask + request.params.type;
   var key = request.params.key;
-  var type = request.params.type;
   client.get({
     index: config.index,
     type: type,
@@ -152,7 +153,8 @@ module.exports.getItemById = function(request, reply) {
 };
 
 module.exports.updateItem = function(request, reply) {
-  var type = request.params.type;
+  var idtask = request.params.idtask;
+  var type = idtask + request.params.type;
   var data = request.payload;
   var key = data.key;
   var now = Math.round((new Date()).getTime() / 1000);
@@ -201,7 +203,8 @@ module.exports.updateItem = function(request, reply) {
 };
 
 module.exports.getAllItems = function(request, reply) {
-  var type = request.params.type;
+  var idtask = request.params.idtask;
+  var type = idtask + request.params.type;
   var items = [];
   var numItems = 0;
   client.search({
@@ -227,7 +230,7 @@ module.exports.getAllItems = function(request, reply) {
 
 module.exports.countItems = function(request, reply) {
   var idtask = request.params.idtask;
-  var type = request.params.type;
+  var type = idtask + request.params.type;
   client.count({
     index: config.index,
     type: type
@@ -267,7 +270,8 @@ module.exports.getNoterrorItemsId = function(request, reply) {
 };
 
 module.exports.UnlockedItems = function(request, reply) {
-  var type = request.params.type;
+  var idtask = request.params.idtask;
+  var type = idtask + request.params.type;
   var groupIds = request.payload.groupIds.split(',');
   var now = Math.round((new Date()).getTime() / 1000);
   var itemsToUnlocked = [];
@@ -441,7 +445,7 @@ function updateActivity(request, reply, item, now) {
       activityToInsert.push({
         index: {
           _index: config.index,
-          _type: idtask + '_stats'
+          _type: idtask + '_activity'
         }
       }, action);
     }
@@ -460,7 +464,7 @@ function updateActivity(request, reply, item, now) {
     };
     client.create({
       index: config.index,
-      type: idtask + '_stats',
+      type: idtask + '_activity',
       body: action
     }, function(err) {
       if (err) console.log(err);
@@ -498,7 +502,9 @@ function updateStatsInTask(request, reply, numitems) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var task = resp._source;
-    task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
+    if ((task.value.stats[task.value.stats.length - 1].noterror + task.value.stats[task.value.stats.length - 1].fixed) < task.value.stats[task.value.stats.length - 1].items) {
+      task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
+    }
     client.update({
       index: config.index,
       type: 'tasks',
@@ -515,7 +521,8 @@ function updateStatsInTask(request, reply, numitems) {
 }
 
 function updateItemEdit(request, reply, item, now, done) {
-  var type = request.params.type;
+  var idtask = request.params.idtask;
+  var type = idtask + request.params.type;
   var data = request.payload;
   if (item instanceof Array) {
     //This is when requequest for many items

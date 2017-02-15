@@ -5,7 +5,6 @@ var os = require('os');
 var path = require('path');
 var _ = require('lodash');
 var geojsonhint = require('geojsonhint');
-var randomString = require('random-string');
 var d3 = require('d3-queue');
 var readline = require('readline');
 var AWS = require('aws-sdk');
@@ -81,7 +80,6 @@ module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   var iduser = request.auth.credentials.id;
   var task = taskObjects(data, iduser, null);
-  console.log(task);
   var bulk = [];
   var name = data.file.hapi.filename;
   var geojsonFile = path.join(folder, name);
@@ -133,8 +131,8 @@ module.exports.createTasks = function(request, reply) {
           client.bulk({
             maxRetries: 5,
             index: config.index,
-            id: task.value.stats[task.value.stats.length - 1].type,
-            type: task.value.stats[task.value.stats.length - 1].type,
+            id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
+            type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
             body: bulkChunk
           }, function(err) {
             if (err) {
@@ -252,8 +250,8 @@ module.exports.updateTasks = function(request, reply) {
               client.bulk({
                 maxRetries: 5,
                 index: config.index,
-                id: task.value.stats[task.value.stats.length - 1].type,
-                type: task.value.stats[task.value.stats.length - 1].type,
+                id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
+                type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
                 body: bulkChunk
               }, function(err) {
                 if (err) {
@@ -349,58 +347,6 @@ module.exports.verifyRole = function(request, reply) {
   }
 };
 
-module.exports.settingTasks = function(request, reply) {
-  var index = request.payload.index;
-  var type = request.payload.type;
-  var id = request.payload.id;
-  var obj = JSON.parse(request.payload.obj);
-  client.update({
-    index: index,
-    type: type,
-    id: id,
-    body: {
-      doc: obj
-    }
-  }, function(err) {
-    if (err) return reply(boom.badRequest(err));
-    reply(obj);
-  });
-};
-
-module.exports.settingItems = function(request, reply) {
-  var index = request.payload.index;
-  var type = request.payload.type;
-  var items = JSON.parse(request.payload.obj);
-  var bulk = [];
-  var checkbulk = {};
-  for (var i = 0; i < items.length; i++) {
-    if (!checkbulk[items[i]]) {
-      var obj = {
-        key: items[i],
-        time: Math.round((new Date()).getTime())
-      };
-      var idx = {
-        index: {
-          _index: index,
-          _type: type,
-          _id: items[i]
-        }
-      };
-      bulk.push(idx, obj);
-      checkbulk[items[i]] = true;
-    }
-  }
-  client.bulk({
-    index: index,
-    id: type,
-    type: type,
-    body: bulk
-  }, function(err, resp) {
-    if (err) console.log(err);
-    reply(resp);
-  });
-};
-
 /**
  * Check if index exist or not
  * @return {boolean} true, when the index exist
@@ -424,9 +370,7 @@ function taskObjects(data, iduser, result) {
     fixed: 0,
     noterror: 0,
     skip: 0,
-    type: randomString({
-      length: 15
-    }).replace(/[^a-zA-Z]+/g, '').toLowerCase()
+    type: 'v1'
   };
   var stats = [status];
   var isCompleted = false;
@@ -438,6 +382,7 @@ function taskObjects(data, iduser, result) {
   if (result) {
     stats = result.value.stats;
     if (data.idtask && data.file) {
+      status.type = 'v' + (stats.length + 1);
       stats.push(status);
     }
     iduser = result.iduser;
@@ -477,7 +422,7 @@ function loadItems(task, done) {
     var index = {
       index: {
         _index: config.index,
-        _type: task.value.stats[task.value.stats.length - 1].type,
+        _type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
         _id: obj.properties._key
       }
     };

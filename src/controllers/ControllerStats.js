@@ -1,6 +1,5 @@
 'use strict';
 var boom = require('boom');
-var _ = require('lodash');
 var AWS = require('aws-sdk');
 var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
@@ -34,14 +33,14 @@ module.exports.listTasksActivity = function(request, reply) {
   var size = 100;
   client.count({
     index: config.index,
-    type: idtask + '_stats'
+    type: idtask + '_activity'
   }, function(error, resp) {
     if (resp.count < size) {
       size = resp.count;
     }
     client.search({
       index: config.index,
-      type: idtask + '_stats',
+      type: idtask + '_activity',
       body: {
         query: {
           constant_score: {
@@ -82,9 +81,6 @@ module.exports.trackStats = function(request, reply) {
   var from = Math.round(+new Date(request.params.from.split(':')[1]) / 1000);
   var to = Math.round(+new Date(request.params.to.split(':')[1]) / 1000) + 24 * 60 * 60;
   if (from === to) to = to + 86400;
-  var dataUsers = {};
-  var dataDate = [];
-  // var obj;
   client.search({
     index: config.index,
     type: idtask + '_trackstats',
@@ -111,7 +107,7 @@ module.exports.trackStats = function(request, reply) {
     });
     reply({
       updated: timestamp,
-      statsDate: stats
+      stats: stats
     });
   });
 };
