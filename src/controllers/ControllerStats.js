@@ -107,7 +107,7 @@ module.exports.trackStats = function(request, reply) {
     });
     reply({
       updated: timestamp,
-      statsDate: stats
+      stats: stats
     });
   });
 };
