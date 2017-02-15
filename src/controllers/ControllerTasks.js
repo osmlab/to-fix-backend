@@ -418,9 +418,7 @@ function indexExists() {
  * @return {object} object task
  */
 function taskObjects(data, iduser, result) {
-  var idtask = data.name.concat(randomString({
-    length: 5
-  })).replace(/[^a-zA-Z]+/g, '').toLowerCase();
+  var idtask = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
   var status = {
     edit: 0,
     fixed: 0,

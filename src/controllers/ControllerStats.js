@@ -84,6 +84,7 @@ module.exports.trackStats = function(request, reply) {
   if (from === to) to = to + 86400;
   var dataUsers = {};
   var dataDate = [];
+  // var obj;
   client.search({
     index: config.index,
     type: idtask + '_trackstats',
@@ -103,42 +104,14 @@ module.exports.trackStats = function(request, reply) {
     }
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
+    var stats = [];
     resp.hits.hits.forEach(function(obj) {
       obj = obj._source;
-      if (obj.start >= from && obj.start <= to) {
-        var statsDay = {
-          start: obj.start,
-          edit: obj.edit,
-          skip: obj.skip,
-          fixed: obj.fixed,
-          noterror: obj.noterror
-        };
-        dataDate.push(statsDay);
-        _.each(obj, function(val, key) {
-          if (_.isObject(val)) {
-            val.user = key;
-            if (!dataUsers[key]) {
-              dataUsers[key] = val;
-            } else {
-              var user = dataUsers[key];
-              _.each(val, function(v, k) {
-                if (!_.isString(v)) {
-                  if (user[k]) {
-                    user[k] = user[k] + v;
-                  } else {
-                    user[k] = v;
-                  }
-                }
-              });
-            }
-          }
-        });
-      }
+      stats.push(obj);
     });
     reply({
       updated: timestamp,
-      statsUsers: _.values(dataUsers),
-      statsDate: dataDate
+      statsDate: stats
     });
   });
 };
