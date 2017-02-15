@@ -132,8 +132,8 @@ module.exports.createTasks = function(request, reply) {
           client.bulk({
             maxRetries: 5,
             index: config.index,
-            id: task.value.stats[task.value.stats.length - 1].type,
-            type: task.value.stats[task.value.stats.length - 1].type,
+            id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
+            type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
             body: bulkChunk
           }, function(err) {
             if (err) {
@@ -251,8 +251,8 @@ module.exports.updateTasks = function(request, reply) {
               client.bulk({
                 maxRetries: 5,
                 index: config.index,
-                id: task.value.stats[task.value.stats.length - 1].type,
-                type: task.value.stats[task.value.stats.length - 1].type,
+                id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
+                type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
                 body: bulkChunk
               }, function(err) {
                 if (err) {
@@ -371,9 +371,7 @@ function taskObjects(data, iduser, result) {
     fixed: 0,
     noterror: 0,
     skip: 0,
-    type: randomString({
-      length: 15
-    }).replace(/[^a-zA-Z]+/g, '').toLowerCase()
+    type: 'v1'
   };
   var stats = [status];
   var isCompleted = false;
@@ -385,6 +383,7 @@ function taskObjects(data, iduser, result) {
   if (result) {
     stats = result.value.stats;
     if (data.idtask && data.file) {
+      status.type = 'v' + (stats.length + 1);
       stats.push(status);
     }
     iduser = result.iduser;
