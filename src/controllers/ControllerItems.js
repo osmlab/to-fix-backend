@@ -498,7 +498,9 @@ function updateStatsInTask(request, reply, numitems) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var task = resp._source;
-    task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
+    if ((task.value.stats[task.value.stats.length - 1].noterror + task.value.stats[task.value.stats.length - 1].fixed) < task.value.stats[task.value.stats.length - 1].items) {
+      task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
+    }
     client.update({
       index: config.index,
       type: 'tasks',
