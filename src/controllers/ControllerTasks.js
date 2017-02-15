@@ -5,7 +5,6 @@ var os = require('os');
 var path = require('path');
 var _ = require('lodash');
 var geojsonhint = require('geojsonhint');
-var randomString = require('random-string');
 var d3 = require('d3-queue');
 var readline = require('readline');
 var AWS = require('aws-sdk');
@@ -423,7 +422,7 @@ function loadItems(task, done) {
     var index = {
       index: {
         _index: config.index,
-        _type: task.value.stats[task.value.stats.length - 1].type,
+        _type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
         _id: obj.properties._key
       }
     };
