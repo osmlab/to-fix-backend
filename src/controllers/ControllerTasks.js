@@ -81,7 +81,6 @@ module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   var iduser = request.auth.credentials.id;
   var task = taskObjects(data, iduser, null);
-  console.log(task);
   var bulk = [];
   var name = data.file.hapi.filename;
   var geojsonFile = path.join(folder, name);

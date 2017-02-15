@@ -6,8 +6,8 @@ var config = require('./../configs/config');
 module.exports = {
   connect: function() {
     var client = new elasticsearch.Client({
-      host: config.ElasticHost,
-      log: 'trace'
+      host: config.ElasticHost
+        // log: 'trace'
     });
     return client;
   }
