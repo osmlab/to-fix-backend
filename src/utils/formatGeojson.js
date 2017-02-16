@@ -71,7 +71,9 @@ function formatFeature(data) {
   var time = Math.round((new Date()).getTime() / 1000);
   data.properties._key = hash;
   data.properties._time = time;
-  if (data.geometry.type === 'MultiPoint' || data.geometry.type === 'LineString' || data.geometry.type === 'MultiLineString' || data.geometry.type === 'Polygon' || data.geometry.type === 'MultiPolygon') {
+  if (data.properties.relations) {
+    data.properties._osmType = 'relation';
+  } else if (data.geometry.type === 'MultiPoint' || data.geometry.type === 'LineString' || data.geometry.type === 'MultiLineString' || data.geometry.type === 'Polygon' || data.geometry.type === 'MultiPolygon') {
     data.properties._osmType = 'way';
   } else if (data.geometry.type === 'Point') {
     data.properties._osmType = 'node';
