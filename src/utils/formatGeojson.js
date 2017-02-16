@@ -51,6 +51,7 @@ function formatGeojson(geojsonFile, task, cb) {
     return data;
   }, function end() {
     task.value.stats[task.value.stats.length - 1].date = task.value.updated;
+    //This number could be wrong in big files, let's overwrite on number of items tasks.
     task.value.stats[task.value.stats.length - 1].items = avoidDuplicates.length;
     cb(task);
     this.emit('end');

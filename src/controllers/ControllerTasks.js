@@ -166,6 +166,8 @@ module.exports.createTasks = function(request, reply) {
           });
         }
         saveData(bulkChunks[0]);
+        // Overwrite  the number of items to upload in the task
+        task.value.stats[task.value.stats.length - 1].items = bulk.length;
         //no waste time waiting to upload all data to elasticSearch
         cb();
       });
