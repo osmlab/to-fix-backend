@@ -17,7 +17,7 @@ module.exports = {
 
 function handleData(data, file, es) {
   data = formatFeature(data);
-  if (avoidDuplicates.indexOf(data.properties._key) < 1) {
+  if (avoidDuplicates.indexOf(data.properties._key) < 0) {
     var row = `${JSON.stringify(data)}\n`;
     fs.appendFile(file, row, function(err) {
       if (err) console.log(err);
@@ -37,10 +37,10 @@ function handleData(data, file, es) {
  * @returns {object} task with `items` property
  */
 function formatGeojson(geojsonFile, task, cb) {
-  avoidDuplicates = [];
+  // avoidDuplicates = [];
   var numRows = 0;
   var file = path.join(folder, task.idtask);
-  fs.writeFile(file, '');
+  fs.writeFileSync(file, '');
   var fileStream = fs.createReadStream(geojsonFile, {
     encoding: 'utf8'
   });
