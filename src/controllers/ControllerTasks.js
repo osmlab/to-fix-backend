@@ -7,11 +7,12 @@ var _ = require('lodash');
 var geojsonhint = require('geojsonhint');
 var d3 = require('d3-queue');
 var readline = require('readline');
+var exec = require('executive');
 var AWS = require('aws-sdk');
 var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
 var config = require('./../configs/config');
-var format = require('./../utils/formatGeojson');
+// var format = require('./../utils/formatGeojson');
 var localClient = require('./../utils/connection');
 
 module.exports = {
@@ -80,7 +81,6 @@ module.exports.createTasks = function(request, reply) {
   var data = request.payload;
   var iduser = request.auth.credentials.id;
   var task = taskObjects(data, iduser, null);
-  var bulk = [];
   var name = data.file.hapi.filename;
   var geojsonFile = path.join(folder, name);
   var file = fs.createWriteStream(geojsonFile);
@@ -92,13 +92,6 @@ module.exports.createTasks = function(request, reply) {
     if (err) return reply(boom.badRequest(err));
     if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') { //check  more detail the data
       var q = d3.queue(1);
-      q.defer(function(cb) {
-        //format geojson file
-        format.formatGeojson(geojsonFile, task, function(currentTask) {
-          task = currentTask;
-          cb();
-        });
-      });
 
       q.defer(function(cb) {
         if (!indexExists()) {
@@ -114,64 +107,6 @@ module.exports.createTasks = function(request, reply) {
       });
 
       q.defer(function(cb) {
-        loadItems(task, function(err, data) {
-          if (err) cb(err);
-          bulk = data;
-          cb();
-        });
-      });
-
-      q.defer(function(cb) {
-        // save data on type
-        var bulkChunks = _.chunk(bulk, config.arrayChunks);
-        var counter = 0;
-        var errorsCounter = 0;
-
-        function saveData(bulkChunk) {
-          client.bulk({
-            maxRetries: 5,
-            index: config.index,
-            id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
-            type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
-            body: bulkChunk
-          }, function(err) {
-            if (err) {
-              //try 3 times to save the chunk
-              errorsCounter++;
-              if (errorsCounter === 3) {
-                return reply(boom.badRequest(err));
-              } else {
-                saveData(bulkChunks[counter]);
-              }
-            } else {
-              counter++;
-              if (bulkChunks.length > counter) {
-                saveData(bulkChunks[counter]);
-              } else {
-                //Update isAllItemsLoad=true when all items were uploaded in elasticsearch
-                client.update({
-                  index: config.index,
-                  type: 'tasks',
-                  id: task.idtask,
-                  body: {
-                    doc: {
-                      isAllItemsLoad: true
-                    }
-                  }
-                }, function(err) {
-                  if (err) console.log(err);
-                });
-              }
-            }
-          });
-        }
-        saveData(bulkChunks[0]);
-        // Overwrite  the number of items to upload in the task
-        task.value.stats[task.value.stats.length - 1].items = bulk.length;
-        //no waste time waiting to upload all data to elasticSearch
-        cb();
-      });
-      q.defer(function(cb) {
         // save the task in document
         client.create({
           index: config.index,
@@ -179,12 +114,27 @@ module.exports.createTasks = function(request, reply) {
           type: 'tasks',
           body: task
         }, function(err) {
-          if (err) return reply(boom.badRequest(err));
-          cb();
+          if (err) {
+            cb(err);
+          } else {
+            cb();
+          }
         });
       });
+      q.defer(function(cb) {
+        var command = ['node',
+          'src/utils/import/index.js',
+          '--task',
+          '\'' + JSON.stringify(task) + '\'',
+          '--file',
+          geojsonFile
+        ];
+        exec(command.join(' '));
+        cb();
+      });
+
       q.await(function(error) {
-        if (error) throw error;
+        if (error) return reply(boom.badRequest(err));
         reply(task);
       });
     } else {
@@ -218,13 +168,13 @@ module.exports.updateTasks = function(request, reply) {
         if (err) return reply(boom.badRequest(err));
         if (geojsonhint.hint(file) && path.extname(geojsonFile) === '.geojson') {
           var q = d3.queue(1);
-          q.defer(function(cb) {
-            //format geojson file
-            format.formatGeojson(geojsonFile, task, function(currentTask) {
-              task = currentTask;
-              cb();
-            });
-          });
+          // q.defer(function(cb) {
+          //   //format geojson file
+          //   format.formatGeojson(geojsonFile, task, function(currentTask) {
+          //     task = currentTask;
+          //     cb();
+          //   });
+          // });
 
           q.defer(function(cb) {
             loadItems(task, function(err, data) {
@@ -394,6 +344,7 @@ function taskObjects(data, iduser, result) {
     isCompleted: isCompleted,
     isAllItemsLoad: false,
     iduser: iduser,
+    status: true,
     value: {
       name: data.name,
       description: data.description,
