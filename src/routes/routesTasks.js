@@ -41,8 +41,8 @@ module.exports = [{
     payload: {
       maxBytes: 50000000,
       output: 'stream',
-      parse: true,
-      allow: 'multipart/form-data'
+      parse: true
+        // allow: 'multipart/form-data'
     },
     handler: ControllerTasks.createTasks
   }
@@ -71,8 +71,8 @@ module.exports = [{
     payload: {
       maxBytes: 50000000,
       output: 'stream',
-      parse: true,
-      allow: 'multipart/form-data'
+      parse: true
+      // allow: 'multipart/form-data'
     },
     handler: ControllerTasks.updateTasks
   }
