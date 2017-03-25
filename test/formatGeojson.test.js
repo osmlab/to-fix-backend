@@ -26,7 +26,7 @@ test('it converts a GeoJSON file into line-delimited features', function(t) {
 test('it stores line-delimited features in temp file', function(t) {
   var geojsonPath = __dirname + '/fixtures/simple.geojson'
   formatGeojson(geojsonPath, fixtures.strangeLayer, (result) => {
-    var tempfile = os.tmpDir() + '/' + result.idtask;
+    var tempfile = os.tmpdir() + '/' + result.idtask;
     t.true(fs.existsSync(tempfile), `finds a temp file at ${tempfile}`);
     t.end();
   });
