@@ -6,7 +6,7 @@ var os = require('os');
 var path = require('path');
 var sha1 = require('sha1');
 var _ = require('underscore');
-var folder = os.tmpDir();
+var folder = os.tmpdir();
 //These are the most usual ids which come in geojson files.
 var ids = ['id', '_id', '_fromWay', '_toWay'];
 var avoidDuplicates = [];

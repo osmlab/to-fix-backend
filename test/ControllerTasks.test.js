@@ -38,23 +38,25 @@ test('Update a task object', function(t) {
         noterror: 0,
         skip: 0,
         date: 1479831637,
-        items: 32
+        items: 32,
+        type:'v1'
       }, {
         edit: 0,
         fixed: 0,
         noterror: 0,
         skip: 0,
         date: 1479831662,
-        items: 572
+        items: 572,
+        type:'v2'
       }]
     }
   };
   var task = taskObjects(data, 13453, result);
   t.equal(task.value.name, 'overlapped highways', 'name ok');
-  t.equal(task.value.stats[2].edit, 0, 'edit, ok');
-  t.equal(task.value.stats[2].fixed, 0, 'fixed, ok');
-  t.equal(task.value.stats[2].noterror, 0, 'noterror, ok');
-  t.equal(task.value.stats[2].skip, 0, 'skip, ok');
-  t.equal(task.value.stats[2].edit, 0, 'edits, ok');
+  t.equal(task.value.stats[0].edit, 0, 'edit, ok');
+  t.equal(task.value.stats[0].fixed, 0, 'fixed, ok');
+  t.equal(task.value.stats[0].noterror, 0, 'noterror, ok');
+  t.equal(task.value.stats[0].skip, 0, 'skip, ok');
+  t.equal(task.value.stats[0].edit, 0, 'edits, ok');
   t.end();
 });
