@@ -17,7 +17,7 @@ module.exports = {
   taskObjects
 };
 
-var folder = os.tmpDir();
+var folder = os.tmpdir();
 var client;
 if (config.envType) {
   var creds = new AWS.ECSCredentials();
@@ -285,9 +285,10 @@ function taskObjects(data, iduser, result) {
   }
   if (result) {
     stats = result.value.stats;
+    var version = parseInt(stats[stats.length - 1].type.replace(/^\D+/g, '')) + 1;
     if (data.idtask && data.file) {
-      status.type = 'v' + (stats.length + 1);
-      stats.push(status);
+      status.type = 'v' + version;
+      stats = [status];
     }
     iduser = result.iduser;
   }
