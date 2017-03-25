@@ -5,7 +5,7 @@ var os = require('os');
 var path = require('path');
 var geojsonhint = require('geojsonhint');
 var d3 = require('d3-queue');
-var exec = require('executive');
+var cmd = require('node-cmd');
 var AWS = require('aws-sdk');
 var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
@@ -127,7 +127,7 @@ module.exports.createTasks = function(request, reply) {
           '--file',
           geojsonFile
         ];
-        exec(command.join(' '));
+        cmd.run(command.join(' '));
         cb();
       });
 
@@ -189,7 +189,7 @@ module.exports.updateTasks = function(request, reply) {
               '--file',
               geojsonFile
             ];
-            exec(command.join(' '));
+            cmd.run(command.join(' '));
             cb();
           });
 
