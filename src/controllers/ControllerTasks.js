@@ -5,7 +5,8 @@ var os = require('os');
 var path = require('path');
 var geojsonhint = require('geojsonhint');
 var d3 = require('d3-queue');
-var cmd = require('node-cmd');
+var exec = require('executive');
+
 var AWS = require('aws-sdk');
 var elasticsearch = require('elasticsearch');
 var AwsEsConnector = require('http-aws-es');
@@ -127,7 +128,8 @@ module.exports.createTasks = function(request, reply) {
           '--file',
           geojsonFile
         ];
-        cmd.run(command.join(' '));
+        console.log(command.join(' '));
+        exec(command.join(' '));
         cb();
       });
 
@@ -189,7 +191,8 @@ module.exports.updateTasks = function(request, reply) {
               '--file',
               geojsonFile
             ];
-            cmd.run(command.join(' '));
+            console.log(command.join(' '));
+            exec(command.join(' '));
             cb();
           });
 
@@ -274,7 +277,9 @@ function taskObjects(data, iduser, result) {
     fixed: 0,
     noterror: 0,
     skip: 0,
-    type: 'v1'
+    type: 'v1',
+    items: 0,
+    date: Math.round((new Date()).getTime() / 1000)
   };
   var stats = [status];
   var isCompleted = false;
