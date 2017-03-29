@@ -60,37 +60,43 @@ function init(task, file) {
 
   q.defer(function(cb) {
     // save data on type
-    var bulkChunks = _.chunk(bulk, config.arrayChunks);
-    var counter = 0;
-    var errorsCounter = 0;
+    if (bulk.length > 0) {
+      var bulkChunks = _.chunk(bulk, config.arrayChunks);
+      var counter = 0;
+      var errorsCounter = 0;
 
-    function saveData(bulkChunk) {
-      client.bulk({
-        maxRetries: 5,
-        index: config.index,
-        id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
-        type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
-        body: bulkChunk
-      }, function(err) {
-        if (err) {
-          //try 3 times to save the chunk
-          errorsCounter++;
-          if (errorsCounter === 3) {
-            cb(err);
+      function saveData(bulkChunk) {
+        client.bulk({
+          maxRetries: 5,
+          index: config.index,
+          id: task.idtask + task.value.stats[task.value.stats.length - 1].type,
+          type: task.idtask + task.value.stats[task.value.stats.length - 1].type,
+          body: bulkChunk
+        }, function(err) {
+          if (err) {
+            //try 3 times to save the chunk
+            errorsCounter++;
+            if (errorsCounter === 3) {
+              cb(err);
+            } else {
+              saveData(bulkChunks[counter]);
+            }
           } else {
-            saveData(bulkChunks[counter]);
+            counter++;
+            if (bulkChunks.length > counter) {
+              saveData(bulkChunks[counter]);
+            } else {
+              cb();
+            }
           }
-        } else {
-          counter++;
-          if (bulkChunks.length > counter) {
-            saveData(bulkChunks[counter]);
-          } else {
-            cb();
-          }
-        }
-      });
+        });
+      }
+      saveData(bulkChunks[0]);
+    } else {
+      task.isAllItemsLoad = true;
+      task.isCompleted = true;
+      cb();
     }
-    saveData(bulkChunks[0]);
   });
 
   q.await(function(error) {

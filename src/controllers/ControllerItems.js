@@ -64,8 +64,10 @@ module.exports.getAItem = function(request, reply) {
       }
     }
   }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    if (resp.hits.hits.length === 0) {
+    if (err) {
+      console.log(err);
+      return reply(boom.badRequest(err));
+    } else if (resp.hits.hits.length === 0) {
       reply(boom.resourceGone(config.messages.dataGone));
       setTaskAsCompleted(idtask);
     } else {
