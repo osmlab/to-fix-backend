@@ -72,7 +72,7 @@ module.exports = [{
       maxBytes: 50000000,
       output: 'stream',
       parse: true,
-      allow: 'multipart/form-data'
+      timeout: false
     },
     handler: ControllerTasks.updateTasks
   }
