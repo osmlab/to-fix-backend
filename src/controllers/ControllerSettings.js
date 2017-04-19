@@ -42,7 +42,7 @@ module.exports.create = function(request, reply) {
 
 module.exports.createstats = function(request, reply) {
   var data = request.payload;
-  var arrobj = JSON.parse(data.obj).statsDate;
+  var arrobj = JSON.parse(data.obj).stats;
   var bulk = [];
   for (var i = 0; i < arrobj.length; i++) {
     var index = {
