@@ -56,13 +56,40 @@ module.exports.listTasks = function(request, reply) {
       v._source.value.stats = v._source.value.stats[v._source.value.stats.length - 1];
       return v._source;
     });
-    reply({
-      tasks: tasks.sortBy()
-    });
+    var flag = 0;
+    stats(tasks[flag].idtask);
+
+    function stats(idtask) {
+      client.search({
+        index: config.index,
+        type: idtask + '_stats',
+        body: {
+          query: {
+            match_all: {}
+          },
+          size: 1,
+          sort: [{
+            date: {
+              order: 'desc'
+            }
+          }]
+        }
+      }, function(err, resp) {
+        tasks[flag].value.stats = resp.hits.hits[0]._source;
+        flag++;
+        if (flag < tasks.length) {
+          stats(tasks[flag].idtask);
+        } else {
+          reply({
+            tasks: tasks.sortBy()
+          });
+        }
+      });
+    }
   });
 };
-/* eslint-enable camelcase */
 
+/* eslint-enable camelcase */
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
   client.get({
@@ -71,7 +98,25 @@ module.exports.listTasksById = function(request, reply) {
     id: idtask
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    reply(resp._source);
+    var task = resp._source;
+    console.log(idtask + '_stats')
+    client.search({
+      index: config.index,
+      type: idtask + '_stats',
+      body: {
+        size: 1000,
+        query: {
+          match_all: {}
+        }
+      }
+    }, function(err, res) {
+      if (err) return reply(boom.badRequest(err));
+      var stats = res.hits.hits.map(function(v) {
+        return v._source;
+      });
+      task.value.stats = stats;
+      reply(task);
+    });
   });
 };
 
