@@ -75,6 +75,7 @@ module.exports.listTasks = function(request, reply) {
           }]
         }
       }, function(err, resp) {
+        if (err) return reply(boom.badRequest(err));
         tasks[flag].value.stats = resp.hits.hits[0]._source;
         flag++;
         if (flag < tasks.length) {
@@ -89,7 +90,7 @@ module.exports.listTasks = function(request, reply) {
   });
 };
 
-/* eslint-enable camelcase */
+/* eslint-disable camelcase */
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
   client.get({
@@ -99,7 +100,6 @@ module.exports.listTasksById = function(request, reply) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var task = resp._source;
-    console.log(idtask + '_stats')
     client.search({
       index: config.index,
       type: idtask + '_stats',

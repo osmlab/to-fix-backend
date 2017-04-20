@@ -113,27 +113,6 @@ function init(task, file) {
         cb();
       }
     });
-    // client.indices.existsType({
-    //   index: config.index,
-    //   type: task.idtask + '_stats'
-    // }, function(err, resp) {
-    //   if (err) cb(err);
-    //   if (resp) {
-
-    //     client.create({
-    //       index: config.index,
-    //       type: task.idtask + '_stats',
-    //       id: task.value.stats[0].date,
-    //       body: task.value.stats[0]
-    //     }, function(err) {
-    //       if (err) {
-    //         cb(err);
-    //       } else {
-    //         cb();
-    //       }
-    //     });
-    //   }
-    // });
   });
 
   q.await(function(error) {

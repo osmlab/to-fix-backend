@@ -7,7 +7,7 @@ module.exports = {
   connect: function() {
     var client = new elasticsearch.Client({
       host: config.ElasticHost,
-      // log: 'trace'
+      log: 'trace'
     });
     return client;
   }
