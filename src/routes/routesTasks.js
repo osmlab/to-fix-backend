@@ -95,4 +95,16 @@ module.exports = [{
     },
     handler: ControllerTasks.deleteTasks
   }
+}, {
+  method: 'GET',
+  path: '/tasks/stats/{idtask}',
+  config: {
+    description: 'Returns a specific tasks',
+    validate: {
+      params: {
+        idtask: Joi.string().required()
+      }
+    },
+    handler: ControllerTasks.listStatsByTasks
+  }
 }];

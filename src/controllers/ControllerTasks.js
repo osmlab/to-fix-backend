@@ -76,10 +76,11 @@ module.exports.listTasks = function(request, reply) {
         }
       }, function(err, resp) {
         if (err) return reply(boom.badRequest(err));
-        tasks[flag].value.stats = resp.hits.hits[0]._source;
-        flag++;
         if (flag < tasks.length) {
+          tasks[flag].value.stats = resp.hits.hits[0] ? resp.hits.hits[0]._source : {};
+          tasks[flag].value.stats = resp.hits.hits[0]._source;
           stats(tasks[flag].idtask);
+          flag++;
         } else {
           reply({
             tasks: tasks.sortBy()
@@ -87,6 +88,32 @@ module.exports.listTasks = function(request, reply) {
         }
       });
     }
+  });
+};
+
+/* eslint-disable camelcase */
+module.exports.listStatsByTasks = function(request, reply) {
+  var idtask = request.params.idtask;
+  client.search({
+    index: config.index,
+    type: idtask + '_stats',
+    body: {
+      query: {
+        match_all: {}
+      },
+      size: 1000,
+      sort: [{
+        date: {
+          order: 'desc'
+        }
+      }]
+    }
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    var stats = resp.hits.hits.map(function(v) {
+      return v._source;
+    });
+    reply(stats);
   });
 };
 
