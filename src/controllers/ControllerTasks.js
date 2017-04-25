@@ -355,6 +355,7 @@ function taskObjects(data, iduser, result) {
     var version = parseInt(stats[stats.length - 1].type.replace(/^\D+/g, '')) + 1;
     if (data.idtask && data.file) {
       status.type = 'v' + version;
+      status.date = date;
       stats = [status];
     }
     iduser = result.iduser;
