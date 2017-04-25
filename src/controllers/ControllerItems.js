@@ -497,28 +497,37 @@ function saveNotErrorItems(request, item, now) {
 function updateStatsInTask(request, reply, numitems) {
   var idtask = request.params.idtask;
   var data = request.payload;
-  client.get({
+  client.search({
     index: config.index,
-    type: 'tasks',
-    id: idtask
-  }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var task = resp._source;
-    if ((task.value.stats[task.value.stats.length - 1].noterror + task.value.stats[task.value.stats.length - 1].fixed) < task.value.stats[task.value.stats.length - 1].items) {
-      task.value.stats[task.value.stats.length - 1][data.action] = task.value.stats[task.value.stats.length - 1][data.action] + numitems;
-    }
-    client.update({
-      index: config.index,
-      type: 'tasks',
-      id: task.idtask,
-      body: {
-        doc: {
-          value: task.value
+    type: idtask + '_stats',
+    body: {
+      query: {
+        match_all: {}
+      },
+      size: 1,
+      sort: [{
+        date: {
+          order: 'desc'
         }
-      }
-    }, function(err) {
-      if (err) console.log(err);
-    });
+      }]
+    }
+  }, function(err, resp) {
+    if (err) console.log(err);
+    var stats = resp.hits.hits[0]._source;
+    var id = resp.hits.hits[0]._id;
+    if ((stats.noterror + stats.fixed) < stats.items) {
+      stats[data.action] = stats[data.action] + numitems;
+      client.update({
+        index: config.index,
+        type: idtask + '_stats',
+        id: id,
+        body: {
+          doc: stats
+        }
+      }, function(err) {
+        if (err) console.log(err);
+      });
+    }
   });
 }
 
