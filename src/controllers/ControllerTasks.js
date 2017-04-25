@@ -272,6 +272,7 @@ function indexExists() {
  */
 function taskObjects(data, iduser, result) {
   var idtask = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+  var date = Math.round((new Date()).getTime() / 1000);
   var status = {
     edit: 0,
     fixed: 0,
@@ -279,7 +280,7 @@ function taskObjects(data, iduser, result) {
     skip: 0,
     type: 'v1',
     items: 0,
-    date: Math.round((new Date()).getTime() / 1000)
+    date: date
   };
   var stats = [status];
   var isCompleted = false;
@@ -293,6 +294,7 @@ function taskObjects(data, iduser, result) {
     var version = parseInt(stats[stats.length - 1].type.replace(/^\D+/g, '')) + 1;
     if (data.idtask && data.file) {
       status.type = 'v' + version;
+      status.date = date;
       stats = [status];
     }
     iduser = result.iduser;
@@ -306,7 +308,7 @@ function taskObjects(data, iduser, result) {
     value: {
       name: data.name,
       description: data.description,
-      updated: Math.round((new Date()).getTime() / 1000),
+      updated: date,
       changesetComment: data.changesetComment,
       stats: stats
     }
