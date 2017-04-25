@@ -99,22 +99,6 @@ function init(task, file) {
     }
   });
 
-  //update stats, number of issues
-  q.defer(function(cb) {
-    client.create({
-      index: config.index,
-      type: task.idtask + '_stats',
-      id: task.value.stats[0].date,
-      body: task.value.stats[0]
-    }, function(err) {
-      if (err) {
-        cb(err);
-      } else {
-        cb();
-      }
-    });
-  });
-
   q.await(function(error) {
     if (error) {
       task.status = false;

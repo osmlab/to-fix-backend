@@ -56,57 +56,13 @@ module.exports.listTasks = function(request, reply) {
       v._source.value.stats = v._source.value.stats[v._source.value.stats.length - 1];
       return v._source;
     });
-    var flag = 0;
-    stats(tasks[flag]);
-
-    function stats(task) {
-      client.get({
-        index: config.index,
-        type: task.idtask + '_stats',
-        id: task.value.updated
-      }, function(err, resp) {
-        if (err) return reply(boom.badRequest(err));
-        tasks[flag].value.stats = resp._source;
-        flag++;
-        if (flag < tasks.length) {
-          stats(tasks[flag]);
-        } else {
-          reply({
-            tasks: tasks.sortBy()
-          });
-        }
-      });
-    }
-  });
-};
-
-/* eslint-disable camelcase */
-module.exports.listStatsByTasks = function(request, reply) {
-  var idtask = request.params.idtask;
-  client.search({
-    index: config.index,
-    type: idtask + '_stats',
-    body: {
-      query: {
-        match_all: {}
-      },
-      size: 1000,
-      sort: [{
-        date: {
-          order: 'desc'
-        }
-      }]
-    }
-  }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var stats = resp.hits.hits.map(function(v) {
-      return v._source;
+    reply({
+      tasks: tasks.sortBy()
     });
-    reply(stats);
   });
 };
+/* eslint-enable camelcase */
 
-/* eslint-disable camelcase */
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
   client.get({
@@ -115,24 +71,7 @@ module.exports.listTasksById = function(request, reply) {
     id: idtask
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    var task = resp._source;
-    client.search({
-      index: config.index,
-      type: idtask + '_stats',
-      body: {
-        size: 1000,
-        query: {
-          match_all: {}
-        }
-      }
-    }, function(err, res) {
-      if (err) return reply(boom.badRequest(err));
-      var stats = res.hits.hits.map(function(v) {
-        return v._source;
-      });
-      task.value.stats = stats;
-      reply(task);
-    });
+    reply(resp._source);
   });
 };
 
@@ -333,7 +272,6 @@ function indexExists() {
  */
 function taskObjects(data, iduser, result) {
   var idtask = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
-  var date = Math.round((new Date()).getTime() / 1000);
   var status = {
     edit: 0,
     fixed: 0,
@@ -341,7 +279,7 @@ function taskObjects(data, iduser, result) {
     skip: 0,
     type: 'v1',
     items: 0,
-    date: date
+    date: Math.round((new Date()).getTime() / 1000)
   };
   var stats = [status];
   var isCompleted = false;
@@ -368,7 +306,7 @@ function taskObjects(data, iduser, result) {
     value: {
       name: data.name,
       description: data.description,
-      updated: date,
+      updated: Math.round((new Date()).getTime() / 1000),
       changesetComment: data.changesetComment,
       stats: stats
     }
