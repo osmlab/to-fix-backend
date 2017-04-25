@@ -57,30 +57,19 @@ module.exports.listTasks = function(request, reply) {
       return v._source;
     });
     var flag = 0;
-    stats(tasks[flag].idtask);
+    stats(tasks[flag]);
 
-    function stats(idtask) {
-      client.search({
+    function stats(task) {
+      client.get({
         index: config.index,
-        type: idtask + '_stats',
-        body: {
-          query: {
-            match_all: {}
-          },
-          size: 1,
-          sort: [{
-            date: {
-              order: 'desc'
-            }
-          }]
-        }
+        type: task.idtask + '_stats',
+        id: task.value.updated
       }, function(err, resp) {
         if (err) return reply(boom.badRequest(err));
+        tasks[flag].value.stats = resp._source;
+        flag++;
         if (flag < tasks.length) {
-          tasks[flag].value.stats = resp.hits.hits[0] ? resp.hits.hits[0]._source : {};
-          tasks[flag].value.stats = resp.hits.hits[0]._source;
-          stats(tasks[flag].idtask);
-          flag++;
+          stats(tasks[flag]);
         } else {
           reply({
             tasks: tasks.sortBy()
@@ -344,6 +333,7 @@ function indexExists() {
  */
 function taskObjects(data, iduser, result) {
   var idtask = data.name.replace(/[^a-zA-Z]+/g, '').toLowerCase();
+  var date = Math.round((new Date()).getTime() / 1000);
   var status = {
     edit: 0,
     fixed: 0,
@@ -351,7 +341,7 @@ function taskObjects(data, iduser, result) {
     skip: 0,
     type: 'v1',
     items: 0,
-    date: Math.round((new Date()).getTime() / 1000)
+    date: date
   };
   var stats = [status];
   var isCompleted = false;
@@ -378,7 +368,7 @@ function taskObjects(data, iduser, result) {
     value: {
       name: data.name,
       description: data.description,
-      updated: Math.round((new Date()).getTime() / 1000),
+      updated: date,
       changesetComment: data.changesetComment,
       stats: stats
     }
