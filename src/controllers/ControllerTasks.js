@@ -56,65 +56,9 @@ module.exports.listTasks = function(request, reply) {
       v._source.value.stats = v._source.value.stats[v._source.value.stats.length - 1];
       return v._source;
     });
-    var flag = 0;
-    stats(tasks[flag]);
-
-    function stats(task) {
-      client.search({
-        index: config.index,
-        type: task.idtask + '_stats',
-        body: {
-          query: {
-            match_all: {}
-          },
-          size: 1,
-          sort: [{
-            date: {
-              order: 'desc'
-            }
-          }]
-        }
-      }, function(err, resp) {
-        if (err) return reply(boom.badRequest(err));
-        if (resp.hits && resp.hits.hits[0]) {
-          tasks[flag].value.stats = resp.hits.hits[0]._source;
-        }
-        flag++;
-        if (flag < tasks.length) {
-          stats(tasks[flag]);
-        } else {
-          reply({
-            tasks: tasks.sortBy()
-          });
-        }
-      });
-    }
-  });
-};
-
-/* eslint-disable camelcase */
-module.exports.listStatsByTasks = function(request, reply) {
-  var idtask = request.params.idtask;
-  client.search({
-    index: config.index,
-    type: idtask + '_stats',
-    body: {
-      query: {
-        match_all: {}
-      },
-      size: 1000,
-      sort: [{
-        date: {
-          order: 'desc'
-        }
-      }]
-    }
-  }, function(err, resp) {
-    if (err) return reply(boom.badRequest(err));
-    var stats = resp.hits.hits.map(function(v) {
-      return v._source;
+    reply({
+      tasks: tasks.sortBy()
     });
-    reply(stats);
   });
 };
 
@@ -139,10 +83,12 @@ module.exports.listTasksById = function(request, reply) {
       }
     }, function(err, res) {
       if (err) return reply(boom.badRequest(err));
-      var stats = res.hits.hits.map(function(v) {
-        return v._source;
-      });
-      task.value.stats = stats;
+      if (res.hits && res.hits.hits) {
+        var stats = res.hits.hits.map(function(v) {
+          return v._source;
+        });
+        task.value.stats = task.value.stats.concat(stats);
+      }
       reply(task);
     });
   });
@@ -194,22 +140,6 @@ module.exports.createTasks = function(request, reply) {
       });
 
       q.defer(function(cb) {
-        //create a row for stats
-        client.create({
-          index: config.index,
-          type: task.idtask + '_stats',
-          id: task.value.stats[0].date,
-          body: task.value.stats[0]
-        }, function(err) {
-          if (err) {
-            cb(err);
-          } else {
-            cb();
-          }
-        });
-      });
-
-      q.defer(function(cb) {
         var command = ['node',
           'src/utils/import/index.js',
           '--task',
@@ -243,6 +173,7 @@ module.exports.updateTasks = function(request, reply) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var result = resp._source;
+    var currentStats = result.value.stats[0];
     var task = taskObjects(data, iduser, result);
     if (data.file) {
       var name = data.file.hapi.filename;
@@ -273,12 +204,12 @@ module.exports.updateTasks = function(request, reply) {
           });
 
           q.defer(function(cb) {
-            //create a row for stats
+            //save the previus stats
             client.create({
               index: config.index,
               type: task.idtask + '_stats',
-              id: task.value.stats[0].date,
-              body: task.value.stats[0]
+              id: currentStats.date,
+              body: currentStats
             }, function(err) {
               if (err) {
                 cb(err);
