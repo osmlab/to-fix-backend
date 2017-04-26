@@ -76,7 +76,9 @@ module.exports.listTasks = function(request, reply) {
         }
       }, function(err, resp) {
         if (err) return reply(boom.badRequest(err));
-        tasks[flag].value.stats = resp.hits.hits[0]._source;
+        if (resp.hits && resp.hits.hits[0]) {
+          tasks[flag].value.stats = resp.hits.hits[0]._source;
+        }
         flag++;
         if (flag < tasks.length) {
           stats(tasks[flag]);
@@ -191,21 +193,21 @@ module.exports.createTasks = function(request, reply) {
         });
       });
 
-      q.defer(function(cb) {
-        //create a row for stats
-        client.create({
-          index: config.index,
-          type: task.idtask + '_stats',
-          id: task.value.stats[0].date,
-          body: task.value.stats[0]
-        }, function(err) {
-          if (err) {
-            cb(err);
-          } else {
-            cb();
-          }
-        });
-      });
+      // q.defer(function(cb) {
+      //   //create a row for stats
+      //   client.create({
+      //     index: config.index,
+      //     type: task.idtask + '_stats',
+      //     id: task.value.stats[0].date,
+      //     body: task.value.stats[0]
+      //   }, function(err) {
+      //     if (err) {
+      //       cb(err);
+      //     } else {
+      //       cb();
+      //     }
+      //   });
+      // });
 
       q.defer(function(cb) {
         var command = ['node',
