@@ -60,13 +60,23 @@ module.exports.listTasks = function(request, reply) {
     stats(tasks[flag]);
 
     function stats(task) {
-      client.get({
+      client.search({
         index: config.index,
         type: task.idtask + '_stats',
-        id: task.value.updated
+        body: {
+          query: {
+            match_all: {}
+          },
+          size: 1,
+          sort: [{
+            date: {
+              order: 'desc'
+            }
+          }]
+        }
       }, function(err, resp) {
         if (err) return reply(boom.badRequest(err));
-        tasks[flag].value.stats = resp._source;
+        tasks[flag].value.stats = resp.hits.hits[0]._source;
         flag++;
         if (flag < tasks.length) {
           stats(tasks[flag]);
@@ -182,6 +192,22 @@ module.exports.createTasks = function(request, reply) {
       });
 
       q.defer(function(cb) {
+        //create a row for stats
+        client.create({
+          index: config.index,
+          type: task.idtask + '_stats',
+          id: task.value.stats[0].date,
+          body: task.value.stats[0]
+        }, function(err) {
+          if (err) {
+            cb(err);
+          } else {
+            cb();
+          }
+        });
+      });
+
+      q.defer(function(cb) {
         var command = ['node',
           'src/utils/import/index.js',
           '--task',
@@ -241,6 +267,22 @@ module.exports.updateTasks = function(request, reply) {
             }, function(err) {
               if (err) return reply(boom.badRequest(err));
               cb();
+            });
+          });
+
+          q.defer(function(cb) {
+            //create a row for stats
+            client.create({
+              index: config.index,
+              type: task.idtask + '_stats',
+              id: task.value.stats[0].date,
+              body: task.value.stats[0]
+            }, function(err) {
+              if (err) {
+                cb(err);
+              } else {
+                cb();
+              }
             });
           });
 
