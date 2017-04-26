@@ -100,22 +100,22 @@ function init(task, file) {
   });
 
   //update stats, number of issues
-  // q.defer(function(cb) {
-  //   client.update({
-  //     index: config.index,
-  //     type: task.idtask + '_stats',
-  //     id: task.value.stats[0].date,
-  //     body: {
-  //       doc: task.value.stats[0]
-  //     }
-  //   }, function(err) {
-  //     if (err) {
-  //       cb(err);
-  //     } else {
-  //       cb();
-  //     }
-  //   });
-  // });
+  q.defer(function(cb) {
+    client.update({
+      index: config.index,
+      type: task.idtask + '_stats',
+      id: task.value.stats[0].date,
+      body: {
+        doc: task.value.stats[0]
+      }
+    }, function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        cb();
+      }
+    });
+  });
 
   q.await(function(error) {
     if (error) {

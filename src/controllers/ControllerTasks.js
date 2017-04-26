@@ -193,21 +193,21 @@ module.exports.createTasks = function(request, reply) {
         });
       });
 
-      // q.defer(function(cb) {
-      //   //create a row for stats
-      //   client.create({
-      //     index: config.index,
-      //     type: task.idtask + '_stats',
-      //     id: task.value.stats[0].date,
-      //     body: task.value.stats[0]
-      //   }, function(err) {
-      //     if (err) {
-      //       cb(err);
-      //     } else {
-      //       cb();
-      //     }
-      //   });
-      // });
+      q.defer(function(cb) {
+        //create a row for stats
+        client.create({
+          index: config.index,
+          type: task.idtask + '_stats',
+          id: task.value.stats[0].date,
+          body: task.value.stats[0]
+        }, function(err) {
+          if (err) {
+            cb(err);
+          } else {
+            cb();
+          }
+        });
+      });
 
       q.defer(function(cb) {
         var command = ['node',
