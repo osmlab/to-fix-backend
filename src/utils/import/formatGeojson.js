@@ -15,20 +15,16 @@ module.exports = {
   formatFeature
 };
 
-function handleData(data, file, es) {
+function handleData(data, file) {
   data = formatFeature(data);
   if (avoidDuplicates.indexOf(data.properties._key) < 0) {
-    var row = `${JSON.stringify(data)}\n`;
-    fs.appendFile(file, row, function(err) {
-      if (err) console.log(err);
-      es.resume();
-    });
     avoidDuplicates.push(data.properties._key);
-  } else {
-    es.resume();
+    var row = `${JSON.stringify(data)}\n`;
+    fs.appendFileSync(file, row, function(err) {
+      if (err) console.log(err);
+    });
   }
 }
-
 /**
  * Stream a GeoJSON file to count the number of rows
  * @param {string} geojsonFile path to a local GeoJSON file
@@ -37,25 +33,23 @@ function handleData(data, file, es) {
  * @returns {object} task with `items` property
  */
 function formatGeojson(geojsonFile, task, cb) {
-  // avoidDuplicates = [];
   var numRows = 0;
   var file = path.join(folder, task.idtask);
   fs.writeFileSync(file, '');
   var fileStream = fs.createReadStream(geojsonFile, {
     encoding: 'utf8'
   });
-  fileStream.pipe(JSONStream.parse('features.*')).pipe(eventStream.through(function(data) {
-    numRows++;
-    this.pause();
-    handleData(data, file, this);
-    return data;
-  }, function end() {
-    task.value.stats[task.value.stats.length - 1].date = task.value.updated;
-    //This number could be wrong in big files, let's overwrite on number of items tasks.
-    task.value.stats[task.value.stats.length - 1].items = avoidDuplicates.length;
-    cb(task);
-    this.emit('end');
-  }));
+  fileStream.pipe(JSONStream.parse('features.*'))
+    .pipe(eventStream.mapSync(function(data) {
+      handleData(data, file);
+      return data
+    })).on('error', function(err) {
+      console.log(err)
+    }).on('close', function() {
+      task.value.stats[task.value.stats.length - 1].date = task.value.updated;
+      task.value.stats[task.value.stats.length - 1].items = avoidDuplicates.length;
+      cb(task);
+    });
 }
 
 /**
