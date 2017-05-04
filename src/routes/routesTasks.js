@@ -39,7 +39,7 @@ module.exports = [{
       }
     },
     payload: {
-      maxBytes: 50000000,
+      maxBytes: 100000000,
       output: 'stream',
       parse: true,
       timeout: false
@@ -69,7 +69,7 @@ module.exports = [{
       }
     },
     payload: {
-      maxBytes: 50000000,
+      maxBytes: 100000000,
       output: 'stream',
       parse: true,
       timeout: false
