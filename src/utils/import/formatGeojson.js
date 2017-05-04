@@ -20,7 +20,7 @@ function handleData(data, file) {
   if (avoidDuplicates.indexOf(data.properties._key) < 0) {
     avoidDuplicates.push(data.properties._key);
     var row = `${JSON.stringify(data)}\n`;
-    fs.appendFileSync(file, row, function(err) {
+    fs.appendFile(file, row, function(err) {
       if (err) console.log(err);
     });
   }
