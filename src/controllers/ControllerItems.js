@@ -522,6 +522,7 @@ function updateStatsInTask(request, reply, numitems) {
   });
 }
 
+
 function updateItemEdit(request, reply, item, now, done) {
   var idtask = request.params.idtask;
   var type = idtask + request.params.type;

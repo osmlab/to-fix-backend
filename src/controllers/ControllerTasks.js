@@ -61,8 +61,8 @@ module.exports.listTasks = function(request, reply) {
     });
   });
 };
-/* eslint-enable camelcase */
 
+/* eslint-disable camelcase */
 module.exports.listTasksById = function(request, reply) {
   var idtask = request.params.idtask;
   client.get({
@@ -71,7 +71,26 @@ module.exports.listTasksById = function(request, reply) {
     id: idtask
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
-    reply(resp._source);
+    var task = resp._source;
+    client.search({
+      index: config.index,
+      type: idtask + '_stats',
+      body: {
+        size: 1000,
+        query: {
+          match_all: {}
+        }
+      }
+    }, function(err, res) {
+      if (err) return reply(boom.badRequest(err));
+      if (res.hits && res.hits.hits) {
+        var stats = res.hits.hits.map(function(v) {
+          return v._source;
+        });
+        task.value.stats = task.value.stats.concat(stats);
+      }
+      reply(task);
+    });
   });
 };
 
@@ -154,6 +173,7 @@ module.exports.updateTasks = function(request, reply) {
   }, function(err, resp) {
     if (err) return reply(boom.badRequest(err));
     var result = resp._source;
+    var currentStats = result.value.stats[0];
     var task = taskObjects(data, iduser, result);
     if (data.file) {
       var name = data.file.hapi.filename;
@@ -180,6 +200,22 @@ module.exports.updateTasks = function(request, reply) {
             }, function(err) {
               if (err) return reply(boom.badRequest(err));
               cb();
+            });
+          });
+
+          q.defer(function(cb) {
+            //save the previus stats
+            client.create({
+              index: config.index,
+              type: task.idtask + '_stats',
+              id: currentStats.date,
+              body: currentStats
+            }, function(err) {
+              if (err) {
+                cb(err);
+              } else {
+                cb();
+              }
             });
           });
 
@@ -294,7 +330,6 @@ function taskObjects(data, iduser, result) {
     var version = parseInt(stats[stats.length - 1].type.replace(/^\D+/g, '')) + 1;
     if (data.idtask && data.file) {
       status.type = 'v' + version;
-      status.date = date;
       stats = [status];
     }
     iduser = result.iduser;
