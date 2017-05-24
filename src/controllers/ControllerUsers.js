@@ -1,15 +1,13 @@
 'use strict';
-var requestClient = require('request');
-var oAuth = require('oauth-1.0a');
-var crypto = require('crypto');
 var AWS = require('aws-sdk');
 var boom = require('boom');
 var elasticsearch = require('elasticsearch');
-var parseString = require('xml2js').parseString;
 var AwsEsConnector = require('http-aws-es');
 var d3 = require('d3-queue');
 var JWT = require('jsonwebtoken');
 var shortid = require('shortid');
+var cp = require('child_process');
+var child = cp.fork('src/utils/user-detail.js');
 var config = require('./../configs/config');
 var osmAuthconfig = require('./../configs/config.json')[config.NODE_ENV];
 var localClient = require('./../utils/connection');
@@ -35,21 +33,6 @@ if (config.envType) {
 }
 
 /* eslint-disable camelcase */
-var oauth = oAuth({
-  consumer: {
-    key: osmAuthconfig.openstreetmap.key,
-    secret: osmAuthconfig.openstreetmap.secret
-  },
-  signature_method: 'HMAC-SHA1',
-  hash_function: function(base_string, key) {
-    return crypto.createHmac('sha1', key).update(base_string).digest('base64');
-  }
-});
-var reqData = {
-  url: config.osmApi + 'user/details',
-  method: 'GET'
-};
-
 module.exports.auth = function(request, reply) {
   if (request.yar) {
     var resp = request.yar.get('grant').response;
@@ -60,34 +43,13 @@ module.exports.auth = function(request, reply) {
     var q = d3.queue(1);
     var osmuser;
     var userExists = false;
-
     q.defer(function(cb) {
-      requestClient({
-        url: reqData.url,
-        method: reqData.method,
-        form: oauth.authorize(reqData, token)
-      }, function(error, response, body) {
-        if (error) cb(error);
-        parseString(body, function(err, result) {
-          if (err) cb(err);
-          var user = result.osm.user;
-          if (user) {
-            osmuser = {
-              id: user[0]['$'].id,
-              user: user[0]['$'].display_name,
-              img: user[0].img ? user[0].img[0]['$'].href : null,
-              role: 'editor',
-              scope: ['editor'],
-              idsession: shortid.generate()
-            };
-            cb();
-          } else {
-            cb(new Error());
-          }
-        });
+      child.on('message', function(user) {
+        osmuser = user;
+        cb();
       });
+      child.send(token);
     });
-
     //Check if the index exist
     q.defer(function(cb) {
       if (!indexExists()) {
