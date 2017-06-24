@@ -112,3 +112,31 @@ module.exports.update = function(request, reply) {
     reply(resp._source);
   });
 };
+
+module.exports.tasksStaks = function(request, reply) {
+  // to update _stats type
+  var data = request.payload;
+  var arrayOfUpdates = JSON.parse(data.obj);
+  var bulk = [];
+  for (var i = 0; i < arrayOfUpdates.length; i++) {
+    var index = {
+      index: {
+        _index: data.index,
+        _id: arrayOfUpdates[i].date,
+        _type: data.type
+      }
+    };
+    var obj = arrayOfUpdates[i];
+    bulk.push(index, obj);
+  }
+  client.bulk({
+    maxRetries: 5,
+    index: data.index,
+    id: data.id,
+    type: data.type,
+    body: bulk
+  }, function(err, resp) {
+    if (err) return reply(boom.badRequest(err));
+    reply(resp._source);
+  });
+};

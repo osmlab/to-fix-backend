@@ -78,4 +78,23 @@ module.exports = [{
     },
     handler: ControllerSettings.update
   }
+}, {
+  method: 'POST',
+  path: '/settings/tasksdetails',
+  config: {
+    auth: {
+      strategies: ['jwt'],
+      scope: ['superadmin']
+    },
+    description: 'Update tasks details',
+    validate: {
+      payload: {
+        index: Joi.string().required(),
+        type: Joi.string().required(),
+        id: Joi.string().required(),
+        obj: Joi.any()
+      }
+    },
+    handler: ControllerSettings.tasksStaks
+  }
 }];
