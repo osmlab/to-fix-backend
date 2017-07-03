@@ -17,11 +17,11 @@
       "protocol": "https",
       "host": "build-to-fix-staging.tilestream.net",
       "transport": "session",
-      "redirect": "https://localhost:3000/oauth-complete.html"
+      "redirect": "https://hey.mapbox.com/to-fix/oauth-complete.html"
     },
     "openstreetmap": {
-      "key": "5aAVKGBVB5OdxOXUD1UhJz6gqJJuFxwZ3CkxsDTP",
-      "secret": "RNu6uS3EONNiYJHrDgeLaW5YEGQrtsouBI0TIsBg",
+      "key": "6XPiGU0CsX1eUBEy4Sbh1eBwYsmwOJCau7J6SdIf",
+      "secret": "Qhq4LjXxGAYaocExYJEXatTIFkSXBQmNybPjGgpw",
       "callback": "/handle_openstreetmap_callback"
     }
   },
