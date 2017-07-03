@@ -17,6 +17,19 @@
       "protocol": "https",
       "host": "build-to-fix-staging.tilestream.net",
       "transport": "session",
+      "redirect": "https://localhost:3000/oauth-complete.html"
+    },
+    "openstreetmap": {
+      "key": "5aAVKGBVB5OdxOXUD1UhJz6gqJJuFxwZ3CkxsDTP",
+      "secret": "RNu6uS3EONNiYJHrDgeLaW5YEGQrtsouBI0TIsBg",
+      "callback": "/handle_openstreetmap_callback"
+    }
+  },
+  "internal": {
+    "server": {
+      "protocol": "https",
+      "host": "build-to-fix-internal.mapbox.com",
+      "transport": "session",
       "redirect": "https://hey.mapbox.com/to-fix/oauth-complete.html"
     },
     "openstreetmap": {
