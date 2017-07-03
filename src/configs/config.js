@@ -15,5 +15,5 @@ module.exports.index = process.env.EsIndex || 'tofix';
 module.exports.sessionPassword = process.env.Password || 'abcdefghigklmnopqrsdasdasdadadadsdtuvwxyz123456';
 module.exports.NODE_ENV = process.env.NODE_ENV || 'development';
 module.exports.JWT = process.env.JWT || 'kiraargos';
-module.exports.envType = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging';
+module.exports.envType = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || process.env.NODE_ENV === 'internal';
 module.exports.osmApi = 'http://api.openstreetmap.org/api/0.6/';
