@@ -106,6 +106,7 @@ module.exports.trackStats = function(request, reply) {
       stats.push(obj);
     });
     reply({
+      id: idtask,
       updated: timestamp,
       stats: stats
     });
