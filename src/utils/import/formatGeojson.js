@@ -79,6 +79,7 @@ function formatFeature(data) {
     if (data.properties[id]) {
       data.properties._osmId = data.properties[id];
       //format overpass geojson files
+      data.properties[id] = parseInt(data.properties[id].replace(/^\D+/g, ''));
       var typeId = data.properties._osmId.toString().split('\_');
       if (typeId.length === 2) {
         data.properties._osmId = typeId[1];
