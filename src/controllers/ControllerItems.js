@@ -174,9 +174,9 @@ module.exports.updateItem = function(request, reply) {
       time: now,
       editor: data.editor
     });
-    var maxNum = config.maxNum;
-    if (data.action === 'skip') {
-      maxNum = now;
+    var maxNum = now;
+    if (data.action === 'fixed' || data.action === 'noterror') {
+      maxNum = config.maxNum;
     }
     item.properties._time = maxNum;
     client.update({
