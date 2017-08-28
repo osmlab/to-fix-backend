@@ -7,7 +7,7 @@ module.exports.messages = {
   dataGone: 'The task is already finished or the items are already working by someone else.',
   wrongPassword: 'password does not match.'
 };
-module.exports.arrayChunks = 1000;
+module.exports.arrayChunks = 100;
 module.exports.region = 'us-east-1';
 module.exports.ElasticHost = process.env.ElasticHost || 'localhost:9200';
 module.exports.Port = process.env.Port || 8000;
