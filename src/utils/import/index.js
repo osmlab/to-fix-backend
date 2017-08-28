@@ -102,6 +102,7 @@ function init(task, file) {
   q.await(function(error) {
     if (error) {
       task.status = false;
+      process.exit(1);
     }
     task.isAllItemsLoad = true;
     client.update({
@@ -112,8 +113,12 @@ function init(task, file) {
         doc: task
       }
     }, function(err) {
-      if (err) console.info(err);
+      if (err) {
+        console.info(err);
+        process.exit(1);
+      }
       console.info('finish upload ' + task.idtask);
+      process.exit(0);
     });
   });
 }
