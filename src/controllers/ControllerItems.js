@@ -348,7 +348,7 @@ function setTaskAsCompleted(idtask) {
 }
 
 function getTimestamp(date) {
-  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' 00:00:00';
+  var strDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() + ' ' + date.getHours() + ':00:00';
   var datum = Date.parse(strDate);
   return datum / 1000;
 }
@@ -357,20 +357,20 @@ function trackStats(request, numitems) {
   var idtask = request.params.idtask;
   var data = request.payload;
   var stats;
-  var timestampDay = getTimestamp(new Date());
+  var timestampByHour = getTimestamp(new Date());
   client.get({
     index: config.index,
     type: idtask + '_trackstats',
-    id: timestampDay
+    id: timestampByHour
   }, function(err, resp) {
     if (err) console.log(err);
     if (resp.found) {
       //When  exist the stats
-      stats = statsFormat(resp._source, data, timestampDay, numitems);
+      stats = statsFormat(resp._source, data, timestampByHour, numitems);
       client.update({
         index: config.index,
         type: idtask + '_trackstats',
-        id: timestampDay,
+        id: timestampByHour,
         body: {
           doc: stats
         }
@@ -380,11 +380,11 @@ function trackStats(request, numitems) {
 
     } else {
       //When does not exist any stats
-      stats = statsFormat(null, data, timestampDay, numitems);
+      stats = statsFormat(null, data, timestampByHour, numitems);
       client.create({
         index: config.index,
         type: idtask + '_trackstats',
-        id: timestampDay,
+        id: timestampByHour,
         body: stats
       }, function(err) {
         if (err) console.log(err);
@@ -393,7 +393,7 @@ function trackStats(request, numitems) {
   });
 }
 
-function statsFormat(stats, data, timestampDay, numitems) {
+function statsFormat(stats, data, timestampByHour, numitems) {
   if (stats) {
     stats[data.action] = stats[data.action] + numitems;
     if (!stats[data.user]) {
@@ -411,7 +411,7 @@ function statsFormat(stats, data, timestampDay, numitems) {
     stats[data.user][data.editor] = stats[data.user][data.editor] + numitems;
   } else {
     stats = {
-      start: timestampDay,
+      start: timestampByHour,
       edit: 0,
       skip: 0,
       fixed: 0,
