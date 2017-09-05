@@ -35,6 +35,8 @@ module.exports.getAItem = function(request, reply) {
   var type = idtask + request.params.type;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
+  
+  // don't filter for time. filter for stateless items or state = valid + action = none/skip.
   client.search({
     index: config.index,
     type: type,
@@ -154,12 +156,35 @@ module.exports.getItemById = function(request, reply) {
   });
 };
 
+// actions + states
+// states - valid, invalid
+// actions - fixed, won't fix, skip
+
+// first update the state
+// if state is valid - available actions are fixed or won't fix or skip
+// if state is invalid - next item
+// if no state - action is skip
+
 module.exports.updateItem = function(request, reply) {
+  console.log('############################################## updateItem');
   var idtask = request.params.idtask;
   var type = idtask + request.params.type;
   var data = request.payload;
   var key = data.key;
   var now = Math.round((new Date()).getTime() / 1000);
+  console.log(idtask, type, data, key);
+
+  if (data.state) {
+    // update state.
+    // if state is invalid offer next item
+    // if state is valid - offer fix, won't fix, skip
+  }
+
+  if (data.state && data.action) {
+    // validate the state + action combination
+    // if state = valid + action = fix, set task.validate = true
+  }
+
   //Optimize here
   client.get({
     index: config.index,
