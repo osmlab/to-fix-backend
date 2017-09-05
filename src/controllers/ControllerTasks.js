@@ -148,8 +148,10 @@ module.exports.createTasks = function(request, reply) {
           geojsonFile
         ];
         console.log(command.join(' '));
-        exec(command.join(' '));
-        cb();
+        exec(command.join(' ')).then(() => {
+          console.log('create complete');
+          cb();
+        });
       });
 
       q.await(function(error) {
@@ -228,8 +230,10 @@ module.exports.updateTasks = function(request, reply) {
               geojsonFile
             ];
             console.log(command.join(' '));
-            exec(command.join(' '));
-            cb();
+            exec(command.join(' ')).then(() => {
+              console.log('update complete');
+              cb();
+            });
           });
 
           q.await(function(error) {
