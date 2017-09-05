@@ -35,6 +35,8 @@ module.exports.getAItem = function(request, reply) {
   var type = idtask + request.params.type;
   request.payload.user = request.payload.user || 'anonymous';
   request.payload.editor = request.payload.editor || 'unknown';
+  
+  // don't filter for time. filter for stateless items or state = valid + action = none/skip.
   client.search({
     index: config.index,
     type: type,
@@ -180,6 +182,7 @@ module.exports.updateItem = function(request, reply) {
 
   if (data.state && data.action) {
     // validate the state + action combination
+    // if state = valid + action = fix, set task.validate = true
   }
 
   //Optimize here
