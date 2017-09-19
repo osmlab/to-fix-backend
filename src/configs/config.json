@@ -30,7 +30,7 @@
       "protocol": "https",
       "host": "build-to-fix-internal.mapbox.com",
       "transport": "session",
-      "redirect": "https://hey.mapbox.com/to-fix/oauth-complete.html"
+      "redirect": "https://to-fix-internal.surge.sh/oauth-complete.html"
     },
     "openstreetmap": {
       "key": "6XPiGU0CsX1eUBEy4Sbh1eBwYsmwOJCau7J6SdIf",
