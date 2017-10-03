@@ -1,8 +1,10 @@
 language: node_js
 node_js:
   - '6'
-  - '4'
 services:
-  - elasticsearch
+  - postgresql
+addons:
+  - postgresql: "9.6"
 before_script:
-  - sleep 10
+  - psql -c 'create database to-fix-test;' -U postgres
+  - psql -U postgres -d to-fix-test -c "create extension postgis;"
