@@ -5,6 +5,8 @@ services:
   - postgresql
 addons:
   - postgresql: "9.6"
+sudo: true
 before_script:
+  - sudo apt-get install postgresql-9.6-postgis-2.3 postgis -y -q
   - psql -c 'create database tofix_test;' -U postgres
   - psql -U postgres -d tofix_test -c "create extension postgis;"
