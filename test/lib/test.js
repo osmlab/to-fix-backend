@@ -1,5 +1,5 @@
 const tape = require('tape');
-process.env.PG_DATABASE = 'to-fix-test';
+process.env.PG_DATABASE = 'tofix_test';
 const server = require('../../lib/server');
 const supertest = require('supertest');
 const app = supertest(server);

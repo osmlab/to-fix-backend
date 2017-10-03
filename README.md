@@ -19,7 +19,7 @@ npm install
 
 For OSX, use [Postgress App](http://postgresapp.com/) to install Postgress as it also has PostGIS. For exploring your Postgres database,[Postico](https://eggerapps.at/postico/) is a good solution.
 
-After installing Postgres, create a database for tests, perferablly called `to-fix-test`. This database will have tables created and deleted when running the tests.
+After installing Postgres, create a database for tests, perferablly called `tofix_test`. This database will have tables created and deleted when running the tests.
 
 If you want a non-test database locally, run `node ./bin/setup-database.js` to create the tables and configure PostGIS.
 

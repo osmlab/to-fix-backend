@@ -6,5 +6,5 @@ services:
 addons:
   - postgresql: "9.6"
 before_script:
-  - psql -c 'create database to-fix-test;' -U postgres
-  - psql -U postgres -d to-fix-test -c "create extension postgis;"
+  - psql -c 'create database tofix_test;' -U postgres
+  - psql -U postgres -d tofix_test -c "create extension postgis;"
