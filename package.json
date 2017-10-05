@@ -38,6 +38,11 @@
   },
   "lint-staged": {
     "*.json": ["prettier --single-quote --write", "git add"],
-    "*.js": ["eslint .", "prettier --single-quote --write", "git add"]
+    "*.js": [
+      "npx documentation build lib/ -f md > API.md",
+      "eslint .",
+      "prettier --single-quote --write",
+      "git add"
+    ]
   }
 }
