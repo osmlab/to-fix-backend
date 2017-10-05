@@ -8,7 +8,8 @@
     "precommit": "lint-staged",
     "test": "npm run lint && tape test/*.test.js",
     "lint": "eslint .",
-    "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\""
+    "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
+    "build-doc": "documentation build ./lib/ -f md > ./API.md"
   },
   "author": "Mapbox",
   "license": "BSD",
@@ -39,9 +40,9 @@
   "lint-staged": {
     "*.json": ["prettier --single-quote --write", "git add"],
     "*.js": [
-      "npx documentation build lib/ -f md > API.md",
       "eslint .",
       "prettier --single-quote --write",
+      "npm run build-doc",
       "git add"
     ]
   }
