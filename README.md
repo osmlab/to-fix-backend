@@ -2,6 +2,12 @@
 
 The server component of to-fix which provides the API that interacts with the front end. You can find the front end at https://github.com/osmlab/to-fix.
 
+## API
+For API documentation can be found in [API.md](https://github.com/osmlab/to-fix-backend/blob/master/API.md)
+- The API address lies here: `https://build-to-fix-production.mapbox.com`.
+- The docs of API  address lies here: `https://build-to-fix-production.mapbox.com/docs`
+
+
 ## Requirements
 
 - node >= 6.9.1

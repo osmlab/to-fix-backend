@@ -8,7 +8,9 @@
     "precommit": "lint-staged",
     "test": "npm run lint && tape test/*.test.js",
     "lint": "eslint .",
-    "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\""
+    "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
+    "api-docs":
+      "documentation readme ./lib/server.js -f md --readme-file API.md --section Brief"
   },
   "author": "Mapbox",
   "license": "BSD",
@@ -31,12 +33,18 @@
     "node": "4.4.x"
   },
   "devDependencies": {
+    "documentation": "^5.3.2",
     "eslint": "^2.8.0",
     "supertest": "^3.0.0",
     "tape": "^4.6.2"
   },
   "lint-staged": {
     "*.json": ["prettier --single-quote --write", "git add"],
-    "*.js": ["eslint .", "prettier --single-quote --write", "git add"]
+    "*.js": [
+      "eslint .",
+      "prettier --single-quote --write",
+      "npm run api-docs",
+      "git add"
+    ]
   }
 }
