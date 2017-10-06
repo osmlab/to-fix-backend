@@ -9,7 +9,8 @@
     "test": "npm run lint && tape test/*.test.js",
     "lint": "eslint .",
     "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
-    "build-doc": "documentation build ./lib/ -f md > ./API.md"
+    "api-docs":
+      "documentation readme ./lib/server.js -f md --readme-file API.md --section Brief"
   },
   "author": "Mapbox",
   "license": "BSD",
@@ -42,7 +43,7 @@
     "*.js": [
       "eslint .",
       "prettier --single-quote --write",
-      "npm run build-doc",
+      "npm run api-docs",
       "git add"
     ]
   }
