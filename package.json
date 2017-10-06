@@ -24,10 +24,16 @@
     "lint-staged": "^4.2.3",
     "lodash": "^4.17.4",
     "mapbox-error": "^2.2.0",
+    "memory-cache": "^0.2.0",
+    "nock": "^9.0.22",
+    "ohauth": "^1.0.0",
     "pg": "^7.3.0",
     "pg-hstore": "^2.3.2",
     "prettier": "^1.7.0",
-    "sequelize": "^4.10.0"
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
+    "sequelize": "^4.10.0",
+    "xml2json": "^0.11.0"
   },
   "engines": {
     "node": "4.4.x"

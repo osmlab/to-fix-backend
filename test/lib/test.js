@@ -3,15 +3,17 @@ process.env.PG_DATABASE = 'tofix_test';
 const server = require('../../lib/server');
 const supertest = require('supertest');
 const app = supertest(server);
-
+const nock = require('nock');
 const path = require('path');
 const exec = require('child_process').execSync;
-
+const fs = require('fs');
+const join = require('path').join;
 const db = require('../../lib/db');
 
 var pendingTests = 0;
 
 module.exports = function(testName, fixture, cb) {
+  setupNock();
   pendingTests++;
   tape(testName, function(t) {
     // over write end to track how many pending tests there are
@@ -101,6 +103,26 @@ function setup(fixture) {
         });
     })
   );
+}
+
+function setupNock() {
+  return nock('https://www.openstreetmap.org')
+    .get('/api/0.6/user/details')
+    .reply(function() {
+      const headers = this.req.headers;
+      if (headers.authorization) {
+        //TODO: actually verify the auth header is as expected
+        return [
+          200,
+          fs.readFileSync(
+            join(__dirname, '../fixtures/user-detail.xml'),
+            'utf-8'
+          )
+        ];
+      } else {
+        return [401, "Couldn't authenticate you"];
+      }
+    });
 }
 
 function teardown() {
