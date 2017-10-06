@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
     "api-docs":
-      "documentation readme ./lib/server.js -f md --readme-file API.md --section Brief"
+      "documentation readme ./lib/server.js -f md --readme-file API.md --section Endpoints --shallow"
   },
   "author": "Mapbox",
   "license": "BSD",
