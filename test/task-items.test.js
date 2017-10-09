@@ -153,20 +153,6 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items?lock=unlocked - get a task with locked items with lockers2 data',
-  listItemsFixture,
-  function(assert) {
-    assert.app
-      .get('/tasks/lockers2/items?lock=unlocked')
-      .expect(200, function(err, res) {
-        if (err) return assert.end(err);
-        assert.equal(res.body.length, 2, 'should have 2 unlocked items');
-        assert.end();
-      });
-  }
-);
-
-test(
   'GET /tasks/:id/items?lock=unlocked - get a task with unlocked items',
   listItemsFixture,
   function(assert) {
@@ -179,6 +165,21 @@ test(
       });
   }
 );
+
+test(
+  'GET /tasks/:id/items?lock=unlocked - get a task with unlocked items with lockers2 data',
+  listItemsFixture,
+  function(assert) {
+    assert.app
+      .get('/tasks/lockers2/items?lock=unlocked')
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.length, 2, 'should have 2 unlocked items');
+        assert.end();
+      });
+  }
+);
+
 const getItemsFixture = [
   {
     id: 'one',
