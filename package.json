@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "precommit": "lint-staged",
-    "test": "npm run lint && tape test/*.test.js",
+    "test": "npm run lint && NODE_ENV=test tape test/*.test.js",
     "lint": "eslint .",
     "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
     "api-docs":
@@ -41,6 +41,7 @@
   "devDependencies": {
     "documentation": "^5.3.2",
     "eslint": "^2.8.0",
+    "proxyquire": "^1.8.0",
     "supertest": "^3.0.0",
     "tape": "^4.6.2"
   },
