@@ -205,103 +205,90 @@ test(
   'GET /tasks/:id/items?page=X&page_size=Y - get a task with pagination',
   listItemsFixture,
   function(assert) {
-    Promise.resolve()
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=0&page_size=10')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              10,
-              'page 0 with size 10 should have 10 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=0')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              12,
-              'page 0 with default size should have 12 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=0&page_size=5')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              5,
-              'page 0 with size 5 should have 5 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=1&page_size=5')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              5,
-              'page 1 with size 5 should have 5 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=2&page_size=5')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              2,
-              'page 2 with size 5 should have 2 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=3&page_size=5')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              0,
-              'page 3 with size 5 should have 0 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=3000&page_size=5')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              0,
-              'page 3000 with size 5 should have 0 items'
-            );
-          });
-      })
-      .then(function() {
-        return assert.app
-          .get('/tasks/longlist/items?page=0&page_size=0')
-          .expect(200)
-          .then(function(res) {
-            assert.equal(
-              res.body.length,
-              0,
-              'page 0 with size 0 should have 0 items'
-            );
-          });
-      })
+    var requests = [
+      assert.app
+        .get('/tasks/longlist/items?page=0&page_size=10')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            10,
+            'page 0 with size 10 should have 10 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=0')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            12,
+            'page 0 with default size should have 12 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=0&page_size=5')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            5,
+            'page 0 with size 5 should have 5 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=1&page_size=5')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            5,
+            'page 1 with size 5 should have 5 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=2&page_size=5')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            2,
+            'page 2 with size 5 should have 2 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=3&page_size=5')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            0,
+            'page 3 with size 5 should have 0 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=3000&page_size=5')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            0,
+            'page 3000 with size 5 should have 0 items'
+          );
+        }),
+      assert.app
+        .get('/tasks/longlist/items?page=0&page_size=0')
+        .expect(200)
+        .then(function(res) {
+          assert.equal(
+            res.body.length,
+            0,
+            'page 0 with size 0 should have 0 items'
+          );
+        })
+    ];
+
+    Promise.all(requests)
       .then(function() {
         assert.end();
       })
