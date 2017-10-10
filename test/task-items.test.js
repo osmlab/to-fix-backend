@@ -57,6 +57,83 @@ const listItemsFixture = [
         lockedTill: new Date(Date.now())
       }
     ]
+  },
+  {
+    id: 'longlist',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+      },
+      {
+        id: '32',
+        pin: [30, 30],
+        lockedBy: 'usertwo',
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+      },
+      {
+        id: '33',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now())
+      },
+      {
+        id: '40',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+      },
+      {
+        id: '42',
+        pin: [30, 30],
+        lockedBy: 'usertwo',
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+      },
+      {
+        id: '43',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now())
+      },
+      {
+        id: '50',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+      },
+      {
+        id: '52',
+        pin: [30, 30],
+        lockedBy: 'usertwo',
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+      },
+      {
+        id: '53',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now())
+      },
+      {
+        id: '60',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+      },
+      {
+        id: '62',
+        pin: [30, 30],
+        lockedBy: 'usertwo',
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+      },
+      {
+        id: '63',
+        pin: [30, 30],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now())
+      }
+    ]
   }
 ];
 
@@ -125,6 +202,116 @@ test('GET /tasks/:id/items - get a task with items', listItemsFixture, function(
 });
 
 test(
+  'GET /tasks/:id/items?page=X&page_size=Y - get a task with pagination',
+  listItemsFixture,
+  function(assert) {
+    Promise.resolve()
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=0&page_size=10')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              10,
+              'page 0 with size 10 should have 10 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=0')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              12,
+              'page 0 with default size should have 12 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=0&page_size=5')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              5,
+              'page 0 with size 5 should have 5 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=1&page_size=5')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              5,
+              'page 1 with size 5 should have 5 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=2&page_size=5')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              2,
+              'page 2 with size 5 should have 2 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=3&page_size=5')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              0,
+              'page 3 with size 5 should have 0 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=3000&page_size=5')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              0,
+              'page 3000 with size 5 should have 0 items'
+            );
+          });
+      })
+      .then(function() {
+        return assert.app
+          .get('/tasks/longlist/items?page=0&page_size=0')
+          .expect(200)
+          .then(function(res) {
+            assert.equal(
+              res.body.length,
+              0,
+              'page 0 with size 0 should have 0 items'
+            );
+          });
+      })
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
+
+test(
   'GET /tasks/:id/items?lock=locked - get a task with locked items',
   listItemsFixture,
   function(assert) {
@@ -161,6 +348,20 @@ test(
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 1, 'should have one unlocked item');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /tasks/:id/items?lock=unlocked - get a task with unlocked items with lockers2 data',
+  listItemsFixture,
+  function(assert) {
+    assert.app
+      .get('/tasks/lockers2/items?lock=unlocked')
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.length, 2, 'should have 2 unlocked items');
         assert.end();
       });
   }
