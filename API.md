@@ -103,7 +103,7 @@ curl https://host/tasks/task-id/stats
 
 ### get-task-items
 
-Get a list of items for a task
+Get a paginated list of items for a task
 
 **Parameters**
 
@@ -111,6 +111,8 @@ Get a list of items for a task
     -   `params.task` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the task id
 -   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** what queryparams are valid
     -   `query.lock` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** if provided this must either be 'unlocked' or 'locked'
+    -   `query.page` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** starting page (optional, default `0`)
+    -   `query.page_size` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the size of the page (optional, default `constants.PAGE_SIZE`)
 
 **Examples**
 
