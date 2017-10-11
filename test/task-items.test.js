@@ -285,7 +285,8 @@ test(
             0,
             'page 0 with size 0 should have 0 items'
           );
-        })
+        }),
+      assert.app.get('/tasks/longlist/items?page=-1&page_size=5').expect(400)
     ];
 
     Promise.all(requests)
