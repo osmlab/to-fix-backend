@@ -67,7 +67,7 @@ Put a task
 
 ```javascript
 curl -X PUT -H "Content-Type: application/json" -d \
- '{ "id": "two", "metadata": {} }' \
+ '{"metadata": {} }' \
   https://host/tasks/task-id
 ```
 
