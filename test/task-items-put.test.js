@@ -462,3 +462,44 @@ test(
       });
   }
 );
+
+test(
+  'PUT /tasks/:id/items/:id - bulk upload items without waiting',
+  taskWithNoItems,
+  function(assert) {
+    const TOTAL_REQUESTS = 10;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        assert.app
+          .put(`/tasks/one/items/item-${i}`)
+          .send({
+            pin: [30, 30],
+            instructions: 'test',
+            featureCollection
+          })
+          .expect(200)
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
