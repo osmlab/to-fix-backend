@@ -132,6 +132,63 @@ test(
 );
 
 test(
+  'PUT /tasks/:id/items:id - should create a valid item without errors',
+  taskWithNoItems,
+  function(assert) {
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    assert.app
+      .put('/tasks/one/items/good-item')
+      .send({
+        pin: [30, 30],
+        instructions: 'test',
+        featureCollection
+      })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        var item = removeDates(res.body);
+        assert.deepEqual(
+          {
+            status: 'open',
+            id: 'good-item',
+            task_id: 'one',
+            pin: { type: 'Point', coordinates: [30, 30] },
+            instructions: 'test',
+            featureCollection: {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: { type: 'node' },
+                  geometry: {
+                    type: 'Point',
+                    coordinates: [30, 30]
+                  }
+                }
+              ]
+            },
+            createdBy: 'userone',
+            lockedBy: null
+          },
+          item
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
   'PUT /tasks/:id/items:id - updating an item with an invalid feature collection errors',
   taskWithOneUnlockedItem,
   function(assert) {
@@ -360,3 +417,11 @@ test(
       });
   }
 );
+
+// test('PUT /tasks/:id/items/:id - bulk upload items', taskWithNoItems, function(
+//   assert
+// ) {
+//   const TOTAL_REQUESTS = 2000;
+//   const requests = [];
+//   for (let i = 0; i < TOTAL_REQUESTS; i++) {}
+// });
