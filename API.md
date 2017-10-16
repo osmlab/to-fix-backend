@@ -71,36 +71,6 @@ curl -X PUT -H "Content-Type: application/json" -d \
   https://host/tasks/task-id
 ```
 
-### put-task-stats
-
-Get stats for a task
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** what the keys in the url mean
-    -   `params.task` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the task id
-
-**Examples**
-
-```javascript
-curl https://host/tasks/task-id/stats
-[
-  {
-    id: 'one',
-    stats: {
-      userone: {
-        '2017-09-27': {
-          fixed: 0,
-          noterror: 1,
-          inprogress: 1,
-          completed: 1
-        }
-      }
-    }
-  }
-]
-```
-
 ### get-task-items
 
 Get a paginated list of items for a task
