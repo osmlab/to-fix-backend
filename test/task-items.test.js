@@ -398,7 +398,8 @@ test('GET /tasks/:id/items/:id', getItemsFixture, function(assert) {
         features: []
       },
       createdBy: 'userone',
-      instructions: 'created via the tests'
+      instructions: 'created via the tests',
+      siblings: []
     });
     assert.end();
   });

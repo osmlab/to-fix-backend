@@ -394,7 +394,8 @@ test(
           status: 'open',
           lockedBy: null,
           createdBy: 'userone',
-          instructions: 'test'
+          instructions: 'test',
+          siblings: []
         });
         assert.end();
       });
