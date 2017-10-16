@@ -467,7 +467,7 @@ test(
   'PUT /tasks/:id/items/:id - bulk upload items without waiting',
   taskWithNoItems,
   function(assert) {
-    const TOTAL_REQUESTS = 200;
+    const TOTAL_REQUESTS = 10;
     const requests = [];
     const featureCollection = {
       type: 'FeatureCollection',
