@@ -181,7 +181,8 @@ test(
               ]
             },
             createdBy: 'userone',
-            lockedBy: null
+            lockedBy: null,
+            siblings: []
           },
           item
         );
