@@ -36,6 +36,8 @@ const taskWithOneItemLockedByUserOne = [
   }
 ];
 
+const delay = time => new Promise(res => setTimeout(res, time));
+
 test(
   'PUT /tasks/:id/items:id - an item must have instructions',
   taskWithNoItems,
@@ -125,6 +127,63 @@ test(
           res.body.message,
           'Invalid featureCollection: "features" member required',
           'expected message'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /tasks/:id/items:id - should create a valid item without errors',
+  taskWithNoItems,
+  function(assert) {
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    assert.app
+      .put('/tasks/one/items/good-item')
+      .send({
+        pin: [30, 30],
+        instructions: 'test',
+        featureCollection
+      })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        var item = removeDates(res.body);
+        assert.deepEqual(
+          {
+            status: 'open',
+            id: 'good-item',
+            task_id: 'one',
+            pin: { type: 'Point', coordinates: [30, 30] },
+            instructions: 'test',
+            featureCollection: {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: { type: 'node' },
+                  geometry: {
+                    type: 'Point',
+                    coordinates: [30, 30]
+                  }
+                }
+              ]
+            },
+            createdBy: 'userone',
+            lockedBy: null
+          },
+          item
         );
         assert.end();
       });
@@ -357,6 +416,90 @@ test(
           'has right message'
         );
         assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /tasks/:id/items/:id - bulk upload items with a linear wait',
+  taskWithNoItems,
+  function(assert) {
+    const TOTAL_REQUESTS = 10;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        delay(i * 50).then(() =>
+          assert.app
+            .put(`/tasks/one/items/item-${i}`)
+            .send({
+              pin: [30, 30],
+              instructions: 'test',
+              featureCollection
+            })
+            .expect(200)
+        )
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
+
+test(
+  'PUT /tasks/:id/items/:id - bulk upload items without waiting',
+  taskWithNoItems,
+  function(assert) {
+    const TOTAL_REQUESTS = 1000;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        assert.app
+          .put(`/tasks/one/items/item-${i}`)
+          .send({
+            pin: [30, 30],
+            instructions: 'test',
+            featureCollection
+          })
+          .expect(200)
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
       });
   }
 );

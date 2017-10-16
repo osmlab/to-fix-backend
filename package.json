@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "precommit": "lint-staged",
-    "test": "npm run lint && NODE_ENV=test tape test/*.test.js | tap-colorize",
+    "test": "npm run lint && NODE_ENV=test tape test/*.test.js",
     "lint": "eslint .",
     "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
     "api-docs":
