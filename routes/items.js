@@ -3,8 +3,8 @@ const paginateSearch = require('../lib/helper/paginateSearch');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const db = require('../database/db');
-const TaskItems = db.TaskItems;
-const Tasks = db.Tasks;
+const ProjectItems = db.ProjectItems;
+const Projects = db.Projects;
 const geojsonhint = require('@mapbox/geojsonhint');
 const constants = require('../lib/constants');
 const putItemWrapper = require('../lib/put-item');
@@ -18,20 +18,20 @@ module.exports = {
 };
 
 /**
- * Get a paginated list of items for a task
- * @name  get-task-items
+ * Get a paginated list of items for a project
+ * @name  get-project-items
  * @param {Object} params - what the keys in the url mean
- * @param {String} params.task - the task id
+ * @param {String} params.project - the project id
  * @param {Object} query - what queryparams are valid
  * @param {String} [query.lock] - if provided this must either be 'unlocked' or 'locked'
  * @param {String} [query.page=0] - starting page
  * @param {String} [query.page_size=constants.PAGE_SIZE] - the size of the page
  * @example
- * curl https://host/tasks/task-id/items?lock=unlocked
+ * curl https://host/projects/project-id/items?lock=unlocked
  * [
  *   {
  *     "id": "item-id",
- *     "task_id": "task-id",
+ *     "project_id": "project-id",
  *     "lockedTill": "2017-09-01T00:00:00Z"
  *   }
  * ]
@@ -41,7 +41,7 @@ function getItems(req, res, next) {
   try {
     search = paginateSearch(req.query, {
       where: {
-        task_id: req.params.task
+        project_id: req.params.project
       }
     });
   } catch (e) {
@@ -59,38 +59,38 @@ function getItems(req, res, next) {
       [locked ? Op.gt : Op.lt]: new Date()
     };
   }
-  TaskItems.findAll(search)
+  ProjectItems.findAll(search)
     .then(function(data) {
       if (data.length > 0) return res.json(data);
-      return Tasks.findOne({ where: { id: req.params.task } }).then(function(
-        data
-      ) {
+      return Projects.findOne({
+        where: { id: req.params.project }
+      }).then(function(data) {
         if (data === null) return next();
-        res.json([]); // there is a task but it has no items
+        res.json([]); // there is a project but it has no items
       });
     })
     .catch(next);
 }
 
 /**
- * Get an item from a task
- * @name get-task-item
+ * Get an item from a project
+ * @name get-project-item
  * @param {Object} params - what the keys in the url mean
- * @param {String} params.task - the task id
+ * @param {String} params.project - the project id
  * @param {String} params.item - the item id
  * @example
- * curl https://host/tasks/task-id/items/item-id
+ * curl https://host/projects/project-id/items/item-id
  *   {
  *     "id": "item-id",
- *     "task_id": "task-id",
+ *     "project_id": "project-id",
  *     "lockedTill": "2017-09-01T00:00:00Z"
  *   }
  */
 function getItem(req, res, next) {
-  TaskItems.findOne({
+  ProjectItems.findOne({
     where: {
       id: req.params.item,
-      task_id: req.params.task
+      project_id: req.params.project
     }
   })
     .then(function(data) {
@@ -107,42 +107,42 @@ function createItem(req, res, next) {
 }
 
 /**
- * Put an item in a task
- * @name put-task-item
+ * Put an item in a project
+ * @name put-project-item
  * @param {Object} params - what the keys in the url mean
- * @param {String} params.task - the task id
+ * @param {String} params.project - the project id
  * @param {String} params.item - the item id
  * @param {Object} body - the body of the request
  * @param {('unlocked' | 'locked')} [body.lock] - lock
  * @param {[Lon, Lat]} [body.pin] - a 2d geometry point to represent the feature
  * @param {('open' | 'fixed' | 'noterror')} [body.status] - the status of current item
  * @param {FeatureCollection} [body.featureCollection] - featureCollection
- * @param {String} [body.instructions] - instructions on how to work on the task
+ * @param {String} [body.instructions] - instructions on how to work on the item
  * @example
- * Change the lock to unlocked for `item-id` in `task-id`
+ * Change the lock to unlocked for `item-id` in `project-id`
  * curl -X PUT -H "Content-Type: application/json" -d \
  * '{"lock":"unlocked"}' \
- * https://host/tasks/task-id/items/item-id
+ * https://host/projects/project-id/items/item-id
  * @example
- * Change the status to fixed for `item-id` in `task-id`
+ * Change the status to fixed for `item-id` in `project-id`
  * curl -X PUT -H "Content-Type: application/json" -d \
  * '{"status":"fixed"}' \
- * https://host/tasks/task-id/items/item-id
+ * https://host/projects/project-id/items/item-id
  * @example
- * Change the pin for `item-id` in `task-id`
+ * Change the pin for `item-id` in `project-id`
  * curl -X PUT -H "Content-Type: application/json" -d \
  * '{"pin": [20.0212, 71.01212]}' \
- * https://host/tasks/task-id/items/item-id
+ * https://host/projects/project-id/items/item-id
  * @example
- * Change the featureCollection for `item-id` in `task-id`
+ * Change the featureCollection for `item-id` in `project-id`
  * curl -X PUT -H "Content-Type: application/json" -d \
  * '{"featureCollection": {type: "FeatureCollection", "features": []}}' \
- * https://host/tasks/task-id/items/item-id
+ * https://host/projects/project-id/items/item-id
  * @example
- * Change the instructions for `item-id` in `task-id`
+ * Change the instructions for `item-id` in `project-id`
  * curl -X PUT -H "Content-Type: application/json" -d \
  * '{"instructions": "Filler instruction"' \
- * https://host/tasks/task-id/items/item-id
+ * https://host/projects/project-id/items/item-id
  */
 function updateItem(req, res, next) {
   // TODO: provide different status codes based on the status of the item
@@ -162,7 +162,7 @@ function updateItem(req, res, next) {
   }
 
   // validate pin
-  const values = { id: req.params.item, task_id: req.params.task };
+  const values = { id: req.params.item, project_id: req.params.project };
   if (Array.isArray(req.body.pin)) {
     values.pin = {
       type: 'Point',
@@ -230,7 +230,7 @@ function updateItem(req, res, next) {
   }
 
   values.user = req.user;
-  values.task = req.params.task;
+  values.project = req.params.project;
   values.item = req.params.item;
 
   putItemWrapper(values)

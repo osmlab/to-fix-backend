@@ -2,7 +2,7 @@ var Sequelize = require('sequelize');
 var _ = require('lodash');
 
 module.exports = function(db) {
-  var TaskItems = db.define('task_items', {
+  var ProjectItems = db.define('project_items', {
     auto_id: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
@@ -11,13 +11,13 @@ module.exports = function(db) {
     },
     id: {
       type: Sequelize.STRING,
-      unique: 'taskItemId',
+      unique: 'projectItemId',
       allowNull: false
     },
-    task_id: {
+    project_id: {
       type: Sequelize.STRING,
       allowNull: false,
-      unique: 'taskItemId'
+      unique: 'projectItemId'
     },
     pin: { allowNull: false, type: Sequelize.GEOMETRY('POINT') },
     instructions: { allowNull: false, type: Sequelize.STRING },
@@ -37,9 +37,9 @@ module.exports = function(db) {
     }
   });
 
-  TaskItems.prototype.toJSON = function() {
+  ProjectItems.prototype.toJSON = function() {
     return _.omit(this.dataValues, 'auto_id');
   };
 
-  return TaskItems;
+  return ProjectItems;
 };

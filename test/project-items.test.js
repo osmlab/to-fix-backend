@@ -138,10 +138,10 @@ const listItemsFixture = [
 ];
 
 test(
-  'GET /tasks/:id/items - get a task that is not in the db',
+  'GET /projects/:id/items - get a project that is not in the db',
   listItemsFixture,
   function(assert) {
-    assert.app.get('/tasks/wave/items').expect(404, function(err, res) {
+    assert.app.get('/projects/wave/items').expect(404, function(err, res) {
       if (err) return assert.end(err);
       assert.ok(res.body.message, 'has message attr');
       assert.end();
@@ -150,10 +150,10 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items - get a task without items',
+  'GET /projects/:id/items - get a project without items',
   listItemsFixture,
   function(assert) {
-    assert.app.get('/tasks/empty/items').expect(200, function(err, res) {
+    assert.app.get('/projects/empty/items').expect(200, function(err, res) {
       if (err) return assert.end(err);
       assert.equal(res.body.length, 0, 'has no items');
       assert.end();
@@ -161,53 +161,55 @@ test(
   }
 );
 
-test('GET /tasks/:id/items - get a task with items', listItemsFixture, function(
-  assert
-) {
-  assert.app.get('/tasks/one/items').expect(200, function(err, res) {
-    if (err) return assert.end(err);
-    assert.equal(res.body.length, 2, 'has right number of items');
-    var items = res.body.reduce(function(m, i) {
-      m[i.id] = removeDates(i);
-      return m;
-    }, {});
-    assert.equal(
-      items['30'].task_id,
-      'one',
-      'item 30 should have the right task'
-    );
-    assert.deepEqual(
-      items['30'].pin,
-      {
-        type: 'Point',
-        coordinates: [30, 30]
-      },
-      'item 30 should be pin at the right spot'
-    );
-    assert.equal(
-      items['77'].task_id,
-      'one',
-      'item 77 should have the right task'
-    );
-    assert.deepEqual(
-      items['77'].pin,
-      {
-        type: 'Point',
-        coordinates: [77, 77]
-      },
-      'item 77 should be pin at the right spot'
-    );
-    assert.end();
-  });
-});
+test(
+  'GET /projects/:id/items - get a project with items',
+  listItemsFixture,
+  function(assert) {
+    assert.app.get('/projects/one/items').expect(200, function(err, res) {
+      if (err) return assert.end(err);
+      assert.equal(res.body.length, 2, 'has right number of items');
+      var items = res.body.reduce(function(m, i) {
+        m[i.id] = removeDates(i);
+        return m;
+      }, {});
+      assert.equal(
+        items['30'].project_id,
+        'one',
+        'item 30 should have the right project'
+      );
+      assert.deepEqual(
+        items['30'].pin,
+        {
+          type: 'Point',
+          coordinates: [30, 30]
+        },
+        'item 30 should be pin at the right spot'
+      );
+      assert.equal(
+        items['77'].project_id,
+        'one',
+        'item 77 should have the right project'
+      );
+      assert.deepEqual(
+        items['77'].pin,
+        {
+          type: 'Point',
+          coordinates: [77, 77]
+        },
+        'item 77 should be pin at the right spot'
+      );
+      assert.end();
+    });
+  }
+);
 
 test(
-  'GET /tasks/:id/items?page=X&page_size=Y - get a task with pagination',
+  'GET /projects/:id/items?page=X&page_size=Y - get a project with pagination',
   listItemsFixture,
   function(assert) {
     var requests = [
       assert.app
-        .get('/tasks/longlist/items?page=0&page_size=10')
+        .get('/projects/longlist/items?page=0&page_size=10')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -217,7 +219,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=0')
+        .get('/projects/longlist/items?page=0')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -227,7 +229,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=0&page_size=5')
+        .get('/projects/longlist/items?page=0&page_size=5')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -237,7 +239,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=1&page_size=5')
+        .get('/projects/longlist/items?page=1&page_size=5')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -247,7 +249,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=2&page_size=5')
+        .get('/projects/longlist/items?page=2&page_size=5')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -257,7 +259,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=3&page_size=5')
+        .get('/projects/longlist/items?page=3&page_size=5')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -267,7 +269,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=3000&page_size=5')
+        .get('/projects/longlist/items?page=3000&page_size=5')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -277,7 +279,7 @@ test(
           );
         }),
       assert.app
-        .get('/tasks/longlist/items?page=0&page_size=0')
+        .get('/projects/longlist/items?page=0&page_size=0')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -286,7 +288,7 @@ test(
             'page 0 with size 0 should have 0 items'
           );
         }),
-      assert.app.get('/tasks/longlist/items?page=-1&page_size=5').expect(400)
+      assert.app.get('/projects/longlist/items?page=-1&page_size=5').expect(400)
     ];
 
     Promise.all(requests)
@@ -300,11 +302,11 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items?lock=locked - get a task with locked items',
+  'GET /projects/:id/items?lock=locked - get a project with locked items',
   listItemsFixture,
   function(assert) {
     assert.app
-      .get('/tasks/lockers1/items?lock=locked')
+      .get('/projects/lockers1/items?lock=locked')
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 3, 'should have 3 locked items');
@@ -314,11 +316,11 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items?lock=locked - get a task with locked items with lockers2 data',
+  'GET /projects/:id/items?lock=locked - get a project with locked items with lockers2 data',
   listItemsFixture,
   function(assert) {
     assert.app
-      .get('/tasks/lockers2/items?lock=locked')
+      .get('/projects/lockers2/items?lock=locked')
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 1, 'should have 1 locked items');
@@ -328,11 +330,11 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items?lock=unlocked - get a task with unlocked items',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items',
   listItemsFixture,
   function(assert) {
     assert.app
-      .get('/tasks/lockers1/items?lock=unlocked')
+      .get('/projects/lockers1/items?lock=unlocked')
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 1, 'should have one unlocked item');
@@ -342,11 +344,11 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items?lock=unlocked - get a task with unlocked items with lockers2 data',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
   listItemsFixture,
   function(assert) {
     assert.app
-      .get('/tasks/lockers2/items?lock=unlocked')
+      .get('/projects/lockers2/items?lock=unlocked')
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
@@ -356,11 +358,11 @@ test(
 );
 
 test(
-  'GET /tasks/:id/items?lock=unlocked - get a task with unlocked items with lockers2 data',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
   listItemsFixture,
   function(assert) {
     assert.app
-      .get('/tasks/lockers2/items?lock=unlocked')
+      .get('/projects/lockers2/items?lock=unlocked')
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
@@ -376,8 +378,8 @@ const getItemsFixture = [
   }
 ];
 
-test('GET /tasks/:id/items/:id', getItemsFixture, function(assert) {
-  assert.app.get('/tasks/one/items/30').expect(200, function(err, res) {
+test('GET /projects/:id/items/:id', getItemsFixture, function(assert) {
+  assert.app.get('/projects/one/items/30').expect(200, function(err, res) {
     if (err) return assert.end(err);
     assert.ok(
       checkLock.unlocked(res.body),
@@ -386,7 +388,7 @@ test('GET /tasks/:id/items/:id', getItemsFixture, function(assert) {
     var item = removeDates(res.body);
     assert.deepEqual(item, {
       id: '30',
-      task_id: 'one',
+      project_id: 'one',
       pin: {
         type: 'Point',
         coordinates: [30, 30]

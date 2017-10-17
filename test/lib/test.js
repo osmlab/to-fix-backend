@@ -65,16 +65,16 @@ function setup(fixture) {
     return Promise.reject(err);
   }
   return Promise.all(
-    fixture.map(function(task) {
-      return db.Tasks
-        .create({ id: task.id, metadata: task.metadata || {} })
+    fixture.map(function(project) {
+      return db.Projects
+        .create({ id: project.id, metadata: project.metadata || {} })
         .then(function() {
-          var items = task.items || [];
+          var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
           var morePromise = items.map(function(item) {
-            return db.TaskItems.create({
+            return db.ProjectItems.create({
               id: item.id,
-              task_id: task.id,
+              project_id: project.id,
               pin: {
                 type: 'Point',
                 coordinates: item.pin || [0, 0]
@@ -89,11 +89,11 @@ function setup(fixture) {
             });
           });
 
-          var stats = task.stats || {};
+          var stats = project.stats || {};
           morePromise = morePromise.concat(
             Object.keys(stats).map(function(user) {
-              return db.TaskUserStats.create({
-                task_id: task.id,
+              return db.ProjectUserStats.create({
+                project_id: project.id,
                 user: user,
                 stats: stats[user]
               });

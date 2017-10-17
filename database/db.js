@@ -19,9 +19,11 @@ var db = (module.exports = new Sequelize(database, user, password, {
   }
 }));
 
-var TaskItems = (module.exports.TaskItems = require('./task-items')(db));
-var Tasks = (module.exports.Tasks = require('./tasks')(db));
-var TaskUserStats = (module.exports.TaskUserStats = require('./task-user-stats')(
+var ProjectItems = (module.exports.ProjectItems = require('./project-items')(
+  db
+));
+var Projects = (module.exports.Projects = require('./projects')(db));
+var ProjectUserStats = (module.exports.ProjectUserStats = require('./project-user-stats')(
   db
 ));
 var ItemComments = (module.exports.ItemComments = require('./item-comments')(
@@ -29,15 +31,15 @@ var ItemComments = (module.exports.ItemComments = require('./item-comments')(
 ));
 var ItemTags = (module.exports.ItemTags = require('./item-tags')(db));
 
-TaskItems.belongsToMany(ItemTags, {
-  through: 'taskitems_tags'
+ProjectItems.belongsToMany(ItemTags, {
+  through: 'projectitems_tags'
 });
 
-ItemTags.belongsToMany(TaskItems, {
-  through: 'taskitems_tags'
+ItemTags.belongsToMany(ProjectItems, {
+  through: 'projectitems_tags'
 });
 
-ItemComments.belongsTo(TaskItems);
+ItemComments.belongsTo(ProjectItems);
 
-TaskItems.belongsTo(Tasks, { foreignKey: 'task_id' });
-TaskUserStats.belongsTo(Tasks, { foreignKey: 'task_id' });
+ProjectItems.belongsTo(Projects, { foreignKey: 'project_id' });
+ProjectUserStats.belongsTo(Projects, { foreignKey: 'project_id' });
