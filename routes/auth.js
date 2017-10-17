@@ -1,3 +1,5 @@
+require('dotenv').load();
+
 const parser = require('xml2json');
 const OAuth = require('oauth').OAuth;
 const jwt = require('jwt-simple');
@@ -5,8 +7,8 @@ const jwt = require('jwt-simple');
 const constants = require('../lib/constants');
 
 const osmOauth = new OAuth(
-  'https://www.openstreetmap.org/oauth/request_token',
-  'https://www.openstreetmap.org/oauth/access_token',
+  constants.OSM_REQUEST_TOKEN_URL,
+  constants.OSM_ACCESS_TOKEN_URL,
   process.env.OSM_CONSUMER_KEY,
   process.env.OSM_CONSUMER_SECRET,
   '1.0',
@@ -78,14 +80,17 @@ function handleOSMCallback(req, res, next) {
                 id: userData.osm.user.id,
                 username: userData.osm.user.display_name
               };
-              const token = jwt.encode(user, 'secret'); //FIXME: make secret from env var
-              res.json({ token: token });
+              const token = jwt.encode(user, process.env.APP_SECRET);
+              res.redirect(
+                `${process.env
+                  .FRONTEND_URL}/handle_auth_callback?token=${token}`
+              );
             }
           );
         }
       }
     );
   } else {
-    res.send('Session foobar'); // Redirect to login page
+    res.redirect('/auth/openstreetmap'); // Redirect to login page
   }
 }
