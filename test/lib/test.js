@@ -8,7 +8,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const fs = require('fs');
 const join = require('path').join;
-const db = require('../../lib/db');
+const db = require('../../database/db');
 
 var pendingTests = 0;
 
