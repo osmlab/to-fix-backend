@@ -1,4 +1,4 @@
-var db = require('../lib/db');
+var db = require('../database/db');
 const logger = require('fastlog')('setup-database');
 
 db
