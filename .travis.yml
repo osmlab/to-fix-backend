@@ -5,6 +5,7 @@ services:
   - postgresql
 env:
   - NODE_ENV=test
+  - APP_SECRET=foobar
 addons:
   postgresql: "9.6"
   apt:
