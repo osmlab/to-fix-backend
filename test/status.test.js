@@ -2,6 +2,8 @@ const proxyquire = require('proxyquire');
 const supertest = require('supertest');
 const test = require('./lib/test');
 const tape = require('tape');
+const db = require('../database/db');
+const sinon = require('sinon');
 
 test('GET / - check that status is OK when db connection works', [], function(
   assert
@@ -15,13 +17,9 @@ test('GET / - check that status is OK when db connection works', [], function(
 
 // Directly use tape to mock db
 tape('GET / - the status is NOTOK when db connection fails', function(assert) {
-  const server = proxyquire('../lib/server', {
-    '../database/db': {
-      // make the mock db throw unconditional error
-      authenticate: () => {
-        return Promise.reject(new Error('error'));
-      }
-    }
+  const server = proxyquire('../lib/server', {});
+  sinon.stub(db, 'authenticate').yields(() => {
+    return Promise.reject(new Error('error'));
   });
   supertest(server)
     .get('/')

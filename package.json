@@ -44,6 +44,7 @@
     "documentation": "^5.3.2",
     "eslint": "^2.8.0",
     "proxyquire": "^1.8.0",
+    "sinon": "^4.0.1",
     "supertest": "^3.0.0",
     "tap-colorize": "^1.2.0",
     "tape": "^4.6.2"
