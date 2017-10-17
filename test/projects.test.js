@@ -1,47 +1,47 @@
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 
-test('GET /tasks', [{ id: 'one' }, { id: 'two' }], function(assert) {
-  assert.app.get('/tasks').expect(200, function(err, res) {
+test('GET /projects', [{ id: 'one' }, { id: 'two' }], function(assert) {
+  assert.app.get('/projects').expect(200, function(err, res) {
     if (err) return assert.end(err);
-    assert.equal(res.body.length, 2, 'has two tasks');
-    var tasks = res.body.reduce(function(memo, t) {
+    assert.equal(res.body.length, 2, 'has two projects');
+    var projects = res.body.reduce(function(memo, t) {
       t = removeDates(t);
       memo[t.id] = t;
       return memo;
     }, {});
     assert.deepEqual(
-      tasks.one,
+      projects.one,
       { id: 'one', metadata: {} },
-      'task one should look like the fixture'
+      'project one should look like the fixture'
     );
     assert.deepEqual(
-      tasks.two,
+      projects.two,
       { id: 'two', metadata: {} },
-      'task two should look like the fixture'
+      'project two should look like the fixture'
     );
     assert.end();
   });
 });
 
-test('GET /tasks/:id', [{ id: 'one' }, { id: 'two' }], function(assert) {
-  assert.app.get('/tasks/one').expect(200, function(err, res) {
+test('GET /projects/:id', [{ id: 'one' }, { id: 'two' }], function(assert) {
+  assert.app.get('/projects/one').expect(200, function(err, res) {
     if (err) return assert.end(err);
     var t = removeDates(res.body);
     assert.deepEqual(
       t,
       { id: 'one', metadata: {} },
-      'task one should look like the fixture'
+      'project one should look like the fixture'
     );
     assert.end();
   });
 });
 
-const oneTask = [{ id: 'one', metadata: { keep: 'keep' } }];
+const oneproject = [{ id: 'one', metadata: { keep: 'keep' } }];
 
-test('PUT /tasks/:id - update task one', oneTask, function(assert) {
+test('PUT /projects/:id - update project one', oneproject, function(assert) {
   assert.app
-    .put('/tasks/one')
+    .put('/projects/one')
     .send({ metadata: { test: 'test' } })
     .expect(200, function(err, res) {
       if (err) return assert.end(err);
@@ -55,9 +55,9 @@ test('PUT /tasks/:id - update task one', oneTask, function(assert) {
     });
 });
 
-test('PUT /tasks/:id - create task two', oneTask, function(assert) {
+test('PUT /projects/:id - create project two', oneproject, function(assert) {
   assert.app
-    .put('/tasks/two')
+    .put('/projects/two')
     .send({ metadata: { test: 'test' } })
     .expect(200, function(err, res) {
       if (err) return assert.end(err);

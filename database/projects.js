@@ -1,15 +1,15 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var Tasks = db.define('tasks', {
+  var Projects = db.define('projects', {
     id: {
       type: Sequelize.STRING,
-      unique: 'taskid',
+      unique: 'projectid',
       allowNull: false,
       primaryKey: true
     },
     metadata: { allowNull: false, type: Sequelize.JSONB }
   });
 
-  return Tasks;
+  return Projects;
 };

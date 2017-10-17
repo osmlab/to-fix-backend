@@ -2,14 +2,14 @@ const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');
 
-const taskWithNoItems = [{ id: 'one' }];
-const taskWithOneUnlockedItem = [
+const projectWithNoItems = [{ id: 'one' }];
+const projectWithOneUnlockedItem = [
   {
     id: 'one',
     items: [{ id: '30', pin: [30, 30] }]
   }
 ];
-const taskWithOneItemLockedByUserTwo = [
+const projectWithOneItemLockedByUserTwo = [
   {
     id: 'one',
     items: [
@@ -22,7 +22,7 @@ const taskWithOneItemLockedByUserTwo = [
     ]
   }
 ];
-const taskWithOneItemLockedByUserOne = [
+const projectWithOneItemLockedByUserOne = [
   {
     id: 'one',
     items: [
@@ -39,11 +39,11 @@ const taskWithOneItemLockedByUserOne = [
 const delay = time => new Promise(res => setTimeout(res, time));
 
 test(
-  'PUT /tasks/:id/items:id - an item must have instructions',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - an item must have instructions',
+  projectWithNoItems,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/no-instructions')
+      .put('/projects/one/items/no-instructions')
       .send({ pin: [30, 30] })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
@@ -58,11 +58,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - creating an item with an invalid pin errors',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - creating an item with an invalid pin errors',
+  projectWithNoItems,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/bad-pin')
+      .put('/projects/one/items/bad-pin')
       .send({ pin: [], instructions: 'test' })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
@@ -77,11 +77,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - updating an item with an invalid pin errors',
-  taskWithOneUnlockedItem,
+  'PUT /projects/:id/items:id - updating an item with an invalid pin errors',
+  projectWithOneUnlockedItem,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ pin: [] })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
@@ -96,11 +96,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - creating an item without a pin should fail',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - creating an item without a pin should fail',
+  projectWithNoItems,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/no-pin')
+      .put('/projects/one/items/no-pin')
       .send({ instructions: 'test' })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
@@ -111,11 +111,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - creating an item with an invalid feature collection errors',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - creating an item with an invalid feature collection errors',
+  projectWithNoItems,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/bad-fc')
+      .put('/projects/one/items/bad-fc')
       .send({
         pin: [30, 30],
         instructions: 'test',
@@ -134,8 +134,8 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - should create a valid item without errors',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - should create a valid item without errors',
+  projectWithNoItems,
   function(assert) {
     const featureCollection = {
       type: 'FeatureCollection',
@@ -151,7 +151,7 @@ test(
       ]
     };
     assert.app
-      .put('/tasks/one/items/good-item')
+      .put('/projects/one/items/good-item')
       .send({
         pin: [30, 30],
         instructions: 'test',
@@ -164,7 +164,7 @@ test(
           {
             status: 'open',
             id: 'good-item',
-            task_id: 'one',
+            project_id: 'one',
             pin: { type: 'Point', coordinates: [30, 30] },
             instructions: 'test',
             featureCollection: {
@@ -192,11 +192,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - updating an item with an invalid feature collection errors',
-  taskWithOneUnlockedItem,
+  'PUT /projects/:id/items:id - updating an item with an invalid feature collection errors',
+  projectWithOneUnlockedItem,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ featureCollection: { type: 'FeatureCollection' } })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
@@ -211,8 +211,8 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - update an item',
-  taskWithOneUnlockedItem,
+  'PUT /projects/:id/items:id - update an item',
+  projectWithOneUnlockedItem,
   function(assert) {
     var fc = {
       type: 'FeatureCollection',
@@ -228,7 +228,7 @@ test(
       ]
     };
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ featureCollection: fc })
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
@@ -240,11 +240,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - the lock can be activated via {lock: locked}',
-  taskWithOneUnlockedItem,
+  'PUT /projects/:id/items:id - the lock can be activated via {lock: locked}',
+  projectWithOneUnlockedItem,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ lock: 'locked' })
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
@@ -260,11 +260,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - the lock can be deactivated via {lock: unlocked}',
-  taskWithOneItemLockedByUserOne,
+  'PUT /projects/:id/items:id - the lock can be deactivated via {lock: unlocked}',
+  projectWithOneItemLockedByUserOne,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ lock: 'unlocked' })
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
@@ -279,11 +279,11 @@ test(
   }
 );
 test(
-  'PUT /tasks/:id/items:id - the status cannot be changed by a user who doesnt have an active lock',
-  taskWithOneUnlockedItem,
+  'PUT /projects/:id/items:id - the status cannot be changed by a user who doesnt have an active lock',
+  projectWithOneUnlockedItem,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ status: 'fixed' })
       .expect(423, function(err, res) {
         if (err) return assert.end(err);
@@ -297,16 +297,16 @@ test(
   }
 );
 test(
-  'PUT /tasks/:id/items:id - the status can be changed by the user who has the active lock',
-  taskWithOneItemLockedByUserOne,
+  'PUT /projects/:id/items:id - the status can be changed by the user who has the active lock',
+  projectWithOneItemLockedByUserOne,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ lock: 'locked' })
       .expect(200, function(err) {
         if (err) return assert.end(err);
         assert.app
-          .put('/tasks/one/items/30')
+          .put('/projects/one/items/30')
           .send({ status: 'fixed' })
           .expect(200, function(err, res) {
             if (err) return assert.end(err);
@@ -323,11 +323,11 @@ test(
   }
 );
 test(
-  'PUT /tasks/:id/items:id - an active lock cannot be changed by a non-locking user',
-  taskWithOneItemLockedByUserTwo,
+  'PUT /projects/:id/items:id - an active lock cannot be changed by a non-locking user',
+  projectWithOneItemLockedByUserTwo,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ lock: 'unlocked' })
       .expect(423, function(err, res) {
         if (err) return assert.end(err);
@@ -341,18 +341,18 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - an active lock can be changed by the locking user',
-  taskWithOneItemLockedByUserOne,
+  'PUT /projects/:id/items:id - an active lock can be changed by the locking user',
+  projectWithOneItemLockedByUserOne,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ lock: 'locked' })
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.lockedBy, 'userone', 'userone holds the lock');
         assert.ok(checkLock.locked(res.body), 'locked');
         assert.app
-          .put('/tasks/one/items/30')
+          .put('/projects/one/items/30')
           .send({ lock: 'unlocked' })
           .expect(200, function(err, res) {
             if (err) return assert.end(err);
@@ -365,11 +365,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - create an item with the minimum attributes',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - create an item with the minimum attributes',
+  projectWithNoItems,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/test')
+      .put('/projects/one/items/test')
       .send({
         pin: [8, 8],
         instructions: 'test'
@@ -383,7 +383,7 @@ test(
         var item = removeDates(res.body);
         assert.deepEqual(item, {
           id: 'test',
-          task_id: 'one',
+          project_id: 'one',
           pin: {
             type: 'Point',
             coordinates: [8, 8]
@@ -404,11 +404,11 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items:id - an item update or create requests cannot have unexpected body content',
-  taskWithNoItems,
+  'PUT /projects/:id/items:id - an item update or create requests cannot have unexpected body content',
+  projectWithNoItems,
   function(assert) {
     assert.app
-      .put('/tasks/one/items/30')
+      .put('/projects/one/items/30')
       .send({ random: 'is bad' })
       .expect(400, function(err, res) {
         if (err) return assert.end();
@@ -423,8 +423,8 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items/:id - bulk upload items with a linear wait',
-  taskWithNoItems,
+  'PUT /projects/:id/items/:id - bulk upload items with a linear wait',
+  projectWithNoItems,
   function(assert) {
     const TOTAL_REQUESTS = 10;
     const requests = [];
@@ -445,7 +445,7 @@ test(
       requests.push(
         delay(i * 50).then(() =>
           assert.app
-            .put(`/tasks/one/items/item-${i}`)
+            .put(`/projects/one/items/item-${i}`)
             .send({
               pin: [30, 30],
               instructions: 'test',
@@ -466,8 +466,8 @@ test(
 );
 
 test(
-  'PUT /tasks/:id/items/:id - bulk upload items without waiting',
-  taskWithNoItems,
+  'PUT /projects/:id/items/:id - bulk upload items without waiting',
+  projectWithNoItems,
   function(assert) {
     const TOTAL_REQUESTS = 10;
     const requests = [];
@@ -487,7 +487,7 @@ test(
     for (let i = 0; i < TOTAL_REQUESTS; i++) {
       requests.push(
         assert.app
-          .put(`/tasks/one/items/item-${i}`)
+          .put(`/projects/one/items/item-${i}`)
           .send({
             pin: [30, 30],
             instructions: 'test',

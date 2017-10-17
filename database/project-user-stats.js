@@ -1,21 +1,21 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var TaskUserStats = db.define('task_user_stats', {
+  var ProjectUserStats = db.define('project_user_stats', {
     user: {
       type: Sequelize.STRING,
-      unique: 'taskUserId',
+      unique: 'projectUserId',
       allowNull: false,
       primaryKey: true
     },
-    task_id: {
+    project_id: {
       type: Sequelize.STRING,
       allowNull: false,
-      unique: 'taskUserId',
+      unique: 'projectUserId',
       primaryKey: true
     },
     stats: { allowNull: false, type: Sequelize.JSONB }
   });
 
-  return TaskUserStats;
+  return ProjectUserStats;
 };
