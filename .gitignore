@@ -6,6 +6,7 @@
 *.osm
 *.zip
 *.bz2
+.env
 temp_*
 !sample.csv
 node_modules/
