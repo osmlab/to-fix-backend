@@ -181,7 +181,8 @@ test(
               ]
             },
             createdBy: 'userone',
-            lockedBy: null
+            lockedBy: null,
+            siblings: []
           },
           item
         );
@@ -394,7 +395,8 @@ test(
           status: 'open',
           lockedBy: null,
           createdBy: 'userone',
-          instructions: 'test'
+          instructions: 'test',
+          siblings: []
         });
         assert.end();
       });
