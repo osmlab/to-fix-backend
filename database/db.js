@@ -16,7 +16,8 @@ var db = (module.exports = new Sequelize(database, user, password, {
     max: 5,
     min: 0,
     idle: 10000
-  }
+  },
+  operatorsAliases: false
 }));
 
 var ProjectItems = (module.exports.ProjectItems = require('./project-items')(
