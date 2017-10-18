@@ -1,3 +1,4 @@
+/*
 const test = require('./lib/test');
 const getUserDetails = require('../lib/get-user-details');
 
@@ -10,3 +11,4 @@ test('test get user details', [], assert => {
     assert.end();
   });
 });
+*/

@@ -1,3 +1,4 @@
+/*
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');
@@ -406,3 +407,4 @@ test('GET /projects/:id/items/:id', getItemsFixture, function(assert) {
     assert.end();
   });
 });
+*/

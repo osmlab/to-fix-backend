@@ -1,11 +1,12 @@
 const db = require('../database/index');
 const Project = db.Project;
 const _ = require('lodash');
+const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 
 module.exports = {
   getProjects: getProjects,
-  getProject: getProject,
   createProject: createProject,
+  getProject: getProject,
   updateProject: updateProject,
   deleteProject: deleteProject
 };
@@ -29,6 +30,19 @@ function getProjects(req, res, next) {
 }
 
 /**
+ */
+function createProject(req, res, next) {
+  if (!req.body.name) next(new ErrorHTTP('req.body.name is required', 422));
+  const values = { name: req.body.name };
+  if (req.body.metadata) values.metadata = req.body.metadata;
+  Project.create(values)
+    .then(function(data) {
+      res.json(data);
+    })
+    .catch(next);
+}
+
+/**
  * Get a project
  * @name get-project
  * @param {Object} params - what the keys in the url mean
@@ -41,21 +55,15 @@ function getProjects(req, res, next) {
  *  }
  */
 function getProject(req, res, next) {
-  Project.findAll({
-    limit: 1,
-    where: { id: req.params.project }
+  Project.findOne({
+    where: {
+      id: req.params.project
+    }
   })
-    .then(function(data) {
-      if (data.length === 0) return next();
-      res.json(data[0]);
+    .then(function(project) {
+      res.json(project);
     })
     .catch(next);
-}
-
-/**
- */
-function createProject(req, res, next) {
-  return next();
 }
 
 /**

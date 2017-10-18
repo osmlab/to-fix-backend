@@ -11,8 +11,8 @@ const putItemWrapper = require('../lib/put-item');
 
 module.exports = {
   getItems: getItems,
-  getItem: getItem,
   createItem: createItem,
+  getItem: getItem,
   updateItem: updateItem,
   deleteItem: deleteItem
 };
@@ -73,6 +73,118 @@ function getItems(req, res, next) {
 }
 
 /**
+ */
+function createItem(req, res, next) {
+  const validBodyAttrs = [
+    'id',
+    'name',
+    'lock',
+    'pin',
+    'status',
+    'featureCollection',
+    'instructions'
+  ];
+  const invalidBodyAttrs = Object.keys(req.body).filter(function(attr) {
+    return validBodyAttrs.indexOf(attr) === -1;
+  });
+
+  if (invalidBodyAttrs.length !== 0) {
+    return next(new ErrorHTTP('Request contains unexpected attributes', 400));
+  }
+
+  // validate pin
+  const values = { id: req.params.item, project_id: req.params.project };
+  if (Array.isArray(req.body.pin)) {
+    values.pin = {
+      type: 'Point',
+      coordinates: req.body.pin
+    };
+    var pinErrors = geojsonhint.hint(values.pin, {
+      precisionWarning: false
+    });
+    if (pinErrors.length) {
+      return next(new ErrorHTTP('Invalid Pin: ' + pinErrors[0].message, 400));
+    }
+  }
+
+  if (req.body.name) values.name = req.body.name;
+  if (req.body.id) values.id = req.body.id;
+
+  if (req.body.instructions) {
+    const instructions = req.body.instructions;
+    if (typeof instructions !== 'string' || instructions.length < 1) {
+      return next(ErrorHTTP('An item must have a valid instruction', 400));
+    }
+    values.instructions = instructions;
+  }
+
+  // validate lock
+  if (req.body.lock === 'unlocked') {
+    values.lockedTill = new Date();
+    values.lockedBy = null;
+  } else if (req.body.lock === 'locked') {
+    values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
+    values.lockedBy = req.user;
+  } else if (req.body.lock !== undefined) {
+    return next(new ErrorHTTP('Invalid lock change action'));
+  } else if (req.body.lock && req.body.status) {
+    return next(
+      new ErrorHTTP(
+        'It is invalid to set the status and change the lock in one request'
+      ),
+      400
+    );
+  }
+
+  // validate status
+  if (req.body.status) {
+    if (constants.ALL_STATUS.indexOf(req.body.status) === -1) {
+      return next(new ErrorHTTP('Invalid status', 400));
+    }
+    values.status = req.body.status;
+    if (constants.INACTIVE_STATUS.indexOf(values.status) !== -1) {
+      // if the item has been marked as done, expire the lock
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    }
+  }
+
+  // validate feature collection
+  if (req.body.featureCollection) {
+    values.featureCollection = req.body.featureCollection;
+    var fcErrors = geojsonhint.hint(values.featureCollection, {
+      precisionWarning: false
+    });
+
+    if (fcErrors.length) {
+      return next(
+        new ErrorHTTP('Invalid featureCollection: ' + fcErrors[0].message, 400)
+      );
+    }
+  }
+
+  values.user = req.user;
+  values.project = req.params.project;
+  values.item = req.params.item;
+
+  if (values.instructions === undefined) {
+    throw new ErrorHTTP('instructions is required', 400);
+  }
+  values.featureCollection = values.featureCollection || {
+    type: 'FeatureCollection',
+    features: []
+  };
+  values.createdBy = values.user;
+  if (values.pin === undefined) throw new ErrorHTTP('pin is required', 400);
+
+  Item.create(values)
+    .then(function(item) {
+      res.json(item);
+    })
+    .catch(next);
+}
+
+/**
  * Get an item from a project
  * @name get-project-item
  * @param {Object} params - what the keys in the url mean
@@ -98,12 +210,6 @@ function getItem(req, res, next) {
       res.json(data);
     })
     .catch(next);
-}
-
-/**
- */
-function createItem(req, res, next) {
-  return next();
 }
 
 /**
@@ -147,6 +253,7 @@ function createItem(req, res, next) {
 function updateItem(req, res, next) {
   // TODO: provide different status codes based on the status of the item
   const validBodyAttrs = [
+    'name',
     'lock',
     'pin',
     'status',
@@ -175,6 +282,8 @@ function updateItem(req, res, next) {
       return next(new ErrorHTTP('Invalid Pin: ' + pinErrors[0].message, 400));
     }
   }
+
+  if (req.body.name) values.name = req.body.name;
 
   if (req.body.instructions) {
     const instructions = req.body.instructions;

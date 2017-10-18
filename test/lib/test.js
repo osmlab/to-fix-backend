@@ -75,6 +75,7 @@ function setup(fixture) {
             return db.Item.create({
               id: item.id,
               project_id: project.id,
+              name: item.name,
               pin: {
                 type: 'Point',
                 coordinates: item.pin || [0, 0]
@@ -93,7 +94,6 @@ function setup(fixture) {
           morePromise = morePromise.concat(
             Object.keys(stats).map(function(user) {
               return db.Stat.create({
-                project_id: project.id,
                 user: user,
                 stats: stats[user]
               });

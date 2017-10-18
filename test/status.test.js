@@ -1,3 +1,4 @@
+/*
 const proxyquire = require('proxyquire');
 const supertest = require('supertest');
 const test = require('./lib/test');
@@ -30,3 +31,4 @@ tape('GET / - the status is NOTOK when db connection fails', function(assert) {
       assert.end();
     });
 });
+*/
