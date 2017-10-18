@@ -1,19 +1,34 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var Tag = db.define('Tag', {
-    id: {
-      type: Sequelize.UUID,
-      allowNull: false,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4
+  var Tag = db.define(
+    'Tag',
+    {
+      id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        primaryKey: true,
+        defaultValue: Sequelize.UUIDV4
+      },
+      project_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        unique: 'tagProjectId'
+      },
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: 'tagProjectId'
+      }
     },
-    name: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      unique: true
+    {
+      indexes: [
+        {
+          fields: ['name']
+        }
+      ]
     }
-  });
+  );
 
   return Tag;
 };
