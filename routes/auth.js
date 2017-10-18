@@ -31,14 +31,12 @@ function redirectOsmAuth(req, res) {
     oauth_token_secret
   ) {
     if (error) {
-      // console.log(error);
       res.send('Authentication Failed!');
     } else {
       req.session.oauth = {
         token: oauth_token,
         token_secret: oauth_token_secret
       };
-      // console.log(req.session.oauth);
       res.redirect(
         'https://openstreetmap.org/oauth/authorize?oauth_token=' + oauth_token
       );
