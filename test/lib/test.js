@@ -77,7 +77,8 @@ function setup(fixture) {
               project_id: project.id,
               pin: {
                 type: 'Point',
-                coordinates: item.pin || [0, 0]
+                coordinates: item.pin || [0, 0],
+                crs: { type: 'name', properties: { name: 'EPSG:4326' } }
               },
               featureCollection: item.featureCollection || fc,
               metadata: {},

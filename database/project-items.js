@@ -19,7 +19,7 @@ module.exports = function(db) {
       allowNull: false,
       unique: 'projectItemId'
     },
-    pin: { allowNull: false, type: Sequelize.GEOMETRY('POINT') },
+    pin: { allowNull: false, type: Sequelize.GEOMETRY('POINT', 4326) },
     instructions: { allowNull: false, type: Sequelize.STRING },
     createdBy: { allowNull: false, type: Sequelize.STRING },
     featureCollection: { allowNull: false, type: Sequelize.JSONB }, // does postgis have a featureCollection

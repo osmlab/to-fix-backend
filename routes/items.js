@@ -59,6 +59,20 @@ function getItems(req, res, next) {
       [locked ? Op.gt : Op.lt]: new Date()
     };
   }
+
+  if (req.query.bbox) {
+    const bb = req.query.bbox.split(',').map(Number);
+    //TODO: do some validation of the bbox
+    search.where = Sequelize.where(
+      Sequelize.fn(
+        'ST_Within',
+        Sequelize.col('pin'),
+        Sequelize.fn('ST_MakeEnvelope', bb[0], bb[1], bb[2], bb[3], 4326)
+      ),
+      true
+    );
+  }
+
   ProjectItems.findAll(search)
     .then(function(data) {
       if (data.length > 0) return res.json(data);
