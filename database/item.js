@@ -1,14 +1,15 @@
 var Sequelize = require('sequelize');
+var _ = require('lodash');
 
 module.exports = function(db) {
   var Item = db.define('Item', {
-    id: {
+    auto_id: {
       type: Sequelize.INTEGER,
+      allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
-      allowNull: false
+      autoIncrement: true
     },
-    name: {
+    id: {
       type: Sequelize.STRING,
       allowNull: false,
       unique: 'compositeIndex'
@@ -17,6 +18,10 @@ module.exports = function(db) {
       type: Sequelize.STRING,
       allowNull: false,
       unique: 'compositeIndex'
+    },
+    name: {
+      type: Sequelize.STRING,
+      allowNull: false
     },
     pin: {
       type: Sequelize.GEOMETRY('POINT'),
@@ -53,6 +58,10 @@ module.exports = function(db) {
       defaultValue: []
     }
   });
+
+  Item.prototype.toJSON = function() {
+    return _.omit(this.dataValues, 'auto_id');
+  };
 
   return Item;
 };

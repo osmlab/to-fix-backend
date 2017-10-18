@@ -3,10 +3,9 @@ var Sequelize = require('sequelize');
 module.exports = function(db) {
   var Comment = db.define('Comment', {
     id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true
     },
     createdBy: {
       type: Sequelize.STRING,

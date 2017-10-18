@@ -3,10 +3,9 @@ var Sequelize = require('sequelize');
 module.exports = function(db) {
   var Project = db.define('Project', {
     id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true
     },
     name: {
       type: Sequelize.STRING,
