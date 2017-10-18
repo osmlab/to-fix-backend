@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var Project = db.define('Project', {
+  var Project = db.define('project', {
     id: {
       type: Sequelize.UUID,
       allowNull: false,

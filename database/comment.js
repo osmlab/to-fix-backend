@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var Comment = db.define('Comment', {
+  var Comment = db.define('comment', {
     id: {
       type: Sequelize.UUID,
       allowNull: false,

@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var Stat = db.define('Stat', {
+  var Stat = db.define('stat', {
     user: {
       type: Sequelize.STRING,
       primaryKey: true,

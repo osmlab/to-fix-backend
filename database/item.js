@@ -3,7 +3,7 @@ const _ = require('lodash');
 
 module.exports = function(db) {
   var Item = db.define(
-    'Item',
+    'item',
     {
       auto_id: {
         type: Sequelize.INTEGER,

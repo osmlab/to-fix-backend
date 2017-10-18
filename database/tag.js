@@ -2,7 +2,7 @@ var Sequelize = require('sequelize');
 
 module.exports = function(db) {
   var Tag = db.define(
-    'Tag',
+    'tag',
     {
       id: {
         type: Sequelize.UUID,
