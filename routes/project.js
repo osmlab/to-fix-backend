@@ -1,5 +1,5 @@
 const db = require('../database/index');
-const Projects = db.Projects;
+const Project = db.Project;
 const _ = require('lodash');
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
  *  }]
  */
 function getProjects(req, res, next) {
-  Projects.findAll()
+  Project.findAll()
     .then(function(projects) {
       res.json(projects);
     })
@@ -41,7 +41,7 @@ function getProjects(req, res, next) {
  *  }
  */
 function getProject(req, res, next) {
-  Projects.findAll({
+  Project.findAll({
     limit: 1,
     where: { id: req.params.project }
   })
@@ -73,14 +73,14 @@ function createProject(req, res, next) {
 function updateProject(req, res, next) {
   const values = { id: req.params.project };
   if (req.body.metadata) values.metadata = req.body.metadata;
-  Projects.findOne({ where: { id: req.params.project } })
+  Project.findOne({ where: { id: req.params.project } })
     .then(function(data) {
       if (data !== null) {
         const updated = _.merge({}, data.toJSON(), values);
         return data.update(updated);
       }
       values.metadata = values.metadata || {};
-      return Projects.create(values);
+      return Project.create(values);
     })
     .then(function(data) {
       res.json(data);

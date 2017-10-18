@@ -3,8 +3,8 @@ const paginateSearch = require('../lib/helper/paginateSearch');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const db = require('../database/index');
-const ProjectItems = db.ProjectItems;
-const Projects = db.Projects;
+const Item = db.Item;
+const Project = db.Project;
 const geojsonhint = require('@mapbox/geojsonhint');
 const constants = require('../lib/constants');
 const putItemWrapper = require('../lib/put-item');
@@ -59,10 +59,10 @@ function getItems(req, res, next) {
       [locked ? Op.gt : Op.lt]: new Date()
     };
   }
-  ProjectItems.findAll(search)
+  Item.findAll(search)
     .then(function(data) {
       if (data.length > 0) return res.json(data);
-      return Projects.findOne({
+      return Project.findOne({
         where: { id: req.params.project }
       }).then(function(data) {
         if (data === null) return next();
@@ -87,7 +87,7 @@ function getItems(req, res, next) {
  *   }
  */
 function getItem(req, res, next) {
-  ProjectItems.findOne({
+  Item.findOne({
     where: {
       id: req.params.item,
       project_id: req.params.project
