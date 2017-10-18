@@ -7,9 +7,14 @@ module.exports = function(db) {
       primaryKey: true,
       autoIncrement: true
     },
+    project_id: {
+      type: Sequelize.STRING,
+      unique: 'compositeIndex',
+      allowNull: false
+    },
     name: {
       type: Sequelize.STRING,
-      unique: true,
+      unique: 'compositeIndex',
       allowNull: false
     }
   });
