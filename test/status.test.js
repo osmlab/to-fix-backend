@@ -2,7 +2,7 @@ const proxyquire = require('proxyquire');
 const supertest = require('supertest');
 const test = require('./lib/test');
 const tape = require('tape');
-const db = require('../database/db');
+const db = require('../database/index');
 const sinon = require('sinon');
 
 test('GET / - check that status is OK when db connection works', [], function(

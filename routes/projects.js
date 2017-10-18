@@ -1,4 +1,4 @@
-const db = require('../database/db');
+const db = require('../database/index');
 const Projects = db.Projects;
 const _ = require('lodash');
 

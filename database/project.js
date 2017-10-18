@@ -1,18 +1,23 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var ItemTags = db.define('item_tags', {
+  var Project = db.define('Project', {
     id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
+      allowNull: false
     },
     name: {
       type: Sequelize.STRING,
-      unique: true,
+      allowNull: false,
+      unique: true
+    },
+    metadata: {
+      type: Sequelize.JSONB,
       allowNull: false
     }
   });
 
-  return ItemTags;
+  return Project;
 };

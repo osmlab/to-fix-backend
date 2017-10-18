@@ -8,7 +8,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const fs = require('fs');
 const join = require('path').join;
-const db = require('../../database/db');
+const db = require('../../database/index');
 
 var pendingTests = 0;
 
@@ -66,13 +66,13 @@ function setup(fixture) {
   }
   return Promise.all(
     fixture.map(function(project) {
-      return db.Projects
+      return db.Project
         .create({ id: project.id, metadata: project.metadata || {} })
         .then(function() {
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
           var morePromise = items.map(function(item) {
-            return db.ProjectItems.create({
+            return db.Item.create({
               id: item.id,
               project_id: project.id,
               pin: {
@@ -92,7 +92,7 @@ function setup(fixture) {
           var stats = project.stats || {};
           morePromise = morePromise.concat(
             Object.keys(stats).map(function(user) {
-              return db.ProjectUserStats.create({
+              return db.Stat.create({
                 project_id: project.id,
                 user: user,
                 stats: stats[user]
