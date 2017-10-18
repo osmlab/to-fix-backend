@@ -38,7 +38,7 @@ function redirectOsmAuth(req, res) {
         token_secret: oauth_token_secret
       };
       res.redirect(
-        'https://openstreetmap.org/oauth/authorize?oauth_token=' + oauth_token
+        `https://openstreetmap.org/oauth/authorize?oauth_token=${oauth_token}`
       );
     }
   });
