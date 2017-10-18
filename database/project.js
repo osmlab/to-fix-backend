@@ -5,7 +5,8 @@ module.exports = function(db) {
     id: {
       type: Sequelize.UUID,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      defaultValue: Sequelize.UUIDV4
     },
     name: {
       type: Sequelize.STRING,
@@ -14,7 +15,7 @@ module.exports = function(db) {
     },
     metadata: {
       type: Sequelize.JSONB,
-      allowNull: false
+      defaultValue: {}
     }
   });
 

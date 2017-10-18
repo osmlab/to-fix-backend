@@ -26,12 +26,11 @@ var Comment = (module.exports.Comment = require('./comment')(db));
 var Tag = (module.exports.Tag = require('./tag')(db));
 var Stat = (module.exports.Stat = require('./stat')(db));
 
-Item.belongsTo(Project, { foreignKey: 'project_id' });
-Tag.belongsTo(Project, { foreignKey: 'project_id' });
-Comment.belongsTo(Project, { foreignKey: 'project_id' });
-Stat.belongsTo(Project, { foreignKey: 'project_id' });
+Item.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
+Tag.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
+Stat.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
 
-Comment.belongsTo(Item);
+Comment.belongsTo(Item, { foreignKey: 'item_id', targetKey: 'id' });
 
 Item.belongsToMany(Tag, { through: 'ItemTag' });
 Tag.belongsToMany(Item, { through: 'ItemTag' });

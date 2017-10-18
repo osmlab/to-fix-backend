@@ -1,23 +1,12 @@
 var Sequelize = require('sequelize');
-var _ = require('lodash');
 
 module.exports = function(db) {
   var Item = db.define('Item', {
-    auto_id: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      autoIncrement: true
-    },
     id: {
       type: Sequelize.STRING,
       allowNull: false,
-      unique: 'compositeIndex'
-    },
-    project_id: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      unique: 'compositeIndex'
+      primaryKey: true,
+      unique: true
     },
     name: {
       type: Sequelize.STRING,
@@ -58,10 +47,6 @@ module.exports = function(db) {
       defaultValue: []
     }
   });
-
-  Item.prototype.toJSON = function() {
-    return _.omit(this.dataValues, 'auto_id');
-  };
 
   return Item;
 };

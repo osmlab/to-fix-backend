@@ -6,12 +6,7 @@ module.exports = function(db) {
       type: Sequelize.STRING,
       primaryKey: true,
       allowNull: false,
-      unique: 'compositeIndex'
-    },
-    project_id: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      unique: 'compositeIndex'
+      unique: true
     },
     stats: {
       type: Sequelize.JSONB,
