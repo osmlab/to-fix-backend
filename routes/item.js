@@ -154,10 +154,10 @@ function createItem(req, res, next) {
   const values = { project_id: req.params.project };
 
   /* Validate ID */
-  if (!/^[a-zA-Z0-9]+$/.test(req.body.id))
+  if (!/^[a-zA-Z0-9-]+$/.test(req.body.id))
     return next(
       new ErrorHTTP(
-        'An item must have a valid ID comprised only of letters and numbers',
+        'An item must have a valid ID comprised only of letters, numbers, and hyphens',
         400
       )
     );

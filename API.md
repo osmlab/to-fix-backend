@@ -22,22 +22,6 @@ curl https://host
 }
 ```
 
-### put-item
-
-handle all the logic and some validation for item creation and updating
-
-**Parameters**
-
--   `opts` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** the opts for the action
-    -   `opts.project` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the id of the project the item belongs to
-    -   `opts.item` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the id of the item itself
-    -   `opts.user` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the user making the change
-    -   `opts.featureCollection` **FeatureCollection?** a validated GeoJSON feature collection, required on create
-    -   `opts.pin` **Point?** a validated GeoJSON point representing the queryable location of this item, required on create
-    -   `opts.instructions` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the instructions for what needs to be done, required on create
-    -   `opts.status` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the status to set the item to
-    -   `opts.lockedTill` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the time the lock expires at
-
 ### get-projects
 
 Get a list of projects.

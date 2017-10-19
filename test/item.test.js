@@ -526,7 +526,7 @@ test(
         assert.ifError(err, 'should not error');
         assert.deepEqual(
           res.body.message,
-          'An item must have a valid ID comprised only of letters and numbers'
+          'An item must have a valid ID comprised only of letters, numbers, and hyphens'
         );
         assert.end();
       });
@@ -651,13 +651,55 @@ test(
           assert.app
             .post(`/projects/00000000-0000-0000-0000-000000000000/items`)
             .send({
-              id: `item-${i}`,
+              id: `item${i}`,
               pin: [30, 30],
               instructions: 'test',
               featureCollection
             })
             .expect(200)
         )
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
+
+test(
+  'POST /projects/:id/items - bulk upload items without waiting',
+  projectWithOneUnlockedItem,
+  assert => {
+    const TOTAL_REQUESTS = 10;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        assert.app
+          .post(`/projects/00000000-0000-0000-0000-000000000000/items`)
+          .send({
+            id: `item-${i}`,
+            pin: [30, 30],
+            instructions: 'test',
+            featureCollection
+          })
+          .expect(200)
       );
     }
     Promise.all(requests)
@@ -914,44 +956,3 @@ test(
       });
   }
 );
-
-// test(
-//   'PUT /projects/:id/items/:id - bulk upload items without waiting',
-//   projectWithOneUnlockedItem,
-//   function(assert) {
-//     const TOTAL_REQUESTS = 10;
-//     const requests = [];
-//     const featureCollection = {
-//       type: 'FeatureCollection',
-//       features: [
-//         {
-//           type: 'Feature',
-//           properties: { type: 'node' },
-//           geometry: {
-//             type: 'Point',
-//             coordinates: [30, 30]
-//           }
-//         }
-//       ]
-//     };
-//     for (let i = 0; i < TOTAL_REQUESTS; i++) {
-//       requests.push(
-//         assert.app
-//           .put(`/projects/00000000-0000-0000-0000-000000000000/items/item-${i}`)
-//           .send({
-//             pin: [30, 30],
-//             instructions: 'test',
-//             featureCollection
-//           })
-//           .expect(200)
-//       );
-//     }
-//     Promise.all(requests)
-//       .then(function() {
-//         assert.end();
-//       })
-//       .catch(function(err) {
-//         return assert.end(err);
-//       });
-//   }
-// );
