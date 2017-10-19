@@ -184,7 +184,7 @@ function createItem(req, res, next) {
     values.lockedBy = null;
   } else if (req.body.lock === 'locked') {
     values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-    values.lockedBy = req.user;
+    values.lockedBy = req.user.username;
   } else if (req.body.lock !== undefined) {
     return next(new ErrorHTTP('Invalid lock change action'));
   } else if (req.body.lock && req.body.status) {
@@ -223,7 +223,7 @@ function createItem(req, res, next) {
     }
   }
 
-  values.user = req.user;
+  values.user = req.user.username;
   values.project = req.params.project;
   values.item = req.params.item;
 
@@ -339,7 +339,7 @@ function updateItem(req, res, next) {
     values.lockedBy = null;
   } else if (req.body.lock === 'locked') {
     values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-    values.lockedBy = req.user;
+    values.lockedBy = req.user.username;
   } else if (req.body.lock !== undefined) {
     return next(new ErrorHTTP('Invalid lock change action'));
   } else if (req.body.lock && req.body.status) {
@@ -378,7 +378,7 @@ function updateItem(req, res, next) {
     }
   }
 
-  values.user = req.user;
+  values.user = req.user.username;
   values.project = req.params.project;
   values.item = req.params.item;
 

@@ -179,9 +179,10 @@ const listItemsFixture = [
 test(
   'GET /projects/:id/items - get a project that is not in the db',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/items')
+      .set('authorization', token)
       .expect(404, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.ok(res.body.message, 'has message attr');
@@ -193,9 +194,10 @@ test(
 test(
   'GET /projects/:id/items - get a project without items',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 0, 'has no items');
@@ -207,9 +209,10 @@ test(
 test(
   'GET /projects/:id/items - get a project with items',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 2, 'has right number of items');
@@ -251,12 +254,13 @@ test(
 test(
   'GET /projects/:id/items?page=X&page_size=Y - get a project with pagination',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     var requests = [
       assert.app
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=0&page_size=10'
         )
+        .set('authorization', token)
         .expect(200)
         .then(res => {
           assert.equal(
@@ -267,6 +271,7 @@ test(
         }),
       assert.app
         .get('/projects/44444444-4444-4444-4444-444444444444/items?page=0')
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -279,6 +284,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=0&page_size=5'
         )
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -291,6 +297,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=1&page_size=5'
         )
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -303,6 +310,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=2&page_size=5'
         )
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -315,6 +323,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=3&page_size=5'
         )
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -327,6 +336,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=3000&page_size=5'
         )
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -339,6 +349,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=0&page_size=0'
         )
+        .set('authorization', token)
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -351,6 +362,7 @@ test(
         .get(
           '/projects/44444444-4444-4444-4444-444444444444/items?page=-1&page_size=5'
         )
+        .set('authorization', token)
         .expect(400)
     ];
 
@@ -367,9 +379,10 @@ test(
 test(
   'GET /projects/:id/items?lock=locked - get a project with locked items',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/22222222-2222-2222-2222-222222222222/items?lock=locked')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 3, 'should have 3 locked items');
@@ -381,9 +394,10 @@ test(
 test(
   'GET /projects/:id/items?lock=locked - get a project with locked items with lockers2 data',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/33333333-3333-3333-3333-333333333333/items?lock=locked')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 1, 'should have 1 locked items');
@@ -395,9 +409,10 @@ test(
 test(
   'GET /projects/:id/items?lock=unlocked - get a project with unlocked items',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/22222222-2222-2222-2222-222222222222/items?lock=unlocked')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 1, 'should have one unlocked item');
@@ -409,9 +424,10 @@ test(
 test(
   'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/33333333-3333-3333-3333-333333333333/items?lock=unlocked')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
@@ -423,9 +439,10 @@ test(
 test(
   'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
   listItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .get('/projects/33333333-3333-3333-3333-333333333333/items?lock=unlocked')
+      .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
@@ -451,9 +468,10 @@ const getItemsFixture = [
 test(
   'CREATE /projects/:project/items/:item - invalid body attributes',
   getItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
       .send({
         id: '405270',
         name: 'My Item',
@@ -475,9 +493,10 @@ test(
 test(
   'CREATE /projects/:project/items/:item - missing required body attributes',
   getItemsFixture,
-  assert => {
+  (assert, token) => {
     assert.app
       .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
       .send({ id: '405270', name: 'My Item', instructions: 'Fix this item' })
       .expect(400, (err, res) => {
         assert.ifError(err, 'should not error');
@@ -487,38 +506,44 @@ test(
   }
 );
 
-test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
-  assert.app
-    .post('/projects/11111111-1111-1111-1111-111111111111/items')
-    .send({
-      id: '405270',
-      name: 'My Item',
-      instructions: 'Fix this item',
-      pin: [0, 0]
-    })
-    .expect(200, (err, res) => {
-      assert.ifError(err, 'should not error');
-      const item = removeDates(res.body);
-      assert.deepEqual(item, {
-        status: 'open',
-        siblings: [],
-        metadata: {},
+test(
+  'CREATE /projects/:project/items/:item',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
         id: '405270',
-        project_id: '11111111-1111-1111-1111-111111111111',
-        pin: { type: 'Point', coordinates: [0, 0] },
         name: 'My Item',
         instructions: 'Fix this item',
-        featureCollection: { type: 'FeatureCollection', features: [] },
-        createdBy: 'test-user',
-        lockedBy: null
+        pin: [0, 0]
+      })
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        const item = removeDates(res.body);
+        assert.deepEqual(item, {
+          status: 'open',
+          siblings: [],
+          metadata: {},
+          id: '405270',
+          project_id: '11111111-1111-1111-1111-111111111111',
+          pin: { type: 'Point', coordinates: [0, 0] },
+          name: 'My Item',
+          instructions: 'Fix this item',
+          featureCollection: { type: 'FeatureCollection', features: [] },
+          createdBy: 'test-user',
+          lockedBy: null
+        });
+        assert.end();
       });
-      assert.end();
-    });
-});
+  }
+);
 
-test('GET /projects/:project/items/:item', getItemsFixture, assert => {
+test('GET /projects/:project/items/:item', getItemsFixture, (assert, token) => {
   assert.app
     .get('/projects/11111111-1111-1111-1111-111111111111/items/30')
+    .set('authorization', token)
     .expect(200, (err, res) => {
       assert.ifError(err, 'should not error');
       assert.ok(
