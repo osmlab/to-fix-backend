@@ -42,7 +42,11 @@ function getProjects(req, res, next) {
  * @param {string} body.name - The project name
  * @param {Object} [body.metadata={}] - The project metadata
  * @example
- * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
+ * curl \
+ * -X POST \
+ * -H "Content-Type: application/json" \
+ * -d '{"name":"My Project"}' \
+ * https://host/projects
  *
  * {
  *   id: '00000000-0000-0000-0000-000000000000',
@@ -69,7 +73,7 @@ function createProject(req, res, next) {
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @example
- * curl https://host/projects/:project
+ * curl https://host/projects/00000000-0000-0000-0000-000000000000
  *
  * {
  *   id: '00000000-0000-0000-0000-000000000000',

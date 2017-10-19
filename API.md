@@ -42,30 +42,6 @@ curl https://host/projects
 ]
 ```
 
-### create-project
-
-Create a project.
-
-**Parameters**
-
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
-
-**Examples**
-
-```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
-
-{
-  id: '00000000-0000-0000-0000-000000000000',
-  metadata: {},
-  name: 'My Project',
-  updatedAt: '2017-10-19T00:00:00.000Z',
-  createdAt: '2017-10-19T00:00:00.000Z'
-}
-```
-
 ### get-items
 
 Get a paginated list of items for a project.
@@ -82,7 +58,7 @@ Get a paginated list of items for a project.
 **Examples**
 
 ```javascript
-curl https://host/projects/:project/items?lock=unlocked
+curl https://host/projects/:project/items
 
 [
   {
@@ -110,6 +86,34 @@ curl https://host/projects/:project/items?lock=unlocked
 ]
 ```
 
+### create-project
+
+Create a project.
+
+**Parameters**
+
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
+
+**Examples**
+
+```javascript
+curl \
+-X POST \
+-H "Content-Type: application/json" \
+-d '{"name":"My Project"}' \
+https://host/projects
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  metadata: {},
+  name: 'My Project',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z'
+}
+```
+
 ### get-project
 
 Get a project.
@@ -122,7 +126,7 @@ Get a project.
 **Examples**
 
 ```javascript
-curl https://host/projects/:project
+curl https://host/projects/00000000-0000-0000-0000-000000000000
 
 {
   id: '00000000-0000-0000-0000-000000000000',
@@ -154,7 +158,11 @@ Create an item in a project.
 **Examples**
 
 ```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' https://host/projects/:project/items
+curl \
+-X POST \
+-H "Content-Type: application/json" \
+-d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' \
+https://host/projects/00000000-0000-0000-0000-000000000000/items
 
 {
   status: 'open',
@@ -193,7 +201,7 @@ Get an item for a project.
 **Examples**
 
 ```javascript
-curl https://host/projects/:project/items/:item
+curl https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
 
 {
   status: 'open',

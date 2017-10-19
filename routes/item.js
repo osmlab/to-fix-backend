@@ -27,7 +27,7 @@ module.exports = {
  * @param {string} [query.page=0] - The pagination start page
  * @param {string} [query.page_size=100] - The page size
  * @example
- * curl https://host/projects/:project/items?lock=unlocked
+ * curl https://host/projects/:project/items
  *
  * [
  *   {
@@ -105,7 +105,11 @@ function getItems(req, res, next) {
  * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
  * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
  * @example
- * curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' https://host/projects/:project/items
+ * curl \
+ * -X POST \
+ * -H "Content-Type: application/json" \
+ * -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' \
+ * https://host/projects/00000000-0000-0000-0000-000000000000/items
  *
  * {
  *   status: 'open',
@@ -247,7 +251,7 @@ function createItem(req, res, next) {
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
  * @example
- * curl https://host/projects/:project/items/:item
+ * curl https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
  *
  * {
  *   status: 'open',
