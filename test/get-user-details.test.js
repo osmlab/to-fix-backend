@@ -1,5 +1,7 @@
-const test = require('./lib/test');
+'use strict';
+
 const getUserDetails = require('../lib/get-user-details');
+const test = require('./lib/test');
 
 test('test get user details', [], assert => {
   const oauthTokenSecret = 'faketokensecret';

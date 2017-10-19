@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const tape = require('tape');
 process.env.PG_DATABASE = 'tofix_test';
 const server = require('../../lib/server');
@@ -8,7 +10,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const fs = require('fs');
 const join = require('path').join;
-const db = require('../../database/db');
+const db = require('../../database/index');
 
 var pendingTests = 0;
 
@@ -66,14 +68,19 @@ function setup(fixture) {
   }
   return Promise.all(
     fixture.map(function(project) {
-      return db.Projects
-        .create({ id: project.id, metadata: project.metadata || {} })
+      return db.Project
+        .create({
+          id: project.id,
+          name: project.name,
+          metadata: project.metadata || {}
+        })
         .then(function() {
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
           var morePromise = items.map(function(item) {
-            return db.ProjectItems.create({
+            return db.Item.create({
               id: item.id,
+              name: item.name,
               project_id: project.id,
               pin: {
                 type: 'Point',
@@ -92,8 +99,7 @@ function setup(fixture) {
           var stats = project.stats || {};
           morePromise = morePromise.concat(
             Object.keys(stats).map(function(user) {
-              return db.ProjectUserStats.create({
-                project_id: project.id,
+              return db.Stat.create({
                 user: user,
                 stats: stats[user]
               });

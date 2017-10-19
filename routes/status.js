@@ -1,15 +1,18 @@
-const db = require('../database/db');
+const db = require('../database/index');
 
 module.exports = {
   getStatus: getStatus
 };
 
 /**
- * Get the status of server
+ * Get the server status.
  * @name get-status
  * @example
- * curl https://host/
- *  { status: 'OK' }
+ * curl https://host
+ *
+ * {
+ *   status: 'OK'
+ * }
  */
 function getStatus(req, res, next) {
   db

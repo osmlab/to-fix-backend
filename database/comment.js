@@ -1,18 +1,19 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(db) {
-  var ItemComments = db.define('item_comments', {
+  var Comment = db.define('comment', {
     id: {
-      type: Sequelize.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    body: {
-      type: Sequelize.TEXT,
-      allowNull: false
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true,
+      defaultValue: Sequelize.UUIDV4
     },
     createdBy: {
       type: Sequelize.STRING,
+      allowNull: false
+    },
+    body: {
+      type: Sequelize.TEXT,
       allowNull: false
     },
     coordinates: {
@@ -20,5 +21,5 @@ module.exports = function(db) {
     }
   });
 
-  return ItemComments;
+  return Comment;
 };

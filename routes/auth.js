@@ -21,9 +21,7 @@ module.exports = {
   handleOSMCallback: handleOSMCallback
 };
 
-/**
- * Redirects the user to the OSM login URL
- */
+// Redirects the user to the OSM login URL
 function redirectOsmAuth(req, res) {
   osmOauth.getOAuthRequestToken(function(
     error,
@@ -44,12 +42,10 @@ function redirectOsmAuth(req, res) {
   });
 }
 
-/**
- * URL that is called by openstreetmap.org after user successfully logs in
- * This verifies the user's OSM login credentials, gets the user profile info,
- * generates a JWT token that encodes this info, and redirects back to a frontend
- * URL with the token as a query parameter
- */
+// URL that is called by openstreetmap.org after user successfully logs in
+// This verifies the user's OSM login credentials, gets the user profile info,
+// generates a JWT token that encodes this info, and redirects back to a frontend
+// URL with the token as a query parameter
 function handleOSMCallback(req, res, next) {
   // console.log('SESSION: ', req.session);
   if (req.session.oauth) {

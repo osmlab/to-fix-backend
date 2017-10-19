@@ -1,3 +1,6 @@
+/*
+'use strict';
+
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');
@@ -44,7 +47,7 @@ test(
   function(assert) {
     assert.app
       .put('/projects/one/items/no-instructions')
-      .send({ pin: [30, 30] })
+      .send({ name: 'test-name', pin: [30, 30] })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(
@@ -63,7 +66,7 @@ test(
   function(assert) {
     assert.app
       .put('/projects/one/items/bad-pin')
-      .send({ pin: [], instructions: 'test' })
+      .send({ name: 'test-name', pin: [], instructions: 'test' })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(
@@ -82,7 +85,7 @@ test(
   function(assert) {
     assert.app
       .put('/projects/one/items/30')
-      .send({ pin: [] })
+      .send({ name: 'test-name', pin: [] })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(
@@ -101,7 +104,7 @@ test(
   function(assert) {
     assert.app
       .put('/projects/one/items/no-pin')
-      .send({ instructions: 'test' })
+      .send({ name: 'test-name', instructions: 'test' })
       .expect(400, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.message, 'pin is required', 'expected message');
@@ -117,6 +120,7 @@ test(
     assert.app
       .put('/projects/one/items/bad-fc')
       .send({
+        name: 'test-name',
         pin: [30, 30],
         instructions: 'test',
         featureCollection: { type: 'FeatureCollection' }
@@ -153,6 +157,7 @@ test(
     assert.app
       .put('/projects/one/items/good-item')
       .send({
+        name: 'test-name',
         pin: [30, 30],
         instructions: 'test',
         featureCollection
@@ -505,3 +510,4 @@ test(
       });
   }
 );
+*/
