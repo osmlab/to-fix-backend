@@ -16,6 +16,10 @@ Get the server status.
 
 ```javascript
 curl https://host
+
+{
+  status: 'OK'
+}
 ```
 
 ### get-projects
@@ -26,6 +30,16 @@ Get a list of projects.
 
 ```javascript
 curl https://host/projects
+
+[
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'project0',
+    metadata: {},
+    createdAt: '2017-10-18T00:00:00.000Z',
+    updatedAt: '2017-10-18T00:00:00.000Z'
+  }
+]
 ```
 
 ### get-project-items
@@ -34,12 +48,12 @@ Get a paginated list of items for a project.
 
 **Parameters**
 
--   `params` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
--   `query` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL query parameters
-    -   `query.lock` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The item's lock status, must be 'locked' or 'unlocked'
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL query parameters
+    -   `query.lock` **(`"locked"` \| `"unlocked"`)** The item's lock status, must be 'locked' or 'unlocked' (optional, default `'locked'`)
     -   `query.page` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The pagination start page (optional, default `0`)
-    -   `query.page_size` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The page size (optional, default `constants.PAGE_SIZE`)
+    -   `query.page_size` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The page size (optional, default `100`)
 
 **Examples**
 
@@ -53,17 +67,22 @@ Create a project.
 
 **Parameters**
 
--   `body` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
     -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
-    -   `body.metadata` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The project metadata
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
 
 **Examples**
 
 ```javascript
-curl -X POST \
--H "Content-Type: application/json" \
--d '{"name":"my-project"}' \
-https://host/projects
+curl -X POST -H "Content-Type: application/json" -d '{"name":"my-project"}' https://host/projects
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  metadata: {},
+  name: 'project0',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z'
+}
 ```
 
 ### get-project
@@ -72,7 +91,7 @@ Get a project.
 
 **Parameters**
 
--   `params` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
 
 **Examples**
@@ -87,10 +106,10 @@ Create an item in a project.
 
 **Parameters**
 
--   `params` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
     -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
--   `body` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
     -   `body.id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** An identifier that can be used in future API requests for the item
     -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** A user-friendly item name
     -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Instructions on how to work on the item
@@ -114,7 +133,7 @@ Get an item for a project.
 
 **Parameters**
 
--   `params` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
     -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
 

@@ -9,6 +9,10 @@ module.exports = {
  * @name get-status
  * @example
  * curl https://host
+ *
+ * {
+ *   status: 'OK'
+ * }
  */
 function getStatus(req, res, next) {
   db

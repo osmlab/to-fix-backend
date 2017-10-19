@@ -20,12 +20,12 @@ module.exports = {
 /**
  * Get a paginated list of items for a project.
  * @name get-project-items
- * @param {object} params - The request URL parameters
+ * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
- * @param {object} query - The request URL query parameters
- * @param {string} [query.lock] - The item's lock status, must be 'locked' or 'unlocked'
+ * @param {Object} query - The request URL query parameters
+ * @param {('locked'|'unlocked')} [query.lock='locked'] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.page=0] - The pagination start page
- * @param {string} [query.page_size=constants.PAGE_SIZE] - The page size
+ * @param {string} [query.page_size=100] - The page size
  * @example
  * curl https://host/projects/:project/items?lock=unlocked
  */
@@ -68,10 +68,10 @@ function getItems(req, res, next) {
 /**
  * Create an item in a project.
  * @name create-item
- * @param {object} params - The request URL parameters
+ * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
- * @param {object} body - The request body
+ * @param {Object} body - The request body
  * @param {string} body.id - An identifier that can be used in future API requests for the item
  * @param {string} body.name - A user-friendly item name
  * @param {string} body.instructions - Instructions on how to work on the item
@@ -198,7 +198,7 @@ function createItem(req, res, next) {
 /**
  * Get an item for a project.
  * @name get-project-item
- * @param {object} params - The request URL parameters
+ * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
  * @example

@@ -16,6 +16,16 @@ module.exports = {
  * @name get-projects
  * @example
  * curl https://host/projects
+ *
+ * [
+ *   {
+ *     id: '00000000-0000-0000-0000-000000000000',
+ *     name: 'project0',
+ *     metadata: {},
+ *     createdAt: '2017-10-18T00:00:00.000Z',
+ *     updatedAt: '2017-10-18T00:00:00.000Z'
+ *   }
+ * ]
  */
 function getProjects(req, res, next) {
   Project.findAll()
@@ -28,14 +38,19 @@ function getProjects(req, res, next) {
 /**
  * Create a project.
  * @name create-project
- * @param {object} body - The request body
+ * @param {Object} body - The request body
  * @param {string} body.name - The project name
- * @param {object} [body.metadata] - The project metadata
+ * @param {Object} [body.metadata={}] - The project metadata
  * @example
- * curl -X POST \
- * -H "Content-Type: application/json" \
- * -d '{"name":"my-project"}' \
- * https://host/projects
+ * curl -X POST -H "Content-Type: application/json" -d '{"name":"my-project"}' https://host/projects
+ *
+ * {
+ *   id: '00000000-0000-0000-0000-000000000000',
+ *   metadata: {},
+ *   name: 'project0',
+ *   updatedAt: '2017-10-19T00:00:00.000Z',
+ *   createdAt: '2017-10-19T00:00:00.000Z'
+ * }
  */
 function createProject(req, res, next) {
   if (!req.body.name) next(new ErrorHTTP('req.body.name is required', 422));
@@ -51,7 +66,7 @@ function createProject(req, res, next) {
 /**
  * Get a project.
  * @name get-project
- * @param {object} params - The request URL parameters
+ * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @example
  * curl https://host/projects/:project
