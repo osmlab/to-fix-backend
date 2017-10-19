@@ -1,4 +1,6 @@
 /*
+'use strict';
+
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');

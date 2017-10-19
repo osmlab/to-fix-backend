@@ -448,7 +448,75 @@ const getItemsFixture = [
   }
 ];
 
-test('GET /projects/:id/items/:id', getItemsFixture, assert => {
+test(
+  'CREATE /projects/:project/items/:item - invalid body attributes',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        name: 'My Item',
+        instructions: 'Fix this item',
+        pin: [0, 0],
+        invalidAttr: true
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'Request contains unexpected attributes'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'CREATE /projects/:project/items/:item - missing required body attributes',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({ id: '405270', name: 'My Item', instructions: 'Fix this item' })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.message, 'pin is required');
+        assert.end();
+      });
+  }
+);
+
+test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
+  assert.app
+    .post('/projects/11111111-1111-1111-1111-111111111111/items')
+    .send({
+      id: '405270',
+      name: 'My Item',
+      instructions: 'Fix this item',
+      pin: [0, 0]
+    })
+    .expect(200, (err, res) => {
+      assert.ifError(err, 'should not error');
+      const item = removeDates(res.body);
+      assert.deepEqual(item, {
+        status: 'open',
+        siblings: [],
+        metadata: {},
+        id: '405270',
+        project_id: '11111111-1111-1111-1111-111111111111',
+        pin: { type: 'Point', coordinates: [0, 0] },
+        name: 'My Item',
+        instructions: 'Fix this item',
+        featureCollection: { type: 'FeatureCollection', features: [] },
+        createdBy: 'test-user',
+        lockedBy: null
+      });
+      assert.end();
+    });
+});
+
+test('GET /projects/:project/items/:item', getItemsFixture, assert => {
   assert.app
     .get('/projects/11111111-1111-1111-1111-111111111111/items/30')
     .expect(200, (err, res) => {
