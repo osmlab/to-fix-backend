@@ -213,7 +213,7 @@ test(
     assert.app
       .get('/projects/00000000-0000-0000-0000-000000000000/items')
       .expect(401, (err, res) => {
-        assert.equal(res.body.error, 'Token Authentication Failed');
+        assert.equal(res.body.message, 'Token Authentication Failed');
         assert.end();
       });
   }
