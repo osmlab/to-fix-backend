@@ -187,14 +187,3 @@ test('PUT /projects/:project - invalid body attributes', oneproject, function(
       assert.end();
     });
 });
-
-test('DELETE /projects/:project', oneproject, assert => {
-  assert.app
-    .delete('/projects/00000000-0000-0000-0000-000000000000')
-    .expect(200)
-    .end((err, res) => {
-      assert.ifError(err, 'should not error');
-      assert.deepEqual(res.body, 1);
-      assert.end();
-    });
-});

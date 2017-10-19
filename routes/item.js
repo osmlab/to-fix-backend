@@ -13,8 +13,7 @@ module.exports = {
   getItems: getItems,
   createItem: createItem,
   getItem: getItem,
-  updateItem: updateItem,
-  deleteItem: deleteItem
+  updateItem: updateItem
 };
 
 /**
@@ -382,8 +381,4 @@ function updateItem(req, res, next) {
       res.json(data);
     })
     .catch(next);
-}
-
-function deleteItem(req, res, next) {
-  return next();
 }

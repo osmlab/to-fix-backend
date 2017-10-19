@@ -207,23 +207,6 @@ https://host/projects/00000000-0000-0000-0000-000000000000/items
 }
 ```
 
-### deleteProject
-
-Delete a project.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/projects/:project
-
-1
-```
-
 ### get-project-item
 
 Get an item for a project.
