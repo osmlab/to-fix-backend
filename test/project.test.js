@@ -3,6 +3,13 @@
 const removeDates = require('./lib/remove-dates');
 const test = require('./lib/test');
 
+test('GET /projects without auth', [], assert => {
+  assert.app.get('/projects').expect(401, (err, res) => {
+    assert.equal(res.body.error, 'Token Authentication Failed');
+    assert.end();
+  });
+});
+
 test(
   'GET /projects',
   [

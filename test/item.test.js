@@ -207,6 +207,19 @@ test(
 );
 
 test(
+  'GET /projects/:id/items - get items without providing auth',
+  listItemsFixture,
+  assert => {
+    assert.app
+      .get('/projects/00000000-0000-0000-0000-000000000000/items')
+      .expect(401, (err, res) => {
+        assert.equal(res.body.error, 'Token Authentication Failed');
+        assert.end();
+      });
+  }
+);
+
+test(
   'GET /projects/:id/items - get a project with items',
   listItemsFixture,
   (assert, token) => {
