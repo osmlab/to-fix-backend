@@ -3,7 +3,7 @@
 const db = require('../database/index');
 const Tag = db.Tag;
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-const validateBody = require('../lib/helpers/validateBody');
+const validateBody = require('../lib/helper/validateBody');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 

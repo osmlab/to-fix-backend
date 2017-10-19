@@ -24,18 +24,14 @@ curl https://host
 
 ### get-project-tag
 
-Get a project tag.
+Get a list of project tags.
 
 **Parameters**
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-
-**Examples**
-
-```javascript
-curl https://host/projects/:project/tags
-```
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The request URL query parameters
+    -   `query.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** String to filter tag names by
 
 ### get-project-tag
 
@@ -71,24 +67,6 @@ curl https://host/projects
     updatedAt: '2017-10-18T00:00:00.000Z'
   }
 ]
-```
-
-### create-project-tag
-
-Create a project tag.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The tag metadata (optional, default `{}`)
-
-**Examples**
-
-```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://host/projects/:project/tags
 ```
 
 ### get-items
@@ -133,6 +111,24 @@ curl https://host/projects/:project/items
     lockedBy: null
   }
 ]
+```
+
+### create-project-tag
+
+Create a project tag.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The tag metadata (optional, default `{}`)
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://host/projects/:project/tags
 ```
 
 ### create-project
@@ -294,16 +290,6 @@ https://host/projects/00000000-0000-0000-0000-000000000000/items
 }
 ```
 
-### getItemTags
-
-Get all tags for an item.
-
-**Parameters**
-
--   `req`  
--   `res`  
--   `next`  
-
 ### deleteProject
 
 Delete a project.
@@ -320,6 +306,16 @@ curl -X DELETE https://host/projects/00000000-0000-0000-0000-000000000000
 
 1
 ```
+
+### getItemTags
+
+Get all tags for an item.
+
+**Parameters**
+
+-   `req`  
+-   `res`  
+-   `next`  
 
 ### createItemTag
 
