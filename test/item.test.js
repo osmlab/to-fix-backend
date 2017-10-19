@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 'use strict';
 
 const test = require('./lib/test');
@@ -156,7 +154,6 @@ const listItemsFixture = [
     ]
   }
 ];
-
 const getItemsFixture = [
   {
     id: '11111111-1111-1111-1111-111111111111',
@@ -169,6 +166,49 @@ const getItemsFixture = [
     ]
   }
 ];
+const projectWithOneUnlockedItem = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30]
+      }
+    ]
+  }
+];
+const projectWithOneItemLockedByUserTwo = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30],
+        lockedBy: 'usertwo',
+        lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+      }
+    ]
+  }
+];
+const projectWithOneItemLockedByUserOne = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30],
+        lockedBy: 'test-user',
+        lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+      }
+    ]
+  }
+];
+const delay = time => new Promise(res => setTimeout(res, time));
+
+/* GET /projects/:project/items */
 
 test(
   'GET /projects/:id/items - get a project that is not in the db',
@@ -373,7 +413,7 @@ test(
 );
 
 test(
-  'GET /projects/:id/items?lock=locked - get a project with locked items with lockers2 data',
+  'GET /projects/:id/items?lock=locked - get a project with locked items with Project3 data',
   listItemsFixture,
   assert => {
     assert.app
@@ -401,7 +441,7 @@ test(
 );
 
 test(
-  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with Project3 data',
   listItemsFixture,
   assert => {
     assert.app
@@ -415,7 +455,7 @@ test(
 );
 
 test(
-  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with Project3 data',
   listItemsFixture,
   assert => {
     assert.app
@@ -428,8 +468,10 @@ test(
   }
 );
 
+/* POST /projects/:project/items */
+
 test(
-  'CREATE /projects/:project/items/:item - invalid body attributes',
+  'POST /projects/:project/items/:item - invalid body attributes',
   getItemsFixture,
   assert => {
     assert.app
@@ -452,7 +494,7 @@ test(
 );
 
 test(
-  'CREATE /projects/:project/items/:item - missing required body attributes',
+  'POST /projects/:project/items/:item - missing required body attributes',
   getItemsFixture,
   assert => {
     assert.app
@@ -469,7 +511,95 @@ test(
   }
 );
 
-test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
+test(
+  'POST /projects/:project/items/:item - bad ID',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '******',
+        instructions: 'Fix this item',
+        pin: [0, 0]
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'An item must have a valid ID comprised only of letters and numbers'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /projects/:project/items/:item - bad instructions',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        instructions: 5,
+        pin: [0, 0]
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'An item must have a valid instruction'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /projects/:project/items/:item - bad pin 1',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        instructions: 'Fix this item',
+        pin: [0]
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'An item must have a pin in the [longitude, latitude] format'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /projects/:project/items/:item - bad pin 2',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        instructions: 'Fix this item',
+        pin: ['-1000', '1000']
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'Invalid Pin each element in a position must be a number'
+        );
+        assert.end();
+      });
+  }
+);
+
+test('POST /projects/:project/items/:item', getItemsFixture, assert => {
   assert.app
     .post('/projects/11111111-1111-1111-1111-111111111111/items')
     .send({
@@ -495,6 +625,52 @@ test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
       assert.end();
     });
 });
+
+test(
+  'POST /projects/:id/items - bulk upload items with a linear wait',
+  projectWithOneUnlockedItem,
+  assert => {
+    const TOTAL_REQUESTS = 10;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        delay(i * 50).then(() =>
+          assert.app
+            .post(`/projects/00000000-0000-0000-0000-000000000000/items`)
+            .send({
+              id: `item-${i}`,
+              pin: [30, 30],
+              instructions: 'test',
+              featureCollection
+            })
+            .expect(200)
+        )
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
+
+/* GET /projects/:project/items/:item */
 
 test('GET /projects/:project/items/:item', getItemsFixture, assert => {
   assert.app
@@ -527,48 +703,6 @@ test('GET /projects/:project/items/:item', getItemsFixture, assert => {
       assert.end();
     });
 });
-
-const projectWithOneUnlockedItem = [
-  {
-    id: '00000000-0000-0000-0000-000000000000',
-    name: 'Project 0',
-    items: [
-      {
-        id: '30',
-        pin: [30, 30]
-      }
-    ]
-  }
-];
-const projectWithOneItemLockedByUserTwo = [
-  {
-    id: '00000000-0000-0000-0000-000000000000',
-    name: 'Project 0',
-    items: [
-      {
-        id: '30',
-        pin: [30, 30],
-        lockedBy: 'usertwo',
-        lockedTill: new Date(Date.now() + 1000 * 15 * 60)
-      }
-    ]
-  }
-];
-const projectWithOneItemLockedByUserOne = [
-  {
-    id: '00000000-0000-0000-0000-000000000000',
-    name: 'Project 0',
-    items: [
-      {
-        id: '30',
-        pin: [30, 30],
-        lockedBy: 'test-user',
-        lockedTill: new Date(Date.now() + 1000 * 15 * 60)
-      }
-    ]
-  }
-];
-const delay = time => new Promise(res => setTimeout(res, time));
 
 test(
   'PUT /projects/:project/items/:item - updating an item with an invalid pin errors',
@@ -781,49 +915,6 @@ test(
   }
 );
 
-// test(
-//   'PUT /projects/:id/items/:id - bulk upload items with a linear wait',
-//   projectWithOneUnlockedItem,
-//   function(assert) {
-//     const TOTAL_REQUESTS = 10;
-//     const requests = [];
-//     const featureCollection = {
-//       type: 'FeatureCollection',
-//       features: [
-//         {
-//           type: 'Feature',
-//           properties: { type: 'node' },
-//           geometry: {
-//             type: 'Point',
-//             coordinates: [30, 30]
-//           }
-//         }
-//       ]
-//     };
-//     for (let i = 0; i < TOTAL_REQUESTS; i++) {
-//       requests.push(
-//         delay(i * 50).then(() =>
-//           assert.app
-//             .put(`/projects/00000000-0000-0000-0000-000000000000/items/item-${i}`)
-//             .send({
-//               pin: [30, 30],
-//               instructions: 'test',
-//               featureCollection
-//             })
-//             .expect(200)
-//         )
-//       );
-//     }
-//     Promise.all(requests)
-//       .then(function() {
-//         assert.end();
-//       })
-//       .catch(function(err) {
-//         return assert.end(err);
-//       });
-//   }
-// );
-//
 // test(
 //   'PUT /projects/:id/items/:id - bulk upload items without waiting',
 //   projectWithOneUnlockedItem,
