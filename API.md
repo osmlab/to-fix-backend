@@ -70,9 +70,8 @@ curl https://host/projects/:project/items
     project_id: '00000000-0000-0000-0000-000000000000',
     pin: {
       type: 'Point',
-      coordinates: [0,0]
+      coordinates: [0, 0]
     },
-    name: 'My Item',
     instructions: 'Fix this item',
     featureCollection: {
       type: 'FeatureCollection',
@@ -167,13 +166,11 @@ Create an item in a project.
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
 -   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
     -   `body.id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** An identifier that can be used in future API requests for the item
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** A user-friendly item name
     -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Instructions on how to work on the item
+    -   `body.pin` **\[Lon, Lat]** A 2D geometry point to represent the feature
     -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
-    -   `body.pin` **\[Lon, Lat]?** A 2D geometry point to represent the feature
     -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
     -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
 
@@ -183,7 +180,7 @@ Create an item in a project.
 curl \
 -X POST \
 -H "Content-Type: application/json" \
--d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' \
+-d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' \
 https://host/projects/00000000-0000-0000-0000-000000000000/items
 
 {
@@ -195,9 +192,8 @@ https://host/projects/00000000-0000-0000-0000-000000000000/items
   project_id: '00000000-0000-0000-0000-000000000000',
   pin: {
     type: 'Point',
-    coordinates: [0,0]
+    coordinates: [0, 0]
   },
-  name: 'My Item',
   instructions: 'Fix this item',
   featureCollection: {
     type: 'FeatureCollection',
@@ -236,7 +232,6 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
     type: 'Point',
     coordinates: [0,0]
   },
-  name: 'My Item',
   instructions: 'Fix this item',
   featureCollection: {
     type: 'FeatureCollection',
@@ -248,3 +243,67 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
   lockedBy: null
 }
 ```
+
+### update-item
+
+Update a project item.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
+    -   `body.pin` **\[Lon, Lat]?** A 2D geometry point to represent the feature
+    -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
+    -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
+    -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Instructions on how to work on the item
+
+**Examples**
+
+```javascript
+curl \
+-X PUT \
+-H "Content-Type: application/json" \
+-d '{"instructions":"Different instructions for fixing the item"}' \
+https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
+
+{
+  status: 'open',
+  lockedTill: '2017-10-19T00:00:00.000Z',
+  siblings: [],
+  metadata: {},
+  id: '405270',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  pin: {
+    type: 'Point',
+    coordinates: [0, 0]
+  },
+  instructions: 'Different instructions for fixing the item',
+  featureCollection: {
+    type: 'FeatureCollection',
+    features: []
+  },
+  createdBy: 'user',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z',
+  lockedBy: null
+}
+```
+
+### putItemWrapper
+
+handle all the logic and some validation for item creation and updating
+
+**Parameters**
+
+-   `opts` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** the opts for the action
+    -   `opts.project` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the id of the project the item belongs to
+    -   `opts.item` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the id of the item itself
+    -   `opts.user` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the user making the change
+    -   `opts.featureCollection` **FeatureCollection?** a validated GeoJSON feature collection, required on create
+    -   `opts.pin` **Point?** a validated GeoJSON point representing the queryable location of this item, required on create
+    -   `opts.instructions` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the instructions for what needs to be done, required on create
+    -   `opts.status` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the status to set the item to
+    -   `opts.lockedTill` **[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** the time the lock expires at

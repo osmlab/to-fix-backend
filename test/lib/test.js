@@ -80,7 +80,6 @@ function setup(fixture) {
           var morePromise = items.map(function(item) {
             return db.Item.create({
               id: item.id,
-              name: item.name,
               project_id: project.id,
               pin: {
                 type: 'Point',

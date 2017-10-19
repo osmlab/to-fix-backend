@@ -7,7 +7,8 @@ const Item = db.Item;
 const Project = db.Project;
 const geojsonhint = require('@mapbox/geojsonhint');
 const constants = require('../lib/constants');
-const putItemWrapper = require('../lib/put-item');
+const validateBody = require('../lib/helper/validateBody');
+const _ = require('lodash');
 
 module.exports = {
   getItems: getItems,
@@ -38,9 +39,8 @@ module.exports = {
  *     project_id: '00000000-0000-0000-0000-000000000000',
  *     pin: {
  *       type: 'Point',
- *       coordinates: [0,0]
+ *       coordinates: [0, 0]
  *     },
- *     name: 'My Item',
  *     instructions: 'Fix this item',
  *     featureCollection: {
  *       type: 'FeatureCollection',
@@ -66,24 +66,28 @@ function getItems(req, res, next) {
   }
 
   if (req.query.lock) {
-    if (req.query.lock !== 'locked' && req.query.lock !== 'unlocked') {
-      return next(new ErrorHTTP('Invalid query lock value ', 400));
+    if (constants.LOCKED_STATUS.indexOf(req.query.lock) === -1) {
+      return next(
+        new ErrorHTTP(`Invalid req.query.lock: ${req.query.lock}`, 400)
+      );
     }
-    const locked = req.query.lock === 'locked';
-    // all items less than current time are unlocked
-    // and vice versa
+    const locked = req.query.lock === constants.LOCKED;
     search.where.lockedTill = {
       [locked ? Op.gt : Op.lt]: new Date()
     };
   }
+
+  /* If there are items, return them. If there are not items, confirm that the
+  project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
+  return empty array. */
   Item.findAll(search)
-    .then(function(data) {
+    .then(data => {
       if (data.length > 0) return res.json(data);
       return Project.findOne({
         where: { id: req.params.project }
-      }).then(function(data) {
+      }).then(data => {
         if (data === null) return next();
-        res.json([]); // there is a project but it has no items
+        res.json([]);
       });
     })
     .catch(next);
@@ -94,20 +98,18 @@ function getItems(req, res, next) {
  * @name create-item
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
- * @param {string} params.item - The item ID
  * @param {Object} body - The request body
  * @param {string} body.id - An identifier that can be used in future API requests for the item
- * @param {string} body.name - A user-friendly item name
  * @param {string} body.instructions - Instructions on how to work on the item
+ * @param {[Lon,Lat]} body.pin - A 2D geometry point to represent the feature
  * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
- * @param {[Lon,Lat]} [body.pin] - A 2D geometry point to represent the feature
  * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
  * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
  * @example
  * curl \
  * -X POST \
  * -H "Content-Type: application/json" \
- * -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' \
+ * -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' \
  * https://host/projects/00000000-0000-0000-0000-000000000000/items
  *
  * {
@@ -119,9 +121,8 @@ function getItems(req, res, next) {
  *   project_id: '00000000-0000-0000-0000-000000000000',
  *   pin: {
  *     type: 'Point',
- *     coordinates: [0,0]
+ *     coordinates: [0, 0]
  *   },
- *   name: 'My Item',
  *   instructions: 'Fix this item',
  *   featureCollection: {
  *     type: 'FeatureCollection',
@@ -136,108 +137,109 @@ function getItems(req, res, next) {
 function createItem(req, res, next) {
   const validBodyAttrs = [
     'id',
-    'name',
     'lock',
     'pin',
     'status',
     'featureCollection',
     'instructions'
   ];
-  const invalidBodyAttrs = Object.keys(req.body).filter(function(attr) {
-    return validBodyAttrs.indexOf(attr) === -1;
-  });
+  const requiredBodyAttr = ['id', 'instructions', 'pin'];
+  const validationError = validateBody(
+    req.body,
+    validBodyAttrs,
+    requiredBodyAttr
+  );
+  if (validationError) return next(new ErrorHTTP(validationError, 400));
 
-  if (invalidBodyAttrs.length !== 0) {
-    return next(new ErrorHTTP('Request contains unexpected attributes', 400));
-  }
+  const values = { project_id: req.params.project };
 
-  // validate pin
-  const values = { id: req.params.item, project_id: req.params.project };
-  if (Array.isArray(req.body.pin)) {
-    values.pin = {
-      type: 'Point',
-      coordinates: req.body.pin
-    };
-    var pinErrors = geojsonhint.hint(values.pin, {
-      precisionWarning: false
-    });
-    if (pinErrors.length) {
-      return next(new ErrorHTTP('Invalid Pin: ' + pinErrors[0].message, 400));
-    }
-  }
-
-  if (req.body.name) values.name = req.body.name;
-  if (req.body.id) values.id = req.body.id;
-
-  if (req.body.instructions) {
-    const instructions = req.body.instructions;
-    if (typeof instructions !== 'string' || instructions.length < 1) {
-      return next(ErrorHTTP('An item must have a valid instruction', 400));
-    }
-    values.instructions = instructions;
-  }
-
-  // validate lock
-  if (req.body.lock === 'unlocked') {
-    values.lockedTill = new Date();
-    values.lockedBy = null;
-  } else if (req.body.lock === 'locked') {
-    values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-    values.lockedBy = req.user;
-  } else if (req.body.lock !== undefined) {
-    return next(new ErrorHTTP('Invalid lock change action'));
-  } else if (req.body.lock && req.body.status) {
+  /* Validate ID */
+  if (!/^[a-zA-Z0-9-]+$/.test(req.body.id))
     return next(
       new ErrorHTTP(
-        'It is invalid to set the status and change the lock in one request'
-      ),
-      400
+        'An item must have a valid ID comprised only of letters, numbers, and hyphens',
+        400
+      )
     );
+  values.id = req.body.id;
+
+  /* Validate instructions */
+  const instructions = req.body.instructions;
+  if (typeof instructions !== 'string' || instructions.length < 1) {
+    return next(new ErrorHTTP('An item must have a valid instruction', 400));
+  }
+  values.instructions = req.body.instructions;
+
+  /* Validate pin */
+  if (!Array.isArray(req.body.pin) || req.body.pin.length !== 2)
+    return next(
+      new ErrorHTTP(
+        'An item must have a pin in the [longitude, latitude] format',
+        400
+      )
+    );
+  values.pin = { type: 'Point', coordinates: req.body.pin };
+  var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
+  if (pinErrors.length) {
+    return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
   }
 
-  // validate status
+  /* Validate lock */
+  if (req.body.lock) {
+    if (req.body.lock && req.body.status) {
+      return next(
+        new ErrorHTTP(
+          'It is invalid to set the status and change the lock in one request'
+        ),
+        400
+      );
+    }
+    if (constants.LOCKED_STATUS.indexOf(req.body.lock) === -1) {
+      return next(new ErrorHTTP(`Invalid lock change action`, 400));
+    }
+    if (req.body.lock === constants.UNLOCKED) {
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    } else {
+      values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
+      values.lockedBy = req.user;
+    }
+  }
+
+  /* Validate status */
   if (req.body.status) {
     if (constants.ALL_STATUS.indexOf(req.body.status) === -1) {
       return next(new ErrorHTTP('Invalid status', 400));
     }
     values.status = req.body.status;
     if (constants.INACTIVE_STATUS.indexOf(values.status) !== -1) {
-      // if the item has been marked as done, expire the lock
+      // If the item has been marked as done, expire the lock
       values.lockedTill = new Date();
       values.lockedBy = null;
     }
   }
 
-  // validate feature collection
+  /* Validate feature collection */
   if (req.body.featureCollection) {
     values.featureCollection = req.body.featureCollection;
     var fcErrors = geojsonhint.hint(values.featureCollection, {
       precisionWarning: false
     });
-
     if (fcErrors.length) {
       return next(
         new ErrorHTTP('Invalid featureCollection: ' + fcErrors[0].message, 400)
       );
     }
   }
-
-  values.user = req.user;
-  values.project = req.params.project;
-  values.item = req.params.item;
-
-  if (values.instructions === undefined) {
-    throw new ErrorHTTP('instructions is required', 400);
-  }
   values.featureCollection = values.featureCollection || {
     type: 'FeatureCollection',
     features: []
   };
-  values.createdBy = values.user;
-  if (values.pin === undefined) throw new ErrorHTTP('pin is required', 400);
+
+  values.user = values.createdBy = req.user;
 
   Item.create(values)
-    .then(function(item) {
+    .then(item => {
       res.json(item);
     })
     .catch(next);
@@ -263,7 +265,6 @@ function createItem(req, res, next) {
  *     type: 'Point',
  *     coordinates: [0,0]
  *   },
- *   name: 'My Item',
  *   instructions: 'Fix this item',
  *   featureCollection: {
  *     type: 'FeatureCollection',
@@ -289,41 +290,113 @@ function getItem(req, res, next) {
     .catch(next);
 }
 
+/**
+ * Update a project item.
+ * @name update-item
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
+ * @param {Object} body - The request body
+ * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
+ * @param {[Lon,Lat]} [body.pin] - A 2D geometry point to represent the feature
+ * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
+ * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
+ * @param {string} [body.instructions] - Instructions on how to work on the item
+ * @example
+ * curl \
+ * -X PUT \
+ * -H "Content-Type: application/json" \
+ * -d '{"instructions":"Different instructions for fixing the item"}' \
+ * https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
+ *
+ * {
+ *   status: 'open',
+ *   lockedTill: '2017-10-19T00:00:00.000Z',
+ *   siblings: [],
+ *   metadata: {},
+ *   id: '405270',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   pin: {
+ *     type: 'Point',
+ *     coordinates: [0, 0]
+ *   },
+ *   instructions: 'Different instructions for fixing the item',
+ *   featureCollection: {
+ *     type: 'FeatureCollection',
+ *     features: []
+ *   },
+ *   createdBy: 'user',
+ *   updatedAt: '2017-10-19T00:00:00.000Z',
+ *   createdAt: '2017-10-19T00:00:00.000Z',
+ *   lockedBy: null
+ * }
+ */
 function updateItem(req, res, next) {
-  // TODO: provide different status codes based on the status of the item
   const validBodyAttrs = [
-    'name',
     'lock',
     'pin',
     'status',
     'featureCollection',
     'instructions'
   ];
-  const invalidBodyAttrs = Object.keys(req.body).filter(function(attr) {
-    return validBodyAttrs.indexOf(attr) === -1;
-  });
-
-  if (invalidBodyAttrs.length !== 0) {
+  const validationError = validateBody(req.body, validBodyAttrs);
+  if (validationError)
     return next(new ErrorHTTP('Request contains unexpected attributes', 400));
-  }
 
-  // validate pin
   const values = { id: req.params.item, project_id: req.params.project };
-  if (Array.isArray(req.body.pin)) {
-    values.pin = {
-      type: 'Point',
-      coordinates: req.body.pin
-    };
-    var pinErrors = geojsonhint.hint(values.pin, {
-      precisionWarning: false
-    });
-    if (pinErrors.length) {
-      return next(new ErrorHTTP('Invalid Pin: ' + pinErrors[0].message, 400));
+
+  /* Validate lock */
+  if (req.body.lock) {
+    if (req.body.lock && req.body.status) {
+      return next(
+        new ErrorHTTP(
+          'It is invalid to set the status and change the lock in one request'
+        ),
+        400
+      );
+    }
+    if (constants.LOCKED_STATUS.indexOf(req.body.lock) === -1) {
+      return next(new ErrorHTTP(`Invalid lock change action`, 400));
+    }
+    if (req.body.lock === constants.UNLOCKED) {
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    } else {
+      values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
+      values.lockedBy = req.user;
     }
   }
 
-  if (req.body.name) values.name = req.body.name;
+  /* Validate pin */
+  if (req.body.pin) {
+    if (!Array.isArray(req.body.pin) || req.body.pin.length !== 2)
+      return next(
+        new ErrorHTTP(
+          'An item must have a pin in the [longitude, latitude] format',
+          400
+        )
+      );
+    values.pin = { type: 'Point', coordinates: req.body.pin };
+    var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
+    if (pinErrors.length) {
+      return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
+    }
+  }
 
+  /* Validate status */
+  if (req.body.status) {
+    if (constants.ALL_STATUS.indexOf(req.body.status) === -1) {
+      return next(new ErrorHTTP('Invalid status', 400));
+    }
+    values.status = req.body.status;
+    if (constants.INACTIVE_STATUS.indexOf(values.status) !== -1) {
+      // If the item has been marked as done, expire the lock
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    }
+  }
+
+  /* Validate instructions */
   if (req.body.instructions) {
     const instructions = req.body.instructions;
     if (typeof instructions !== 'string' || instructions.length < 1) {
@@ -332,58 +405,68 @@ function updateItem(req, res, next) {
     values.instructions = instructions;
   }
 
-  // validate lock
-  if (req.body.lock === 'unlocked') {
-    values.lockedTill = new Date();
-    values.lockedBy = null;
-  } else if (req.body.lock === 'locked') {
-    values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-    values.lockedBy = req.user;
-  } else if (req.body.lock !== undefined) {
-    return next(new ErrorHTTP('Invalid lock change action'));
-  } else if (req.body.lock && req.body.status) {
-    return next(
-      new ErrorHTTP(
-        'It is invalid to set the status and change the lock in one request'
-      ),
-      400
-    );
-  }
-
-  // validate status
-  if (req.body.status) {
-    if (constants.ALL_STATUS.indexOf(req.body.status) === -1) {
-      return next(new ErrorHTTP('Invalid status', 400));
-    }
-    values.status = req.body.status;
-    if (constants.INACTIVE_STATUS.indexOf(values.status) !== -1) {
-      // if the item has been marked as done, expire the lock
-      values.lockedTill = new Date();
-      values.lockedBy = null;
-    }
-  }
-
-  // validate feature collection
+  /* Validate feature collection */
   if (req.body.featureCollection) {
     values.featureCollection = req.body.featureCollection;
     var fcErrors = geojsonhint.hint(values.featureCollection, {
       precisionWarning: false
     });
-
     if (fcErrors.length) {
       return next(
         new ErrorHTTP('Invalid featureCollection: ' + fcErrors[0].message, 400)
       );
     }
+    values.featureCollection = values.featureCollection || {
+      type: 'FeatureCollection',
+      features: []
+    };
   }
 
   values.user = req.user;
-  values.project = req.params.project;
-  values.item = req.params.item;
 
   putItemWrapper(values)
-    .then(function(data) {
+    .then(data => {
       res.json(data);
     })
     .catch(next);
+}
+
+/**
+ * handle all the logic and some validation for item creation and updating
+ * @param {Object} opts - the opts for the action
+ * @param {String} opts.project - the id of the project the item belongs to
+ * @param {String} opts.item - the id of the item itself
+ * @param {String} opts.user - the user making the change
+ * @param {FeatureCollection} [opts.featureCollection] - a validated GeoJSON feature collection, required on create
+ * @param {Point} [opts.pin] - a validated GeoJSON point representing the queryable location of this item, required on create
+ * @param {String} [opts.instructions] - the instructions for what needs to be done, required on create
+ * @param {String} [opts.status] - the status to set the item to
+ * @param {String} [opts.lockedTill] - the time the lock expires at
+ */
+function putItemWrapper(opts) {
+  return Item.findOne({
+    where: { id: opts.id, project_id: opts.project_id }
+  }).then(function(data) {
+    if (
+      (opts.lockedTill !== undefined || opts.status !== undefined) && // we're changing the lock or the status
+      data.lockedTill > new Date() && // there is an active lock
+      data.lockedBy !== opts.user // and its not owned by this user
+    ) {
+      throw new ErrorHTTP(
+        `This item is currently locked by ${data.lockedBy}`,
+        423
+      );
+    }
+
+    // check for an expired lock on status update
+    if (opts.status !== undefined && data.lockedTill < new Date()) {
+      throw new ErrorHTTP('Cannot update an items status without a lock', 423);
+    }
+
+    var featureCollection = opts.featureCollection;
+    delete opts.featureCollection; // removing so the merge doesn't try to merge the old feature collection with the new one
+    var updated = _.merge({}, data.dataValues, opts);
+    updated.featureCollection = featureCollection || updated.featureCollection; // set the feature collection back
+    return data.update(updated);
+  });
 }

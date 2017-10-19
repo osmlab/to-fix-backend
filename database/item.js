@@ -20,10 +20,6 @@ module.exports = function(db) {
         allowNull: false,
         unique: 'projectItemId'
       },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
       pin: {
         type: Sequelize.GEOMETRY('POINT'),
         allowNull: false
