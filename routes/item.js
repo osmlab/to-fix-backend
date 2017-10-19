@@ -23,7 +23,7 @@ module.exports = {
  * @param {object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {object} query - The request URL query parameters
- * @param {('unlocked'|'locked')} [query.lock] - The item's lock status
+ * @param {string} [query.lock] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.page=0] - The pagination start page
  * @param {string} [query.page_size=constants.PAGE_SIZE] - The page size
  * @example
