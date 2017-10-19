@@ -111,26 +111,6 @@ function setup(fixture) {
   );
 }
 
-function setupNock() {
-  return nock('https://www.openstreetmap.org')
-    .get('/api/0.6/user/details')
-    .reply(function() {
-      const headers = this.req.headers;
-      if (headers.authorization) {
-        //TODO: actually verify the auth header is as expected
-        return [
-          200,
-          fs.readFileSync(
-            join(__dirname, '../fixtures/user-detail.xml'),
-            'utf-8'
-          )
-        ];
-      } else {
-        return [401, "Couldn't authenticate you"];
-      }
-    });
-}
-
 function teardown() {
   db.close();
 }
