@@ -66,24 +66,28 @@ function getItems(req, res, next) {
   }
 
   if (req.query.lock) {
-    if (req.query.lock !== 'locked' && req.query.lock !== 'unlocked') {
-      return next(new ErrorHTTP('Invalid query lock value ', 400));
-    }
-    const locked = req.query.lock === 'locked';
-    // all items less than current time are unlocked
-    // and vice versa
+    if (constants.LOCKED_STATUS.indexOf(req.query.lock) === -1)
+      return next(
+        new ErrorHTTP(`Invalid req.query.lock: ${req.query.lock}`, 400)
+      );
+    const locked = req.query.lock === constants.LOCKED;
     search.where.lockedTill = {
       [locked ? Op.gt : Op.lt]: new Date()
     };
   }
+
   Item.findAll(search)
-    .then(function(data) {
+    .then(data => {
+      /* If there are items, return them */
       if (data.length > 0) return res.json(data);
+      /* If there are not items, confirm that project exists */
       return Project.findOne({
         where: { id: req.params.project }
-      }).then(function(data) {
+      }).then(data => {
+        /* If project doesn't exist, return 404 Not Found */
         if (data === null) return next();
-        res.json([]); // there is a project but it has no items
+        /* Otherwise, return empty array */
+        res.json([]);
       });
     })
     .catch(next);
