@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 const tape = require('tape');
 process.env.PG_DATABASE = 'tofix_test';
 process.env.APP_SECRET = 'fakesecret';
@@ -10,8 +8,6 @@ const app = supertest(server);
 const jwt = require('jwt-simple');
 const path = require('path');
 const exec = require('child_process').execSync;
-const fs = require('fs');
-const join = require('path').join;
 const db = require('../../database/index');
 
 var pendingTests = 0;
@@ -89,7 +85,6 @@ function setup(fixture) {
           var morePromise = items.map(function(item) {
             return db.Item.create({
               id: item.id,
-              name: item.name,
               project_id: project.id,
               pin: {
                 type: 'Point',
