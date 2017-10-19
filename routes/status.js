@@ -5,11 +5,10 @@ module.exports = {
 };
 
 /**
- * Get the status of server
+ * Get the server status.
  * @name get-status
  * @example
- * curl https://host/
- *  { status: 'OK' }
+ * curl https://host
  */
 function getStatus(req, res, next) {
   db
