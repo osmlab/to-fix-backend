@@ -11,12 +11,10 @@ const listItemsFixture = [
     items: [
       {
         id: '77',
-        name: 'Item 77',
         pin: [77, 77]
       },
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30]
       }
     ]
@@ -31,26 +29,22 @@ const listItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       },
       {
         id: '31',
-        name: 'Item 31',
         pin: [31, 31]
       },
       {
         id: '32',
-        name: 'Item 32',
         pin: [32, 32],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       },
       {
         id: '33',
-        name: 'Item 33',
         pin: [33, 33],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
@@ -63,21 +57,18 @@ const listItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '31',
-        name: 'Item 31',
         pin: [31, 31],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '32',
-        name: 'Item 32',
         pin: [32, 32],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
@@ -90,84 +81,72 @@ const listItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '32',
-        name: 'Item 32',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '33',
-        name: 'Item 33',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '40',
-        name: 'Item 40',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '42',
-        name: 'Item 42',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '43',
-        name: 'Item 43',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '50',
-        name: 'Item 50',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '52',
-        name: 'Item 52',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '53',
-        name: 'Item 53',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '60',
-        name: 'Item 60',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '62',
-        name: 'Item 62',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '63',
-        name: 'Item 63',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
@@ -441,7 +420,6 @@ const getItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30]
       }
     ]
@@ -456,7 +434,6 @@ test(
       .post('/projects/11111111-1111-1111-1111-111111111111/items')
       .send({
         id: '405270',
-        name: 'My Item',
         instructions: 'Fix this item',
         pin: [0, 0],
         invalidAttr: true
@@ -478,7 +455,7 @@ test(
   assert => {
     assert.app
       .post('/projects/11111111-1111-1111-1111-111111111111/items')
-      .send({ id: '405270', name: 'My Item', instructions: 'Fix this item' })
+      .send({ id: '405270', instructions: 'Fix this item' })
       .expect(400, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.deepEqual(res.body.message, 'pin is required');
@@ -492,7 +469,6 @@ test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
     .post('/projects/11111111-1111-1111-1111-111111111111/items')
     .send({
       id: '405270',
-      name: 'My Item',
       instructions: 'Fix this item',
       pin: [0, 0]
     })
@@ -506,7 +482,6 @@ test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
         id: '405270',
         project_id: '11111111-1111-1111-1111-111111111111',
         pin: { type: 'Point', coordinates: [0, 0] },
-        name: 'My Item',
         instructions: 'Fix this item',
         featureCollection: { type: 'FeatureCollection', features: [] },
         createdBy: 'test-user',
@@ -528,7 +503,6 @@ test('GET /projects/:project/items/:item', getItemsFixture, assert => {
       var item = removeDates(res.body);
       assert.deepEqual(item, {
         id: '30',
-        name: 'Item 30',
         metadata: {},
         project_id: '11111111-1111-1111-1111-111111111111',
         pin: {

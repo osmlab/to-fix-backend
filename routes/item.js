@@ -41,7 +41,6 @@ module.exports = {
  *       type: 'Point',
  *       coordinates: [0,0]
  *     },
- *     name: 'My Item',
  *     instructions: 'Fix this item',
  *     featureCollection: {
  *       type: 'FeatureCollection',
@@ -98,7 +97,6 @@ function getItems(req, res, next) {
  * @param {string} params.item - The item ID
  * @param {Object} body - The request body
  * @param {string} body.id - An identifier that can be used in future API requests for the item
- * @param {string} body.name - A user-friendly item name
  * @param {string} body.instructions - Instructions on how to work on the item
  * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
  * @param {[Lon,Lat]} [body.pin] - A 2D geometry point to represent the feature
@@ -108,7 +106,7 @@ function getItems(req, res, next) {
  * curl \
  * -X POST \
  * -H "Content-Type: application/json" \
- * -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' \
+ * -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' \
  * https://host/projects/00000000-0000-0000-0000-000000000000/items
  *
  * {
@@ -122,7 +120,6 @@ function getItems(req, res, next) {
  *     type: 'Point',
  *     coordinates: [0,0]
  *   },
- *   name: 'My Item',
  *   instructions: 'Fix this item',
  *   featureCollection: {
  *     type: 'FeatureCollection',
@@ -137,7 +134,6 @@ function getItems(req, res, next) {
 function createItem(req, res, next) {
   const validBodyAttrs = [
     'id',
-    'name',
     'lock',
     'pin',
     'status',
@@ -167,7 +163,6 @@ function createItem(req, res, next) {
     }
   }
 
-  if (req.body.name) values.name = req.body.name;
   if (req.body.id) values.id = req.body.id;
 
   if (req.body.instructions) {
@@ -264,7 +259,6 @@ function createItem(req, res, next) {
  *     type: 'Point',
  *     coordinates: [0,0]
  *   },
- *   name: 'My Item',
  *   instructions: 'Fix this item',
  *   featureCollection: {
  *     type: 'FeatureCollection',
@@ -293,7 +287,6 @@ function getItem(req, res, next) {
 function updateItem(req, res, next) {
   // TODO: provide different status codes based on the status of the item
   const validBodyAttrs = [
-    'name',
     'lock',
     'pin',
     'status',
@@ -322,8 +315,6 @@ function updateItem(req, res, next) {
       return next(new ErrorHTTP('Invalid Pin: ' + pinErrors[0].message, 400));
     }
   }
-
-  if (req.body.name) values.name = req.body.name;
 
   if (req.body.instructions) {
     const instructions = req.body.instructions;
