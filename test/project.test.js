@@ -49,6 +49,30 @@ test(
 );
 
 test(
+  'CREATE /projects - invalid body attributes',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'My Project'
+    }
+  ],
+  assert => {
+    assert.app
+      .post('/projects')
+      .send({ name: 'My Other Project', invalidAttr: true })
+      .expect(400)
+      .end((err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'Request contains unexpected attribute invalidAttr'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
   'CREATE /projects',
   [
     {
@@ -75,7 +99,7 @@ test(
   }
 );
 
-test('GET /projects/:id - does not exist', [], assert => {
+test('GET /projects/:project - does not exist', [], assert => {
   assert.app
     .get('/projects/00000000-0000-0000-0000-000000000000')
     .expect(404)
@@ -87,7 +111,7 @@ test('GET /projects/:id - does not exist', [], assert => {
 });
 
 test(
-  'GET /projects/:id - exists',
+  'GET /projects/:project',
   [
     {
       id: '00000000-0000-0000-0000-000000000000',
@@ -117,44 +141,60 @@ test(
   }
 );
 
-// const oneproject = [
-//   {
-//     id: '00000000-0000-0000-0000-000000000000',
-//     name: 'My Project',
-//     metadata: {
-//       keep: 'keep'
-//     }
-//   }
-// ];
+const oneproject = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'My Project',
+    metadata: {
+      keep: 'keep'
+    }
+  }
+];
 
-// test('PUT /projects/:id - update project one', oneproject, function(assert) {
-//   assert.app
-//     .put('/projects/one')
-//     .send({ metadata: { test: 'test' } })
-//     .expect(200, function(err, res) {
-//       if (err) return assert.end(err);
-//       var t = removeDates(res.body);
-//       assert.deepEqual(
-//         { id: 'one', metadata: { keep: 'keep', test: 'test' } },
-//         t,
-//         'check update worked'
-//       );
-//       assert.end();
-//     });
-// });
+test('PUT /projects/:project - update project one', oneproject, assert => {
+  assert.app
+    .put('/projects/00000000-0000-0000-0000-000000000000')
+    .send({ metadata: { test: 'test' } })
+    .expect(200, (err, res) => {
+      assert.ifError(err, 'should not error');
+      var t = removeDates(res.body);
+      assert.deepEqual(
+        t,
+        {
+          id: '00000000-0000-0000-0000-000000000000',
+          name: 'My Project',
+          metadata: { keep: 'keep', test: 'test' }
+        },
+        'check update worked'
+      );
+      assert.end();
+    });
+});
 
-// test('PUT /projects/:id - create project two', oneproject, function(assert) {
-//   assert.app
-//     .put('/projects/two')
-//     .send({ metadata: { test: 'test' } })
-//     .expect(200, function(err, res) {
-//       if (err) return assert.end(err);
-//       var t = removeDates(res.body);
-//       assert.deepEqual(
-//         { id: 'two', metadata: { test: 'test' } },
-//         t,
-//         'check create worked'
-//       );
-//       assert.end();
-//     });
-// });
+test('PUT /projects/:project - invalid body attributes', oneproject, function(
+  assert
+) {
+  assert.app
+    .put('/projects/00000000-0000-0000-0000-000000000000')
+    .send({ metadata: { test: 'test' }, invalidAttr: true })
+    .expect(400)
+    .end((err, res) => {
+      assert.ifError(err, 'should not error');
+      assert.deepEqual(
+        res.body.message,
+        'Request contains unexpected attribute invalidAttr'
+      );
+      assert.end();
+    });
+});
+
+test('DELETE /projects/:project', oneproject, assert => {
+  assert.app
+    .delete('/projects/00000000-0000-0000-0000-000000000000')
+    .expect(200)
+    .end((err, res) => {
+      assert.ifError(err, 'should not error');
+      assert.deepEqual(res.body, 1);
+      assert.end();
+    });
+});
