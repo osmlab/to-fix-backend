@@ -4,6 +4,8 @@ const db = require('../database/index');
 const Tag = db.Tag;
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const validateBody = require('../lib/helpers/validateBody');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = {
   /* Project-level operations */
@@ -19,15 +21,22 @@ module.exports = {
 };
 
 /**
- * Get a project tag.
+ * Get a list of project tags.
  * @name get-project-tag
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
- * @example
+ * @param {Object} [query] - The request URL query parameters
+ * @param {string} [query.tag] - String to filter tag names by
+ * @exampledecodeURIComponent(string)
  * curl https://host/projects/:project/tags
  */
 function getProjectTags(req, res, next) {
-  Tag.findAll({ where: { project_id: req.params.project } })
+  let where = { project_id: req.params.project };
+  if (req.query.tag) {
+    const decodedTag = decodeURIComponent(req.query.tag);
+    where.name = { [Op.like]: `%${decodedTag}%` };
+  }
+  Tag.findAll({ where: where })
     .then(function(data) {
       res.json(data);
     })
