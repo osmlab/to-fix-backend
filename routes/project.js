@@ -12,14 +12,10 @@ module.exports = {
 };
 
 /**
- * Get a list of projects
+ * Get a list of projects.
  * @name get-projects
  * @example
- * curl https://host/projects/project-id
- *  [{
- *    id: 'one',
- *    metadata: {}
- *  }]
+ * curl https://host/projects
  */
 function getProjects(req, res, next) {
   Project.findAll()
@@ -30,6 +26,16 @@ function getProjects(req, res, next) {
 }
 
 /**
+ * Create a project.
+ * @name create-project
+ * @param {object} body - The request body
+ * @param {string} body.name - The project name
+ * @param {object} [body.metadata] - The project metadata
+ * @example
+ * curl -X POST \
+ * -H "Content-Type: application/json" \
+ * -d '{"name":"my-project"}' \
+ * https://host/projects
  */
 function createProject(req, res, next) {
   if (!req.body.name) next(new ErrorHTTP('req.body.name is required', 422));
@@ -43,16 +49,12 @@ function createProject(req, res, next) {
 }
 
 /**
- * Get a project
+ * Get a project.
  * @name get-project
- * @param {Object} params - what the keys in the url mean
- * @param {String} params.project - the project id
+ * @param {object} params - The request URL parameters
+ * @param {string} params.project - The project ID
  * @example
- * curl https://host/projects/project-id
- *  {
- *    id: 'one',
- *    metadata: {}
- *  }
+ * curl https://host/projects/:project
  */
 function getProject(req, res, next) {
   Project.findOne({
@@ -66,18 +68,6 @@ function getProject(req, res, next) {
     .catch(next);
 }
 
-/**
- * Put a project
- * @name put-project
- * @param {Object} params - what the keys in the url mean
- * @param {String} params.project - the project id
- * @param {Object} body - the body of request
- * @param {Object} body.metadata - a flexible object for adding metadata
- * @example
- * curl -X PUT -H "Content-Type: application/json" -d \
- *  '{"metadata": {} }' \
- *   https://host/projects/project-id
- */
 function updateProject(req, res, next) {
   const values = { id: req.params.project };
   if (req.body.metadata) values.metadata = req.body.metadata;
@@ -96,8 +86,6 @@ function updateProject(req, res, next) {
     .catch(next);
 }
 
-/**
- */
 function deleteProject(req, res, next) {
   return next();
 }

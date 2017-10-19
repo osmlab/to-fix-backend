@@ -18,23 +18,16 @@ module.exports = {
 };
 
 /**
- * Get a paginated list of items for a project
- * @name  get-project-items
- * @param {Object} params - what the keys in the url mean
- * @param {String} params.project - the project id
- * @param {Object} query - what queryparams are valid
- * @param {String} [query.lock] - if provided this must either be 'unlocked' or 'locked'
- * @param {String} [query.page=0] - starting page
- * @param {String} [query.page_size=constants.PAGE_SIZE] - the size of the page
+ * Get a paginated list of items for a project.
+ * @name get-project-items
+ * @param {object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {object} query - The request URL query parameters
+ * @param {('unlocked'|'locked')} [query.lock] - The item's lock status
+ * @param {string} [query.page=0] - The pagination start page
+ * @param {string} [query.page_size=constants.PAGE_SIZE] - The page size
  * @example
- * curl https://host/projects/project-id/items?lock=unlocked
- * [
- *   {
- *     "id": "item-id",
- *     "project_id": "project-id",
- *     "lockedTill": "2017-09-01T00:00:00Z"
- *   }
- * ]
+ * curl https://host/projects/:project/items?lock=unlocked
  */
 function getItems(req, res, next) {
   let search;
@@ -73,6 +66,24 @@ function getItems(req, res, next) {
 }
 
 /**
+ * Create an item in a project.
+ * @name create-item
+ * @param {object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
+ * @param {object} body - The request body
+ * @param {string} body.id - An identifier that can be used in future API requests for the item
+ * @param {string} body.name - A user-friendly item name
+ * @param {string} body.instructions - Instructions on how to work on the item
+ * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
+ * @param {[Lon,Lat]} [body.pin] - A 2D geometry point to represent the feature
+ * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
+ * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
+ * @example
+ * curl -X POST \
+ * -H "Content-Type: application/json" \
+ * -d '{"id":"abc","name":"my-test-item","instructions":"Some test instructions","pin":[0,0]}' \
+ * https://host/projects/:project/items
  */
 function createItem(req, res, next) {
   const validBodyAttrs = [
@@ -185,18 +196,13 @@ function createItem(req, res, next) {
 }
 
 /**
- * Get an item from a project
+ * Get an item for a project.
  * @name get-project-item
- * @param {Object} params - what the keys in the url mean
- * @param {String} params.project - the project id
- * @param {String} params.item - the item id
+ * @param {object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
  * @example
- * curl https://host/projects/project-id/items/item-id
- *   {
- *     "id": "item-id",
- *     "project_id": "project-id",
- *     "lockedTill": "2017-09-01T00:00:00Z"
- *   }
+ * curl https://host/projects/:project/items/:item
  */
 function getItem(req, res, next) {
   Item.findOne({
@@ -212,44 +218,6 @@ function getItem(req, res, next) {
     .catch(next);
 }
 
-/**
- * Put an item in a project
- * @name put-project-item
- * @param {Object} params - what the keys in the url mean
- * @param {String} params.project - the project id
- * @param {String} params.item - the item id
- * @param {Object} body - the body of the request
- * @param {('unlocked' | 'locked')} [body.lock] - lock
- * @param {[Lon, Lat]} [body.pin] - a 2d geometry point to represent the feature
- * @param {('open' | 'fixed' | 'noterror')} [body.status] - the status of current item
- * @param {FeatureCollection} [body.featureCollection] - featureCollection
- * @param {String} [body.instructions] - instructions on how to work on the item
- * @example
- * Change the lock to unlocked for `item-id` in `project-id`
- * curl -X PUT -H "Content-Type: application/json" -d \
- * '{"lock":"unlocked"}' \
- * https://host/projects/project-id/items/item-id
- * @example
- * Change the status to fixed for `item-id` in `project-id`
- * curl -X PUT -H "Content-Type: application/json" -d \
- * '{"status":"fixed"}' \
- * https://host/projects/project-id/items/item-id
- * @example
- * Change the pin for `item-id` in `project-id`
- * curl -X PUT -H "Content-Type: application/json" -d \
- * '{"pin": [20.0212, 71.01212]}' \
- * https://host/projects/project-id/items/item-id
- * @example
- * Change the featureCollection for `item-id` in `project-id`
- * curl -X PUT -H "Content-Type: application/json" -d \
- * '{"featureCollection": {type: "FeatureCollection", "features": []}}' \
- * https://host/projects/project-id/items/item-id
- * @example
- * Change the instructions for `item-id` in `project-id`
- * curl -X PUT -H "Content-Type: application/json" -d \
- * '{"instructions": "Filler instruction"' \
- * https://host/projects/project-id/items/item-id
- */
 function updateItem(req, res, next) {
   // TODO: provide different status codes based on the status of the item
   const validBodyAttrs = [
@@ -349,8 +317,6 @@ function updateItem(req, res, next) {
     .catch(next);
 }
 
-/**
- */
 function deleteItem(req, res, next) {
   return next();
 }

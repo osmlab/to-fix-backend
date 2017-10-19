@@ -6,32 +6,22 @@ module.exports = {
   deleteItemTag: deleteItemTag
 };
 
-/**
- */
 function getItemTags(req, res, next) {
   return next();
 }
 
-/**
- */
 function getItemTag(req, res, next) {
   return next();
 }
 
-/**
- */
 function createItemTag(req, res, next) {
   return next();
 }
 
-/**
- */
 function updateItemTag(req, res, next) {
   return next();
 }
 
-/**
- */
 function deleteItemTag(req, res, next) {
   return next();
 }
