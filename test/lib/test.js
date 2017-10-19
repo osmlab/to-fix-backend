@@ -15,7 +15,6 @@ const db = require('../../database/index');
 var pendingTests = 0;
 
 module.exports = function(testName, fixture, cb) {
-  setupNock();
   pendingTests++;
   tape(testName, function(t) {
     // over write end to track how many pending tests there are
