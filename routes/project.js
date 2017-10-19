@@ -11,8 +11,7 @@ module.exports = {
   getProjects: getProjects,
   createProject: createProject,
   getProject: getProject,
-  updateProject: updateProject,
-  deleteProject: deleteProject
+  updateProject: updateProject
 };
 
 /**
@@ -129,25 +128,6 @@ function updateProject(req, res, next) {
       return project.update(updated);
     })
     .then(function(data) {
-      res.json(data);
-    })
-    .catch(next);
-}
-
-/**
- * Delete a project.
- * @name deleteProject
- * @param {Object} params - The request URL parameters
- * @param {string} params.project - The project ID
- * @example
- * curl -X DELETE https://host/projects/00000000-0000-0000-0000-000000000000
- *
- * 1
- */
-function deleteProject(req, res, next) {
-  Project.destroy({ where: { id: req.params.project } })
-    .then(function(data) {
-      if (data !== 1) return next();
       res.json(data);
     })
     .catch(next);

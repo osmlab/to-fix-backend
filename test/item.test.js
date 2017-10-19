@@ -11,12 +11,10 @@ const listItemsFixture = [
     items: [
       {
         id: '77',
-        name: 'Item 77',
         pin: [77, 77]
       },
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30]
       }
     ]
@@ -31,26 +29,22 @@ const listItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       },
       {
         id: '31',
-        name: 'Item 31',
         pin: [31, 31]
       },
       {
         id: '32',
-        name: 'Item 32',
         pin: [32, 32],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       },
       {
         id: '33',
-        name: 'Item 33',
         pin: [33, 33],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
@@ -63,21 +57,18 @@ const listItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '31',
-        name: 'Item 31',
         pin: [31, 31],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '32',
-        name: 'Item 32',
         pin: [32, 32],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
@@ -90,84 +81,72 @@ const listItemsFixture = [
     items: [
       {
         id: '30',
-        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '32',
-        name: 'Item 32',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '33',
-        name: 'Item 33',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '40',
-        name: 'Item 40',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '42',
-        name: 'Item 42',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '43',
-        name: 'Item 43',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '50',
-        name: 'Item 50',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '52',
-        name: 'Item 52',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '53',
-        name: 'Item 53',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '60',
-        name: 'Item 60',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '62',
-        name: 'Item 62',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '63',
-        name: 'Item 63',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
@@ -175,6 +154,61 @@ const listItemsFixture = [
     ]
   }
 ];
+const getItemsFixture = [
+  {
+    id: '11111111-1111-1111-1111-111111111111',
+    name: 'Project 1',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30]
+      }
+    ]
+  }
+];
+const projectWithOneUnlockedItem = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30]
+      }
+    ]
+  }
+];
+const projectWithOneItemLockedByUserTwo = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30],
+        lockedBy: 'usertwo',
+        lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+      }
+    ]
+  }
+];
+const projectWithOneItemLockedByUserOne = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '30',
+        pin: [30, 30],
+        lockedBy: 'test-user',
+        lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+      }
+    ]
+  }
+];
+const delay = time => new Promise(res => setTimeout(res, time));
+
+/* GET /projects/:project/items */
 
 test(
   'GET /projects/:id/items - get a project that is not in the db',
@@ -379,7 +413,7 @@ test(
 );
 
 test(
-  'GET /projects/:id/items?lock=locked - get a project with locked items with lockers2 data',
+  'GET /projects/:id/items?lock=locked - get a project with locked items with Project3 data',
   listItemsFixture,
   assert => {
     assert.app
@@ -407,7 +441,7 @@ test(
 );
 
 test(
-  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with Project3 data',
   listItemsFixture,
   assert => {
     assert.app
@@ -421,7 +455,7 @@ test(
 );
 
 test(
-  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
+  'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with Project3 data',
   listItemsFixture,
   assert => {
     assert.app
@@ -434,29 +468,16 @@ test(
   }
 );
 
-const getItemsFixture = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Project 1',
-    items: [
-      {
-        id: '30',
-        name: 'Item 30',
-        pin: [30, 30]
-      }
-    ]
-  }
-];
+/* POST /projects/:project/items */
 
 test(
-  'CREATE /projects/:project/items/:item - invalid body attributes',
+  'POST /projects/:project/items/:item - invalid body attributes',
   getItemsFixture,
   assert => {
     assert.app
       .post('/projects/11111111-1111-1111-1111-111111111111/items')
       .send({
         id: '405270',
-        name: 'My Item',
         instructions: 'Fix this item',
         pin: [0, 0],
         invalidAttr: true
@@ -465,7 +486,7 @@ test(
         assert.ifError(err, 'should not error');
         assert.deepEqual(
           res.body.message,
-          'Request contains unexpected attributes'
+          'Request contains unexpected attribute invalidAttr'
         );
         assert.end();
       });
@@ -473,26 +494,116 @@ test(
 );
 
 test(
-  'CREATE /projects/:project/items/:item - missing required body attributes',
+  'POST /projects/:project/items/:item - missing required body attributes',
   getItemsFixture,
   assert => {
     assert.app
       .post('/projects/11111111-1111-1111-1111-111111111111/items')
-      .send({ id: '405270', name: 'My Item', instructions: 'Fix this item' })
+      .send({ id: '405270', instructions: 'Fix this item' })
       .expect(400, (err, res) => {
         assert.ifError(err, 'should not error');
-        assert.deepEqual(res.body.message, 'pin is required');
+        assert.deepEqual(
+          res.body.message,
+          'req.body.pin is a required body attribute'
+        );
         assert.end();
       });
   }
 );
 
-test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
+test(
+  'POST /projects/:project/items/:item - bad ID',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '******',
+        instructions: 'Fix this item',
+        pin: [0, 0]
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'An item must have a valid ID comprised only of letters, numbers, and hyphens'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /projects/:project/items/:item - bad instructions',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        instructions: 5,
+        pin: [0, 0]
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'An item must have a valid instruction'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /projects/:project/items/:item - bad pin 1',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        instructions: 'Fix this item',
+        pin: [0]
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'An item must have a pin in the [longitude, latitude] format'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /projects/:project/items/:item - bad pin 2',
+  getItemsFixture,
+  assert => {
+    assert.app
+      .post('/projects/11111111-1111-1111-1111-111111111111/items')
+      .send({
+        id: '405270',
+        instructions: 'Fix this item',
+        pin: ['-1000', '1000']
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'Invalid Pin each element in a position must be a number'
+        );
+        assert.end();
+      });
+  }
+);
+
+test('POST /projects/:project/items/:item', getItemsFixture, assert => {
   assert.app
     .post('/projects/11111111-1111-1111-1111-111111111111/items')
     .send({
       id: '405270',
-      name: 'My Item',
       instructions: 'Fix this item',
       pin: [0, 0]
     })
@@ -506,7 +617,6 @@ test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
         id: '405270',
         project_id: '11111111-1111-1111-1111-111111111111',
         pin: { type: 'Point', coordinates: [0, 0] },
-        name: 'My Item',
         instructions: 'Fix this item',
         featureCollection: { type: 'FeatureCollection', features: [] },
         createdBy: 'test-user',
@@ -515,6 +625,94 @@ test('CREATE /projects/:project/items/:item', getItemsFixture, assert => {
       assert.end();
     });
 });
+
+test(
+  'POST /projects/:id/items - bulk upload items with a linear wait',
+  projectWithOneUnlockedItem,
+  assert => {
+    const TOTAL_REQUESTS = 10;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        delay(i * 50).then(() =>
+          assert.app
+            .post(`/projects/00000000-0000-0000-0000-000000000000/items`)
+            .send({
+              id: `item${i}`,
+              pin: [30, 30],
+              instructions: 'test',
+              featureCollection
+            })
+            .expect(200)
+        )
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
+
+test(
+  'POST /projects/:id/items - bulk upload items without waiting',
+  projectWithOneUnlockedItem,
+  assert => {
+    const TOTAL_REQUESTS = 10;
+    const requests = [];
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    for (let i = 0; i < TOTAL_REQUESTS; i++) {
+      requests.push(
+        assert.app
+          .post(`/projects/00000000-0000-0000-0000-000000000000/items`)
+          .send({
+            id: `item-${i}`,
+            pin: [30, 30],
+            instructions: 'test',
+            featureCollection
+          })
+          .expect(200)
+      );
+    }
+    Promise.all(requests)
+      .then(function() {
+        assert.end();
+      })
+      .catch(function(err) {
+        return assert.end(err);
+      });
+  }
+);
+
+/* GET /projects/:project/items/:item */
 
 test('GET /projects/:project/items/:item', getItemsFixture, assert => {
   assert.app
@@ -528,7 +726,6 @@ test('GET /projects/:project/items/:item', getItemsFixture, assert => {
       var item = removeDates(res.body);
       assert.deepEqual(item, {
         id: '30',
-        name: 'Item 30',
         metadata: {},
         project_id: '11111111-1111-1111-1111-111111111111',
         pin: {
@@ -548,3 +745,214 @@ test('GET /projects/:project/items/:item', getItemsFixture, assert => {
       assert.end();
     });
 });
+
+test(
+  'PUT /projects/:project/items/:item - updating an item with an invalid pin errors',
+  projectWithOneUnlockedItem,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ pin: [] })
+      .expect(400, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'An item must have a pin in the [longitude, latitude] format'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - updating an item with an invalid feature collection errors',
+  projectWithOneUnlockedItem,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ featureCollection: { type: 'FeatureCollection' } })
+      .expect(400, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'Invalid featureCollection: "features" member required'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - update an item',
+  projectWithOneUnlockedItem,
+  function(assert) {
+    var fc = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { type: 'node' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ featureCollection: fc })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        var item = removeDates(res.body);
+        assert.deepEqual(item.featureCollection, fc);
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - the lock can be activated via {lock: locked}',
+  projectWithOneUnlockedItem,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ lock: 'locked' })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.ok(checkLock.locked(res.body), 'the item is locked');
+        assert.equal(
+          res.body.lockedBy,
+          'test-user',
+          'item locked by the current user'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:project/items/:item - the lock can be deactivated via {lock: unlocked}',
+  projectWithOneItemLockedByUserOne,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ lock: 'unlocked' })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.ok(checkLock.unlocked(res.body), 'the item is unlocked');
+        assert.equal(
+          res.body.lockedBy,
+          null,
+          'item locked by the current user'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - the status cannot be changed by a user who doesnt have an active lock',
+  projectWithOneUnlockedItem,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ status: 'fixed' })
+      .expect(423, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'Cannot update an items status without a lock'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - the status can be changed by the user who has the active lock',
+  projectWithOneItemLockedByUserOne,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ lock: 'locked' })
+      .expect(200, function(err) {
+        if (err) return assert.end(err);
+        assert.app
+          .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+          .send({ status: 'fixed' })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.equal(res.body.status, 'fixed', 'the right status');
+            assert.equal(
+              res.body.lockedBy,
+              null,
+              'the lock was released because it was moved to a complete status'
+            );
+            assert.ok(checkLock.unlocked(res.body), 'is unlocked');
+            assert.end();
+          });
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - an active lock cannot be changed by a non-locking user',
+  projectWithOneItemLockedByUserTwo,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ lock: 'unlocked' })
+      .expect(423, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'This item is currently locked by usertwo'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - an active lock can be changed by the locking user',
+  projectWithOneItemLockedByUserOne,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ lock: 'locked' })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.lockedBy, 'test-user');
+        assert.ok(checkLock.locked(res.body), 'locked');
+        assert.app
+          .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+          .send({ lock: 'unlocked' })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.equal(res.body.lockedBy, null, 'no one holds the lock');
+            assert.ok(checkLock.unlocked(res.body), 'not locked');
+            assert.end();
+          });
+      });
+  }
+);
+
+test(
+  'PUT /projects/:id/items:id - an item update cannot have unexpected body content',
+  projectWithOneUnlockedItem,
+  function(assert) {
+    assert.app
+      .put('/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .send({ random: 'is bad' })
+      .expect(400, function(err, res) {
+        if (err) return assert.end();
+        assert.equal(
+          res.body.message,
+          'Request contains unexpected attributes',
+          'has right message'
+        );
+        assert.end();
+      });
+  }
+);
