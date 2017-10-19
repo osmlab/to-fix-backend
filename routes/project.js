@@ -20,7 +20,7 @@ module.exports = {
  * [
  *   {
  *     id: '00000000-0000-0000-0000-000000000000',
- *     name: 'project0',
+ *     name: 'My Project',
  *     metadata: {},
  *     createdAt: '2017-10-18T00:00:00.000Z',
  *     updatedAt: '2017-10-18T00:00:00.000Z'
@@ -42,12 +42,12 @@ function getProjects(req, res, next) {
  * @param {string} body.name - The project name
  * @param {Object} [body.metadata={}] - The project metadata
  * @example
- * curl -X POST -H "Content-Type: application/json" -d '{"name":"my-project"}' https://host/projects
+ * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
  *
  * {
  *   id: '00000000-0000-0000-0000-000000000000',
  *   metadata: {},
- *   name: 'project0',
+ *   name: 'My Project',
  *   updatedAt: '2017-10-19T00:00:00.000Z',
  *   createdAt: '2017-10-19T00:00:00.000Z'
  * }
@@ -70,6 +70,14 @@ function createProject(req, res, next) {
  * @param {string} params.project - The project ID
  * @example
  * curl https://host/projects/:project
+ *
+ * {
+ *   id: '00000000-0000-0000-0000-000000000000',
+ *   name: 'My Project',
+ *   metadata: {},
+ *   createdAt: '2017-10-18T00:00:00.000Z',
+ *   updatedAt: '2017-10-18T00:00:00.000Z'
+ * }
  */
 function getProject(req, res, next) {
   Project.findOne({

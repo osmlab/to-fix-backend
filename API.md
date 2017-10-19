@@ -34,7 +34,7 @@ curl https://host/projects
 [
   {
     id: '00000000-0000-0000-0000-000000000000',
-    name: 'project0',
+    name: 'My Project',
     metadata: {},
     createdAt: '2017-10-18T00:00:00.000Z',
     updatedAt: '2017-10-18T00:00:00.000Z'
@@ -42,7 +42,31 @@ curl https://host/projects
 ]
 ```
 
-### get-project-items
+### create-project
+
+Create a project.
+
+**Parameters**
+
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  metadata: {},
+  name: 'My Project',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z'
+}
+```
+
+### get-items
 
 Get a paginated list of items for a project.
 
@@ -59,30 +83,31 @@ Get a paginated list of items for a project.
 
 ```javascript
 curl https://host/projects/:project/items?lock=unlocked
-```
 
-### create-project
-
-Create a project.
-
-**Parameters**
-
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
-
-**Examples**
-
-```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"name":"my-project"}' https://host/projects
-
-{
-  id: '00000000-0000-0000-0000-000000000000',
-  metadata: {},
-  name: 'project0',
-  updatedAt: '2017-10-19T00:00:00.000Z',
-  createdAt: '2017-10-19T00:00:00.000Z'
-}
+[
+  {
+    status: 'open',
+    lockedTill: '2017-10-19T00:00:00.000Z',
+    siblings: [],
+    metadata: {},
+    id: '405270',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    pin: {
+      type: 'Point',
+      coordinates: [0,0]
+    },
+    name: 'My Item',
+    instructions: 'Fix this item',
+    featureCollection: {
+      type: 'FeatureCollection',
+      features: []
+    },
+    createdBy: 'user',
+    updatedAt: '2017-10-19T00:00:00.000Z',
+    createdAt: '2017-10-19T00:00:00.000Z',
+    lockedBy: null
+  }
+]
 ```
 
 ### get-project
@@ -98,6 +123,14 @@ Get a project.
 
 ```javascript
 curl https://host/projects/:project
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'My Project',
+  metadata: {},
+  createdAt: '2017-10-18T00:00:00.000Z',
+  updatedAt: '2017-10-18T00:00:00.000Z'
+}
 ```
 
 ### create-item
@@ -121,10 +154,30 @@ Create an item in a project.
 **Examples**
 
 ```javascript
-curl -X POST \
--H "Content-Type: application/json" \
--d '{"id":"abc","name":"my-test-item","instructions":"Some test instructions","pin":[0,0]}' \
-https://host/projects/:project/items
+curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' https://host/projects/:project/items
+
+{
+  status: 'open',
+  lockedTill: '2017-10-19T00:00:00.000Z',
+  siblings: [],
+  metadata: {},
+  id: '405270',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  pin: {
+    type: 'Point',
+    coordinates: [0,0]
+  },
+  name: 'My Item',
+  instructions: 'Fix this item',
+  featureCollection: {
+    type: 'FeatureCollection',
+    features: []
+  },
+  createdBy: 'user',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z',
+  lockedBy: null
+}
 ```
 
 ### get-project-item
@@ -141,4 +194,27 @@ Get an item for a project.
 
 ```javascript
 curl https://host/projects/:project/items/:item
+
+{
+  status: 'open',
+  lockedTill: '2017-10-19T00:00:00.000Z',
+  siblings: [],
+  metadata: {},
+  id: '405270',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  pin: {
+    type: 'Point',
+    coordinates: [0,0]
+  },
+  name: 'My Item',
+  instructions: 'Fix this item',
+  featureCollection: {
+    type: 'FeatureCollection',
+    features: []
+  },
+  createdBy: 'user',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z',
+  lockedBy: null
+}
 ```

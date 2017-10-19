@@ -19,7 +19,7 @@ module.exports = {
 
 /**
  * Get a paginated list of items for a project.
- * @name get-project-items
+ * @name get-items
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {Object} query - The request URL query parameters
@@ -28,6 +28,31 @@ module.exports = {
  * @param {string} [query.page_size=100] - The page size
  * @example
  * curl https://host/projects/:project/items?lock=unlocked
+ *
+ * [
+ *   {
+ *     status: 'open',
+ *     lockedTill: '2017-10-19T00:00:00.000Z',
+ *     siblings: [],
+ *     metadata: {},
+ *     id: '405270',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     pin: {
+ *       type: 'Point',
+ *       coordinates: [0,0]
+ *     },
+ *     name: 'My Item',
+ *     instructions: 'Fix this item',
+ *     featureCollection: {
+ *       type: 'FeatureCollection',
+ *       features: []
+ *     },
+ *     createdBy: 'user',
+ *     updatedAt: '2017-10-19T00:00:00.000Z',
+ *     createdAt: '2017-10-19T00:00:00.000Z',
+ *     lockedBy: null
+ *   }
+ * ]
  */
 function getItems(req, res, next) {
   let search;
@@ -80,10 +105,30 @@ function getItems(req, res, next) {
  * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
  * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
  * @example
- * curl -X POST \
- * -H "Content-Type: application/json" \
- * -d '{"id":"abc","name":"my-test-item","instructions":"Some test instructions","pin":[0,0]}' \
- * https://host/projects/:project/items
+ * curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","name":"My Item","instructions":"Fix this item","pin":[0,0]}' https://host/projects/:project/items
+ *
+ * {
+ *   status: 'open',
+ *   lockedTill: '2017-10-19T00:00:00.000Z',
+ *   siblings: [],
+ *   metadata: {},
+ *   id: '405270',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   pin: {
+ *     type: 'Point',
+ *     coordinates: [0,0]
+ *   },
+ *   name: 'My Item',
+ *   instructions: 'Fix this item',
+ *   featureCollection: {
+ *     type: 'FeatureCollection',
+ *     features: []
+ *   },
+ *   createdBy: 'user',
+ *   updatedAt: '2017-10-19T00:00:00.000Z',
+ *   createdAt: '2017-10-19T00:00:00.000Z',
+ *   lockedBy: null
+ * }
  */
 function createItem(req, res, next) {
   const validBodyAttrs = [
@@ -203,6 +248,29 @@ function createItem(req, res, next) {
  * @param {string} params.item - The item ID
  * @example
  * curl https://host/projects/:project/items/:item
+ *
+ * {
+ *   status: 'open',
+ *   lockedTill: '2017-10-19T00:00:00.000Z',
+ *   siblings: [],
+ *   metadata: {},
+ *   id: '405270',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   pin: {
+ *     type: 'Point',
+ *     coordinates: [0,0]
+ *   },
+ *   name: 'My Item',
+ *   instructions: 'Fix this item',
+ *   featureCollection: {
+ *     type: 'FeatureCollection',
+ *     features: []
+ *   },
+ *   createdBy: 'user',
+ *   updatedAt: '2017-10-19T00:00:00.000Z',
+ *   createdAt: '2017-10-19T00:00:00.000Z',
+ *   lockedBy: null
+ * }
  */
 function getItem(req, res, next) {
   Item.findOne({
