@@ -15,14 +15,14 @@ db
   })
   .then(function() {
     const sessionStore = new SequelizeStore({
-      db: db
+      db: db,
+      checkExpirationInterval: -1
     });
     return sessionStore.sync();
   })
   .then(function() {
     logger.info('database is setup');
     db.close();
-    process.exit(0);
   })
   .catch(function(err) {
     logger.error(err.message);
