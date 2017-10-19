@@ -140,7 +140,7 @@ function updateProject(req, res, next) {
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @example
- * curl -X DELETE https://host/projects/:project
+ * curl -X DELETE https://host/projects/00000000-0000-0000-0000-000000000000
  *
  * 1
  */
