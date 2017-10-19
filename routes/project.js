@@ -1,7 +1,13 @@
-const db = require('../database/index');
-const Project = db.Project;
+'use strict';
+
+/* External dependencies */
 const _ = require('lodash');
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
+
+/* Internal dependencies */
+const db = require('../database/index');
+const Project = db.Project;
+const validateBody = require('../lib/helper/validateBody');
 
 module.exports = {
   getProjects: getProjects,
@@ -57,10 +63,16 @@ function getProjects(req, res, next) {
  * }
  */
 function createProject(req, res, next) {
-  if (!req.body.name) next(new ErrorHTTP('req.body.name is required', 422));
-  const values = { name: req.body.name };
-  if (req.body.metadata) values.metadata = req.body.metadata;
-  Project.create(values)
+  const validBodyAttrs = ['name', 'metadata'];
+  const requiredBodyAttr = ['name'];
+  const validationError = validateBody(
+    req.body,
+    validBodyAttrs,
+    requiredBodyAttr
+  );
+  if (validationError) return next(new ErrorHTTP(validationError, 400));
+
+  Project.create(req.body)
     .then(function(data) {
       res.json(data);
     })
@@ -84,12 +96,10 @@ function createProject(req, res, next) {
  * }
  */
 function getProject(req, res, next) {
-  Project.findOne({
-    where: {
-      id: req.params.project
-    }
-  })
+  Project.findOne({ where: { id: req.params.project } })
+    .catch(next)
     .then(function(project) {
+      if (!project) return next();
       res.json(project);
     })
     .catch(next);

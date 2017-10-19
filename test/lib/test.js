@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const tape = require('tape');
 process.env.PG_DATABASE = 'tofix_test';
 const server = require('../../lib/server');
@@ -67,15 +69,19 @@ function setup(fixture) {
   return Promise.all(
     fixture.map(function(project) {
       return db.Project
-        .create({ id: project.id, metadata: project.metadata || {} })
+        .create({
+          id: project.id,
+          name: project.name,
+          metadata: project.metadata || {}
+        })
         .then(function() {
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
           var morePromise = items.map(function(item) {
             return db.Item.create({
               id: item.id,
-              project_id: project.id,
               name: item.name,
+              project_id: project.id,
               pin: {
                 type: 'Point',
                 coordinates: item.pin || [0, 0]

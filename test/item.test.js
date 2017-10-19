@@ -1,135 +1,173 @@
-/*
+'use strict';
+
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');
 
 const listItemsFixture = [
   {
-    id: 'one',
-    items: [{ id: '77', pin: [77, 77] }, { id: '30', pin: [30, 30] }]
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '77',
+        name: 'Item 77',
+        pin: [77, 77]
+      },
+      {
+        id: '30',
+        name: 'Item 30',
+        pin: [30, 30]
+      }
+    ]
   },
-  { id: 'empty' },
   {
-    id: 'lockers1',
+    id: '11111111-1111-1111-1111-111111111111',
+    name: 'Project 1'
+  },
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    name: 'Project 2',
     items: [
       {
         id: '30',
+        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       },
       {
         id: '31',
-        pin: [30, 30]
+        name: 'Item 31',
+        pin: [31, 31]
       },
       {
         id: '32',
-        pin: [30, 30],
+        name: 'Item 32',
+        pin: [32, 32],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       },
       {
         id: '33',
-        pin: [30, 30],
+        name: 'Item 33',
+        pin: [33, 33],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 1000 * 15 * 60)
       }
     ]
   },
   {
-    id: 'lockers2',
+    id: '33333333-3333-3333-3333-333333333333',
+    name: 'Project 3',
     items: [
       {
         id: '30',
+        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
-        id: '32',
-        pin: [30, 30],
+        id: '31',
+        name: 'Item 31',
+        pin: [31, 31],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
-        id: '33',
-        pin: [30, 30],
+        id: '32',
+        name: 'Item 32',
+        pin: [32, 32],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       }
     ]
   },
   {
-    id: 'longlist',
+    id: '44444444-4444-4444-4444-444444444444',
+    name: 'Project 4',
     items: [
       {
         id: '30',
+        name: 'Item 30',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '32',
+        name: 'Item 32',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '33',
+        name: 'Item 33',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '40',
+        name: 'Item 40',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '42',
+        name: 'Item 42',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '43',
+        name: 'Item 43',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '50',
+        name: 'Item 50',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '52',
+        name: 'Item 52',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '53',
+        name: 'Item 53',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
       },
       {
         id: '60',
+        name: 'Item 60',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() - 1000 * 15 * 60)
       },
       {
         id: '62',
+        name: 'Item 62',
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
         id: '63',
+        name: 'Item 63',
         pin: [30, 30],
         lockedBy: 'userone',
         lockedTill: new Date(Date.now())
@@ -141,78 +179,86 @@ const listItemsFixture = [
 test(
   'GET /projects/:id/items - get a project that is not in the db',
   listItemsFixture,
-  function(assert) {
-    assert.app.get('/projects/wave/items').expect(404, function(err, res) {
-      if (err) return assert.end(err);
-      assert.ok(res.body.message, 'has message attr');
-      assert.end();
-    });
+  assert => {
+    assert.app
+      .get('/projects/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/items')
+      .expect(404, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.ok(res.body.message, 'has message attr');
+        assert.end();
+      });
   }
 );
 
 test(
   'GET /projects/:id/items - get a project without items',
   listItemsFixture,
-  function(assert) {
-    assert.app.get('/projects/empty/items').expect(200, function(err, res) {
-      if (err) return assert.end(err);
-      assert.equal(res.body.length, 0, 'has no items');
-      assert.end();
-    });
+  assert => {
+    assert.app
+      .get('/projects/11111111-1111-1111-1111-111111111111/items')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.equal(res.body.length, 0, 'has no items');
+        assert.end();
+      });
   }
 );
 
 test(
   'GET /projects/:id/items - get a project with items',
   listItemsFixture,
-  function(assert) {
-    assert.app.get('/projects/one/items').expect(200, function(err, res) {
-      if (err) return assert.end(err);
-      assert.equal(res.body.length, 2, 'has right number of items');
-      var items = res.body.reduce(function(m, i) {
-        m[i.id] = removeDates(i);
-        return m;
-      }, {});
-      assert.equal(
-        items['30'].project_id,
-        'one',
-        'item 30 should have the right project'
-      );
-      assert.deepEqual(
-        items['30'].pin,
-        {
-          type: 'Point',
-          coordinates: [30, 30]
-        },
-        'item 30 should be pin at the right spot'
-      );
-      assert.equal(
-        items['77'].project_id,
-        'one',
-        'item 77 should have the right project'
-      );
-      assert.deepEqual(
-        items['77'].pin,
-        {
-          type: 'Point',
-          coordinates: [77, 77]
-        },
-        'item 77 should be pin at the right spot'
-      );
-      assert.end();
-    });
+  assert => {
+    assert.app
+      .get('/projects/00000000-0000-0000-0000-000000000000/items')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.equal(res.body.length, 2, 'has right number of items');
+        var items = res.body.reduce(function(m, i) {
+          m[i.id] = removeDates(i);
+          return m;
+        }, {});
+        assert.equal(
+          items['30'].project_id,
+          '00000000-0000-0000-0000-000000000000',
+          'item 30 should have the right project'
+        );
+        assert.deepEqual(
+          items['30'].pin,
+          {
+            type: 'Point',
+            coordinates: [30, 30]
+          },
+          'item 30 should be pin at the right spot'
+        );
+        assert.equal(
+          items['77'].project_id,
+          '00000000-0000-0000-0000-000000000000',
+          'item 77 should have the right project'
+        );
+        assert.deepEqual(
+          items['77'].pin,
+          {
+            type: 'Point',
+            coordinates: [77, 77]
+          },
+          'item 77 should be pin at the right spot'
+        );
+        assert.end();
+      });
   }
 );
 
 test(
   'GET /projects/:id/items?page=X&page_size=Y - get a project with pagination',
   listItemsFixture,
-  function(assert) {
+  assert => {
     var requests = [
       assert.app
-        .get('/projects/longlist/items?page=0&page_size=10')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=0&page_size=10'
+        )
         .expect(200)
-        .then(function(res) {
+        .then(res => {
           assert.equal(
             res.body.length,
             10,
@@ -220,7 +266,7 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=0')
+        .get('/projects/44444444-4444-4444-4444-444444444444/items?page=0')
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -230,7 +276,9 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=0&page_size=5')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=0&page_size=5'
+        )
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -240,7 +288,9 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=1&page_size=5')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=1&page_size=5'
+        )
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -250,7 +300,9 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=2&page_size=5')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=2&page_size=5'
+        )
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -260,7 +312,9 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=3&page_size=5')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=3&page_size=5'
+        )
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -270,7 +324,9 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=3000&page_size=5')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=3000&page_size=5'
+        )
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -280,7 +336,9 @@ test(
           );
         }),
       assert.app
-        .get('/projects/longlist/items?page=0&page_size=0')
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=0&page_size=0'
+        )
         .expect(200)
         .then(function(res) {
           assert.equal(
@@ -289,7 +347,11 @@ test(
             'page 0 with size 0 should have 0 items'
           );
         }),
-      assert.app.get('/projects/longlist/items?page=-1&page_size=5').expect(400)
+      assert.app
+        .get(
+          '/projects/44444444-4444-4444-4444-444444444444/items?page=-1&page_size=5'
+        )
+        .expect(400)
     ];
 
     Promise.all(requests)
@@ -305,11 +367,11 @@ test(
 test(
   'GET /projects/:id/items?lock=locked - get a project with locked items',
   listItemsFixture,
-  function(assert) {
+  assert => {
     assert.app
-      .get('/projects/lockers1/items?lock=locked')
-      .expect(200, function(err, res) {
-        if (err) return assert.end(err);
+      .get('/projects/22222222-2222-2222-2222-222222222222/items?lock=locked')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 3, 'should have 3 locked items');
         assert.end();
       });
@@ -319,11 +381,11 @@ test(
 test(
   'GET /projects/:id/items?lock=locked - get a project with locked items with lockers2 data',
   listItemsFixture,
-  function(assert) {
+  assert => {
     assert.app
-      .get('/projects/lockers2/items?lock=locked')
-      .expect(200, function(err, res) {
-        if (err) return assert.end(err);
+      .get('/projects/33333333-3333-3333-3333-333333333333/items?lock=locked')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 1, 'should have 1 locked items');
         assert.end();
       });
@@ -333,11 +395,11 @@ test(
 test(
   'GET /projects/:id/items?lock=unlocked - get a project with unlocked items',
   listItemsFixture,
-  function(assert) {
+  assert => {
     assert.app
-      .get('/projects/lockers1/items?lock=unlocked')
-      .expect(200, function(err, res) {
-        if (err) return assert.end(err);
+      .get('/projects/22222222-2222-2222-2222-222222222222/items?lock=unlocked')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 1, 'should have one unlocked item');
         assert.end();
       });
@@ -347,11 +409,11 @@ test(
 test(
   'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
   listItemsFixture,
-  function(assert) {
+  assert => {
     assert.app
-      .get('/projects/lockers2/items?lock=unlocked')
-      .expect(200, function(err, res) {
-        if (err) return assert.end(err);
+      .get('/projects/33333333-3333-3333-3333-333333333333/items?lock=unlocked')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
         assert.end();
       });
@@ -361,11 +423,11 @@ test(
 test(
   'GET /projects/:id/items?lock=unlocked - get a project with unlocked items with lockers2 data',
   listItemsFixture,
-  function(assert) {
+  assert => {
     assert.app
-      .get('/projects/lockers2/items?lock=unlocked')
-      .expect(200, function(err, res) {
-        if (err) return assert.end(err);
+      .get('/projects/33333333-3333-3333-3333-333333333333/items?lock=unlocked')
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
         assert.end();
       });
@@ -374,37 +436,47 @@ test(
 
 const getItemsFixture = [
   {
-    id: 'one',
-    items: [{ id: '30', pin: [30, 30] }]
+    id: '11111111-1111-1111-1111-111111111111',
+    name: 'Project 1',
+    items: [
+      {
+        id: '30',
+        name: 'Item 30',
+        pin: [30, 30]
+      }
+    ]
   }
 ];
 
-test('GET /projects/:id/items/:id', getItemsFixture, function(assert) {
-  assert.app.get('/projects/one/items/30').expect(200, function(err, res) {
-    if (err) return assert.end(err);
-    assert.ok(
-      checkLock.unlocked(res.body),
-      'lock ended before the test started'
-    );
-    var item = removeDates(res.body);
-    assert.deepEqual(item, {
-      id: '30',
-      project_id: 'one',
-      pin: {
-        type: 'Point',
-        coordinates: [30, 30]
-      },
-      status: 'open',
-      lockedBy: null,
-      featureCollection: {
-        type: 'FeatureCollection',
-        features: []
-      },
-      createdBy: 'userone',
-      instructions: 'created via the tests',
-      siblings: []
+test('GET /projects/:id/items/:id', getItemsFixture, assert => {
+  assert.app
+    .get('/projects/11111111-1111-1111-1111-111111111111/items/30')
+    .expect(200, (err, res) => {
+      assert.ifError(err, 'should not error');
+      assert.ok(
+        checkLock.unlocked(res.body),
+        'lock ended before the test started'
+      );
+      var item = removeDates(res.body);
+      assert.deepEqual(item, {
+        id: '30',
+        name: 'Item 30',
+        metadata: {},
+        project_id: '11111111-1111-1111-1111-111111111111',
+        pin: {
+          type: 'Point',
+          coordinates: [30, 30]
+        },
+        status: 'open',
+        lockedBy: null,
+        featureCollection: {
+          type: 'FeatureCollection',
+          features: []
+        },
+        createdBy: 'userone',
+        instructions: 'created via the tests',
+        siblings: []
+      });
+      assert.end();
     });
-    assert.end();
-  });
 });
-*/

@@ -27,6 +27,7 @@
     "jwt-simple": "^0.5.1",
     "lint-staged": "^4.2.3",
     "lodash": "^4.17.4",
+    "mapbox-data-team": "^1.4.10",
     "mapbox-error": "^2.2.0",
     "memory-cache": "^0.2.0",
     "nock": "^9.0.22",
