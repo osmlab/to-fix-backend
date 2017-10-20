@@ -18,6 +18,11 @@ module.exports = function(db) {
     },
     coordinates: {
       type: Sequelize.GEOMETRY('POINT')
+    },
+    metadata: {
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
     }
   });
 

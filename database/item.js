@@ -49,15 +49,15 @@ module.exports = function(db) {
       lockedBy: {
         type: Sequelize.STRING
       },
-      siblings: {
-        type: Sequelize.ARRAY(Sequelize.INTEGER),
-        allowNull: false,
-        defaultValue: []
-      },
       metadata: {
         type: Sequelize.JSONB,
         allowNull: false,
         defaultValue: {}
+      },
+      sort: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       }
     },
     {
