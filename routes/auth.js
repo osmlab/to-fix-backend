@@ -9,8 +9,8 @@ const constants = require('../lib/constants');
 const osmOauth = new OAuth(
   constants.OSM_REQUEST_TOKEN_URL,
   constants.OSM_ACCESS_TOKEN_URL,
-  process.env.OSM_CONSUMER_KEY,
-  process.env.OSM_CONSUMER_SECRET,
+  process.env.CONSUMER_KEY,
+  process.env.CONSUMER_SECRET,
   '1.0',
   '',
   'HMAC-SHA1'

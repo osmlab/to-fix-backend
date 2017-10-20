@@ -2,7 +2,13 @@
 
 ## Auth
 
-All `put` endpoints require authentication.
+All endpoints require authentication. Authorization is supplied by sending an `Authorization` header in the form of `Token <token>`.
+
+You can get a token by authenticating via OpenStreetMap.
+
+Go to: `https://host/auth/openstreetmap`. You will be forwarded to the OpenStreetMap login page. After logging in successfully, you will be redirected to the frontend URL which will receive an authorization token from the backend.
+
+If you need to use this token for automated scripts, export it from the frontend and setup your scripts to send it in an `Authorization` header as described above.
 
 ## Endpoints
 

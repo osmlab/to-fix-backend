@@ -202,7 +202,7 @@ function createItem(req, res, next) {
       values.lockedBy = null;
     } else {
       values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-      values.lockedBy = req.user;
+      values.lockedBy = req.user.username;
     }
   }
 
@@ -236,7 +236,8 @@ function createItem(req, res, next) {
     features: []
   };
 
-  values.user = values.createdBy = req.user;
+  values.user = req.user.username;
+  values.createdBy = values.user;
 
   Item.create(values)
     .then(item => {
@@ -363,7 +364,7 @@ function updateItem(req, res, next) {
       values.lockedBy = null;
     } else {
       values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-      values.lockedBy = req.user;
+      values.lockedBy = req.user.username;
     }
   }
 
@@ -422,7 +423,7 @@ function updateItem(req, res, next) {
     };
   }
 
-  values.user = req.user;
+  values.user = req.user.username;
 
   putItemWrapper(values)
     .then(data => {
