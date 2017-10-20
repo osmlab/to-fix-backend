@@ -7,6 +7,7 @@ const validateBody = require('../lib/helper/validateBody');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const Item = db.Item;
+const _ = require('lodash');
 
 module.exports = {
   /* Project-level operations */
@@ -49,6 +50,7 @@ function getProjectTags(req, res, next) {
     const decodedTag = decodeURIComponent(req.query.tag);
     where.name = { [Op.like]: `%${decodedTag}%` };
   }
+
   Tag.findAll({ where: where })
     .then(data => {
       res.json(data);
@@ -79,17 +81,17 @@ function getProjectTags(req, res, next) {
  */
 function createProjectTag(req, res, next) {
   const validBodyAttrs = ['name', 'metadata'];
-  const requiredBodyAttr = ['name'];
+  const requiredBodyAttrs = ['name'];
   const validationError = validateBody(
     req.body,
     validBodyAttrs,
-    requiredBodyAttr
+    requiredBodyAttrs
   );
   if (validationError) return next(new ErrorHTTP(validationError, 400));
+  const options = _.extend(req.body, { project_id: req.params.project });
 
-  const opts = Object.assign({}, req.body, { project_id: req.params.project });
-  Tag.create(opts)
-    .then(function(data) {
+  Tag.create(options)
+    .then(data => {
       res.json(data);
     })
     .catch(next);
@@ -115,13 +117,10 @@ function createProjectTag(req, res, next) {
  * }
  */
 function getProjectTag(req, res, next) {
-  Tag.findOne({
-    where: {
-      id: req.params.tag,
-      project_id: req.params.project
-    }
-  })
-    .then(function(data) {
+  const where = { project_id: req.params.project, id: req.params.tag };
+
+  Tag.findOne({ where: where })
+    .then(data => {
       res.json(data);
     })
     .catch(next);
@@ -146,13 +145,12 @@ function updateProjectTag(req, res, next) {
   const validBodyAttrs = ['name', 'metadata'];
   const validationError = validateBody(req.body, validBodyAttrs);
   if (validationError) return next(new ErrorHTTP(validationError, 400));
+  const where = { project_id: req.params.project, id: req.params.tag };
 
   // Need to confirm that metadata either overwrites existing metadata, or develop
   // a system for users to be able to remove metadata in addition to appending
-  Tag.update(req.body, {
-    where: { id: req.params.tag, project_id: req.params.project }
-  })
-    .then(function(data) {
+  Tag.update(req.body, { where: where })
+    .then(data => {
       res.json(data);
     })
     .catch(next);
@@ -167,15 +165,14 @@ function updateProjectTag(req, res, next) {
  * @param {string} params.tag - The tag ID
  * @example
  * curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+ *
+ * 1
  */
 function deleteProjectTag(req, res, next) {
-  Tag.destroy({
-    where: {
-      id: req.params.tag,
-      project_id: req.params.project
-    }
-  })
-    .then(function(data) {
+  const where = { project_id: req.params.project, id: req.params.tag };
+
+  Tag.destroy({ where: where })
+    .then(data => {
       res.json(data);
     })
     .catch(next);
@@ -209,9 +206,9 @@ function deleteProjectTag(req, res, next) {
  * ]
  */
 function getItemTags(req, res, next) {
-  Item.findOne({
-    where: { id: req.params.item, project_id: req.params.project }
-  })
+  const where = { project_id: req.params.project, id: req.params.item };
+
+  Item.findOne({ where: where })
     .then(data => {
       return data.getTags();
     })
@@ -252,14 +249,14 @@ function getItemTags(req, res, next) {
  */
 function createItemTag(req, res, next) {
   let store = {};
-  Item.findOne({
-    where: { id: req.params.item, project_id: req.params.project }
-  })
+  const where = { project_id: req.params.project };
+  const whereItem = _.extend(where, { id: req.params.item });
+  const whereTag = _.extend(where, { id: req.body.tag });
+
+  Item.findOne({ where: whereItem })
     .then(data => {
       store.item = data;
-      return Tag.findOne({
-        where: { id: req.body.tag, project_id: req.params.project }
-      });
+      return Tag.findOne({ where: whereTag });
     })
     .then(data => {
       store.tag = data;
@@ -290,9 +287,9 @@ function createItemTag(req, res, next) {
  */
 function deleteItemTag(req, res, next) {
   let store = {};
-  Item.findOne({
-    where: { id: req.params.item, project_id: req.params.project }
-  })
+  const where = { project_id: req.params.project, id: req.params.item };
+
+  Item.findOne({ where: where })
     .then(data => {
       store.item = data;
       data.removeTags(req.params.tag);

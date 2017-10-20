@@ -326,6 +326,8 @@ Delete a project tag.
 
 ```javascript
 curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+1
 ```
 
 ### get-item-tags
