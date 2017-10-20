@@ -639,7 +639,6 @@ test(
         const item = removeDates(res.body);
         assert.deepEqual(item, {
           status: 'open',
-          siblings: [],
           metadata: {},
           id: '405270',
           project_id: '11111111-1111-1111-1111-111111111111',
@@ -647,7 +646,8 @@ test(
           instructions: 'Fix this item',
           featureCollection: { type: 'FeatureCollection', features: [] },
           createdBy: 'test-user',
-          lockedBy: null
+          lockedBy: null,
+          sort: 0
         });
         assert.end();
       });
@@ -771,7 +771,7 @@ test('GET /projects/:project/items/:item', getItemsFixture, (assert, token) => {
         },
         createdBy: 'userone',
         instructions: 'created via the tests',
-        siblings: []
+        sort: 0
       });
       assert.end();
     });

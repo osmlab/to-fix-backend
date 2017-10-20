@@ -21,7 +21,7 @@ module.exports = function(db) {
         unique: 'projectItemId'
       },
       pin: {
-        type: Sequelize.GEOMETRY('POINT'),
+        type: Sequelize.GEOMETRY('POINT', 4326),
         allowNull: false
       },
       instructions: {
@@ -49,15 +49,15 @@ module.exports = function(db) {
       lockedBy: {
         type: Sequelize.STRING
       },
-      siblings: {
-        type: Sequelize.ARRAY(Sequelize.INTEGER),
-        allowNull: false,
-        defaultValue: []
-      },
       metadata: {
         type: Sequelize.JSONB,
         allowNull: false,
         defaultValue: {}
+      },
+      sort: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       }
     },
     {
@@ -83,6 +83,19 @@ module.exports = function(db) {
   Item.prototype.toJSON = function() {
     return _.omit(this.dataValues, 'auto_id');
   };
+
+  /**
+    This is a bit of a hack to get incoming GeoJSON saved with the correct
+    SRID in the database.
+    Ideally, we would not modify the GeoJSON but enforce saving into the database
+    with something like ST_SetSrid(St_FromGeoJson(geojson), 4326) but I'm not quite
+    sure how to do this with Sequelize, so this will probably do for now.
+  */
+  Item.beforeSave(model => {
+    if (!model.pin.crs) {
+      model.pin.crs = { type: 'name', properties: { name: 'EPSG:4326' } };
+    }
+  });
 
   return Item;
 };

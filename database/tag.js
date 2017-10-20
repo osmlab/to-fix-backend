@@ -19,6 +19,11 @@ module.exports = function(db) {
         type: Sequelize.STRING,
         allowNull: false,
         unique: 'tagProjectId'
+      },
+      metadata: {
+        type: Sequelize.JSONB,
+        allowNull: false,
+        defaultValue: {}
       }
     },
     {
