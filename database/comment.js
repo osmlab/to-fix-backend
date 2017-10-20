@@ -1,4 +1,5 @@
-var Sequelize = require('sequelize');
+const Sequelize = require('sequelize');
+const _ = require('lodash');
 
 module.exports = function(db) {
   var Comment = db.define('comment', {
@@ -34,6 +35,10 @@ module.exports = function(db) {
       };
     }
   });
+
+  Comment.prototype.toJSON = function() {
+    return _.omit(this.dataValues, 'itemAutoId');
+  };
 
   return Comment;
 };

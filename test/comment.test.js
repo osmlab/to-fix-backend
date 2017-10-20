@@ -1,0 +1,86 @@
+'use strict';
+
+const test = require('./lib/test');
+
+const itemFixture = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '77',
+        pin: [77, 77],
+        comments: [
+          {
+            createdBy: 'usertwo',
+            body: 'first'
+          },
+          {
+            body: 'second'
+          }
+        ]
+      },
+      {
+        id: '30',
+        pin: [30, 30]
+      }
+    ]
+  }
+];
+
+test(
+  'GET /projects/:project/items/:item/comments - get comments for item',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .get('/projects/00000000-0000-0000-0000-000000000000/items/77/comments')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'get comments does not error');
+        assert.equal(res.body.length, 2, '2 comments fetched');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /projects/:project/items:item/comments - comments should be empty for no comments',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .get('/projects/00000000-0000-0000-0000-000000000000/items/30/comments')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'get 0 comments does not error');
+        assert.equal(res.body.length, 0, '0 comments fetched');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /projects/:project/items:item/comments/:comment - fetch a single comment',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .get('/projects/00000000-0000-0000-0000-000000000000/items/77/comments')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        const comment1 = res.body[0];
+        assert.app
+          .get(
+            `/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1.id}`
+          )
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            assert.ifError(err, 'fetching single comment does not error');
+            assert.deepEqual(
+              res.body,
+              comment1,
+              'fetches single comment as expected'
+            );
+            assert.end();
+          });
+      });
+  }
+);
