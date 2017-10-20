@@ -59,7 +59,7 @@ test(
 );
 
 test(
-  'GET /projects/:project/items:item/comments/:comment - fetch a single comment',
+  'GET /projects/:project/items/:item/comments/:comment - fetch a single comment',
   itemFixture,
   (assert, token) => {
     assert.app
@@ -84,3 +84,23 @@ test(
       });
   }
 );
+
+test(
+  'POST /projects/:project/items/:item/comments - create a comment',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .post('/projects/00000000-0000-0000-0000-000000000000/items/30/comments')
+      .set('authorization', token)
+      .send({
+        body: 'test comment',
+        pin: [20, 20]
+      })
+      .expect(200, err => {
+        assert.ifError(err, 'POSTing comment did not error');
+        assert.end();
+      });
+  }
+);
+
+//TODO: test error conditions and other things

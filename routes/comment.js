@@ -1,4 +1,7 @@
+const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const db = require('../database/index');
+const validateBody = require('../lib/helper/validateBody');
+const geojsonhint = require('@mapbox/geojsonhint');
 
 module.exports = {
   getItemComments: getItemComments,
@@ -115,8 +118,72 @@ function getItemComment(req, res, next) {
     });
 }
 
+/**
+ * Create a comment
+ * @name create-item-comment
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
+ * @param {Object} body - The request body
+ * @param {string} body.body - Body of the comment (required)
+ * @param {Array} body.pin - coordinates of pin
+ */
 function createItemComment(req, res, next) {
-  return next();
+  const projectId = req.params.project;
+  const itemId = req.params.item;
+  const values = {};
+  const validBodyAttrs = ['body', 'pin', 'metadata'];
+  const requiredBodyAttrs = ['body'];
+  const validationError = validateBody(
+    req.body,
+    validBodyAttrs,
+    requiredBodyAttrs
+  );
+  if (validationError) return next(new ErrorHTTP(validationError, 400));
+
+  /* Validate pin */
+  if (
+    req.body.pin &&
+    (!Array.isArray(req.body.pin) || req.body.pin.length !== 2)
+  ) {
+    return next(
+      new ErrorHTTP(
+        'Comment pin must be in the [longitude, latitude] format',
+        400
+      )
+    );
+  }
+  values.pin = { type: 'Point', coordinates: req.body.pin };
+  var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
+  if (pinErrors.length) {
+    return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
+  }
+  if (req.body.body.trim() === '') {
+    return next(new ErrorHTTP('Comment body cannot be empty', 400));
+  }
+  values.body = req.body.body;
+  values.createdBy = req.user.username;
+  db.Item
+    .findOne({
+      where: {
+        project_id: projectId,
+        id: itemId
+      }
+    })
+    .then(item => {
+      return db.Comment.create({
+        itemAutoId: item.auto_id,
+        createdBy: values.createdBy,
+        body: values.body,
+        pin: values.pin ? values.pin : null
+      });
+    })
+    .then(comment => {
+      res.json(comment);
+    })
+    .catch(err => {
+      next(err);
+    });
 }
 
 function updateItemComment(req, res, next) {

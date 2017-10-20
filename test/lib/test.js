@@ -106,9 +106,9 @@ function setup(fixture) {
                     itemAutoId: it.auto_id,
                     createdBy: comment.createdBy || 'userone',
                     body: comment.body || 'test',
-                    coordinates: {
+                    pin: {
                       type: 'Point',
-                      coordinates: comment.coordinates || [0, 0]
+                      coordinates: comment.pin || [0, 0]
                     },
                     metadata: comment.metadata || {}
                   });
