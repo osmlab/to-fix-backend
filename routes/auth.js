@@ -76,8 +76,7 @@ function handleOSMCallback(req, res, next) {
               };
               const token = jwt.encode(user, process.env.APP_SECRET);
               res.redirect(
-                `${process.env
-                  .FRONTEND_URL}/handle_auth_callback?token=${token}`
+                `${process.env.FRONTEND_URL}/landing.html?token=${token}`
               );
             }
           );
