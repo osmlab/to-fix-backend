@@ -28,8 +28,19 @@ module.exports = {
  * @param {string} params.project - The project ID
  * @param {Object} [query] - The request URL query parameters
  * @param {string} [query.tag] - String to filter tag names by
- * @exampledecodeURIComponent(string)
- * curl https://host/projects/:project/tags
+ * @example
+ * curl https://host/projects/00000000-0000-0000-0000-000000000000/tags
+ *
+ * [
+ *   {
+ *     id: '22222222-2222-2222-2222-222222222222',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     name: 'My Tag',
+ *     metadata: {},
+ *     createdAt: '2017-10-20T00:00:00.000Z',
+ *     updatedAt: '2017-10-20T00:00:00.000Z'
+ *   }
+ * ]
  */
 function getProjectTags(req, res, next) {
   let where = { project_id: req.params.project };
@@ -53,7 +64,16 @@ function getProjectTags(req, res, next) {
  * @param {string} body.name - The tag name
  * @param {Object} [body.metadata={}] - The tag metadata
  * @example
- * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://host/projects/:project/tags
+ * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://host/projects/00000000-0000-0000-0000-000000000000/tags
+ *
+ * {
+ *   id: '33333333-3333-3333-3333-333333333333',
+ *   metadata: {},
+ *   name: 'My Tag Tag',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   updatedAt: '2017-10-20T00:00:00.000Z',
+ *   createdAt: '2017-10-20T00:00:00.000Z'
+ * }
  */
 function createProjectTag(req, res, next) {
   const validBodyAttrs = ['name', 'metadata'];
@@ -80,10 +100,19 @@ function createProjectTag(req, res, next) {
  * @param {string} params.tag - The tag ID
  * @param {string} params.project - The project ID
  * @example
- * curl https://host/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+ * curl https://host/projects/00000000-0000-0000-0000-000000000000/tags/33333333-3333-3333-3333-333333333333
+ *
+ * {
+ *   id: '33333333-3333-3333-3333-333333333333',
+ *   metadata: {},
+ *   name: 'My Tag Tag',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   updatedAt: '2017-10-20T00:00:00.000Z',
+ *   createdAt: '2017-10-20T00:00:00.000Z'
+ * }
  */
 function getProjectTag(req, res, next) {
-  Tag.findAll({
+  Tag.findOne({
     where: {
       id: req.params.tag,
       project_id: req.params.project
@@ -105,7 +134,9 @@ function getProjectTag(req, res, next) {
  * @param {string} [body.name] - The new tag name
  * @param {Object} [body.metadata] - The new tag metadata
  * @example
- * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+ * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/projects/00000000-0000-0000-0000-000000000000/tags/33333333-3333-3333-3333-333333333333
+ *
+ * [1]
  */
 function updateProjectTag(req, res, next) {
   const validBodyAttrs = ['name', 'metadata'];
@@ -147,6 +178,29 @@ function deleteProjectTag(req, res, next) {
 
 /**
  * Get all tags for an item.
+ * @name get-item-tags
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.item - The item ID
+ * @param {string} params.project - The project ID
+ * @example
+ * curl http://host/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+ *
+ * [
+ *   {
+ *     id: '22222222-2222-2222-2222-222222222222',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     name: 'My Tag',
+ *     metadata: {},
+ *     createdAt: '2017-10-20T00:00:00.000Z',
+ *     updatedAt: '2017-10-20T00:00:00.000Z',
+ *     item_tag: {
+ *       createdAt: '2017-10-20T00:00:00.000Z',
+ *       updatedAt: '2017-10-20T00:00:00.000Z',
+ *       itemAutoId: 1,
+ *       tagId: '22222222-2222-2222-2222-222222222222'
+ *     }
+ *   }
+ * ]
  */
 function getItemTags(req, res, next) {
   Item.findOne({
@@ -163,6 +217,31 @@ function getItemTags(req, res, next) {
 
 /**
  * Add a tag to an item.
+ * @name create-item-tag
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.item - The item ID
+ * @param {string} params.project - The project ID
+ * @param {Object} body - The request payload
+ * @param {string} body.tag - The tag ID
+ * @example
+ * curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-2222-222222222222"}' https://host/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+ *
+ * [
+ *   {
+ *     id: '22222222-2222-2222-2222-222222222222',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     name: 'My Tag',
+ *     metadata: {},
+ *     createdAt: '2017-10-20T00:00:00.000Z',
+ *     updatedAt: '2017-10-20T00:00:00.000Z',
+ *     item_tag: {
+ *       createdAt: '2017-10-20T00:00:00.000Z',
+ *       updatedAt: '2017-10-20T00:00:00.000Z',
+ *       itemAutoId: 1,
+ *       tagId: '22222222-2222-2222-2222-222222222222'
+ *     }
+ *   }
+ * ]
  */
 function createItemTag(req, res, next) {
   let store = {};
@@ -190,6 +269,16 @@ function createItemTag(req, res, next) {
 
 /**
  * Remove a tag from an item.
+ * @name delete-item-tag
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.item - The item ID
+ * @param {string} params.project - The project ID
+ * @param {string} params.tag - The tag ID
+ * @returns {Object[]} tags - An array of remaining tags on the item
+ * @example
+ * curl -X DELETE https://host/projects/00000000-0000-0000-0000-000000000000/items/111111/tags/22222222-2222-2222-2222-222222222222
+ *
+ * []
  */
 function deleteItemTag(req, res, next) {
   let store = {};
@@ -203,8 +292,8 @@ function deleteItemTag(req, res, next) {
     .then(() => {
       return store.item.getTags();
     })
-    .then(data => {
-      res.json(data);
+    .then(tags => {
+      res.json(tags);
     })
     .catch(next);
 }
