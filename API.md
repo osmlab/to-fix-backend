@@ -48,6 +48,55 @@ curl https://host/projects
 ]
 ```
 
+### get-item-comments
+
+Get a list of comments for an item
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+
+**Examples**
+
+```javascript
+curl https://host/projects/:project/items/:item/comments
+
+[
+{
+  "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
+  "createdBy": "usertwo",
+  "body": "first",
+  "coordinates": {
+    "type": "Point",
+    "coordinates": [
+      0,
+      0
+    ]
+  },
+  "metadata": {},
+  "createdAt": "2017-10-20T20:39:06.580Z",
+  "updatedAt": "2017-10-20T20:39:06.580Z"
+},
+{
+  "id": "3a47cd22-1761-4582-8cc6-32da1c0bd970",
+  "createdBy": "userone",
+  "body": "second",
+  "coordinates": {
+    "type": "Point",
+    "coordinates": [
+      0,
+      0
+    ]
+  },
+  "metadata": {},
+  "createdAt": "2017-10-20T20:39:06.581Z",
+  "updatedAt": "2017-10-20T20:39:06.581Z"
+}
+]
+```
+
 ### get-items
 
 Get a paginated list of items for a project.
@@ -135,6 +184,38 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000
   metadata: {},
   createdAt: '2017-10-18T00:00:00.000Z',
   updatedAt: '2017-10-18T00:00:00.000Z'
+}
+```
+
+### get-item-comment
+
+Get an individual comment
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+    -   `params.comment` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The comment ID
+
+**Examples**
+
+```javascript
+curl https://host/projects/:project/items/:item/comments/:comment
+{
+  "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
+  "createdBy": "usertwo",
+  "body": "first",
+  "coordinates": {
+    "type": "Point",
+    "coordinates": [
+      0,
+      0
+    ]
+  },
+  "metadata": {},
+  "createdAt": "2017-10-20T20:39:06.580Z",
+  "updatedAt": "2017-10-20T20:39:06.580Z"
 }
 ```
 
