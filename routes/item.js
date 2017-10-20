@@ -77,6 +77,14 @@ function getItems(req, res, next) {
     };
   }
 
+  if (req.query.status) {
+    if (constants.ALL_STATUS.indexOf(req.query.status) === -1) {
+      return next(
+        new ErrorHTTP(`Invalid req.query.status: ${req.query.status}`, 400)
+      );
+    }
+    search.where.status = req.query.status;
+  }
   /* If there are items, return them. If there are not items, confirm that the
   project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
   return empty array. */
@@ -202,7 +210,7 @@ function createItem(req, res, next) {
       values.lockedBy = null;
     } else {
       values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-      values.lockedBy = req.user;
+      values.lockedBy = req.user.username;
     }
   }
 
@@ -236,7 +244,8 @@ function createItem(req, res, next) {
     features: []
   };
 
-  values.user = values.createdBy = req.user;
+  values.user = req.user.username;
+  values.createdBy = values.user;
 
   Item.create(values)
     .then(item => {
@@ -363,7 +372,7 @@ function updateItem(req, res, next) {
       values.lockedBy = null;
     } else {
       values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-      values.lockedBy = req.user;
+      values.lockedBy = req.user.username;
     }
   }
 
@@ -422,7 +431,7 @@ function updateItem(req, res, next) {
     };
   }
 
-  values.user = req.user;
+  values.user = req.user.username;
 
   putItemWrapper(values)
     .then(data => {

@@ -1,5 +1,7 @@
 var db = require('../database/index');
 const logger = require('fastlog')('setup-database');
+const session = require('express-session');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 db
   .query('SELECT * FROM public.geometry_columns')
@@ -10,6 +12,13 @@ db
   })
   .then(function() {
     return db.sync({ force: process.env.DROP === 'true', logging: false });
+  })
+  .then(function() {
+    const sessionStore = new SequelizeStore({
+      db: db,
+      checkExpirationInterval: -1
+    });
+    return sessionStore.sync();
   })
   .then(function() {
     logger.info('database is setup');

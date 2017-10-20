@@ -11,6 +11,11 @@ module.exports = function(db) {
     stats: {
       type: Sequelize.JSONB,
       allowNull: false
+    },
+    metadata: {
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
     }
   });
 

@@ -17,7 +17,21 @@ module.exports = function(db) {
       allowNull: false
     },
     coordinates: {
-      type: Sequelize.GEOMETRY('POINT')
+      type: Sequelize.GEOMETRY('POINT', 4326)
+    },
+    metadata: {
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
+    }
+  });
+
+  Comment.beforeSave(model => {
+    if (!model.coordinates.crs) {
+      model.coordinates.crs = {
+        type: 'name',
+        properties: { name: 'EPSG:4326' }
+      };
     }
   });
 
