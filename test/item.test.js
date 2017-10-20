@@ -83,19 +83,22 @@ const listItemsFixture = [
         id: '30',
         pin: [30, 30],
         lockedBy: 'userone',
-        lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+        lockedTill: new Date(Date.now() - 1000 * 15 * 60),
+        status: 'open'
       },
       {
         id: '32',
         pin: [30, 30],
         lockedBy: 'usertwo',
-        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60),
+        status: 'fixed'
       },
       {
         id: '33',
         pin: [30, 30],
         lockedBy: 'userone',
-        lockedTill: new Date(Date.now())
+        lockedTill: new Date(Date.now()),
+        status: 'noterror'
       },
       {
         id: '40',
@@ -406,6 +409,23 @@ test(
       })
       .catch(function(err) {
         return assert.end(err);
+      });
+  }
+);
+
+test(
+  'GET /projects/:id/items?status=<status> - filter items by status',
+  listItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/projects/44444444-4444-4444-4444-444444444444/items?status=noterror'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.equal(res.body.length, 1, 'should have 1 noterror item');
+        assert.end();
       });
   }
 );

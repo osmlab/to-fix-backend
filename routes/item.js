@@ -77,6 +77,14 @@ function getItems(req, res, next) {
     };
   }
 
+  if (req.query.status) {
+    if (constants.ALL_STATUS.indexOf(req.query.status) === -1) {
+      return next(
+        new ErrorHTTP(`Invalid req.query.status: ${req.query.status}`, 400)
+      );
+    }
+    search.where.status = req.query.status;
+  }
   /* If there are items, return them. If there are not items, confirm that the
   project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
   return empty array. */
