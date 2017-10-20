@@ -15,7 +15,8 @@ var pendingTests = 0;
 const testToken = jwt.encode(
   {
     id: 123,
-    username: 'test-user'
+    username: 'test-user',
+    image: 'https://gravatar.com/awesome/image'
   },
   process.env.APP_SECRET
 );
