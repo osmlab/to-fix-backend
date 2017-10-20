@@ -6,6 +6,7 @@ const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const validateBody = require('../lib/helper/validateBody');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const Item = db.Item;
 
 module.exports = {
   /* Project-level operations */
@@ -148,19 +149,62 @@ function deleteProjectTag(req, res, next) {
  * Get all tags for an item.
  */
 function getItemTags(req, res, next) {
-  return next();
+  Item.findOne({
+    where: { id: req.params.item, project_id: req.params.project }
+  })
+    .then(data => {
+      return data.getTags();
+    })
+    .then(data => {
+      res.json(data);
+    })
+    .catch(next);
 }
 
 /**
  * Add a tag to an item.
  */
 function createItemTag(req, res, next) {
-  return next();
+  let store = {};
+  Item.findOne({
+    where: { id: req.params.item, project_id: req.params.project }
+  })
+    .then(data => {
+      store.item = data;
+      return Tag.findOne({
+        where: { id: req.body.tag, project_id: req.params.project }
+      });
+    })
+    .then(data => {
+      store.tag = data;
+      return store.item.setTags(data);
+    })
+    .then(() => {
+      return store.item.getTags({ where: { id: req.body.tag } });
+    })
+    .then(data => {
+      res.json(data);
+    })
+    .catch(next);
 }
 
 /**
  * Remove a tag from an item.
  */
 function deleteItemTag(req, res, next) {
-  return next();
+  let store = {};
+  Item.findOne({
+    where: { id: req.params.item, project_id: req.params.project }
+  })
+    .then(data => {
+      store.item = data;
+      data.removeTags(req.params.tag);
+    })
+    .then(() => {
+      return store.item.getTags();
+    })
+    .then(data => {
+      res.json(data);
+    })
+    .catch(next);
 }
