@@ -3,6 +3,7 @@ require('dotenv').load();
 const parser = require('xml2json');
 const OAuth = require('oauth').OAuth;
 const jwt = require('jwt-simple');
+const _ = require('lodash');
 
 const constants = require('../lib/constants');
 
@@ -66,18 +67,23 @@ function handleOSMCallback(req, res, next) {
             oauth_access_token,
             oauth_access_token_secret,
             function(err, data) {
-              if (err) next(err);
+              if (err) {
+                return next(err);
+              }
+
               const userData = parser.toJson(data, {
                 object: true
               });
+
               const user = {
-                id: userData.osm.user.id,
-                username: userData.osm.user.display_name
+                id: _.get(userData, 'osm.user.id'),
+                username: _.get(userData, 'osm.user.display_name', ''),
+                image: _.get(userData, 'osm.user.img.href', '')
               };
+
               const token = jwt.encode(user, process.env.APP_SECRET);
               res.redirect(
-                `${process.env
-                  .FRONTEND_URL}/handle_auth_callback?token=${token}`
+                `${process.env.FRONTEND_URL}/landing.html?token=${token}`
               );
             }
           );
