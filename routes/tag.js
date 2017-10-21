@@ -8,6 +8,7 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const Item = db.Item;
 const _ = require('lodash');
+const Project = db.Project;
 
 module.exports = {
   /* Project-level operations */
@@ -45,13 +46,18 @@ module.exports = {
  * ]
  */
 function getProjectTags(req, res, next) {
-  let where = { project_id: req.params.project };
+  let whereProject = { id: req.params.project };
+  let whereTag = { project_id: req.params.project };
   if (req.query.tag) {
     const decodedTag = decodeURIComponent(req.query.tag);
-    where.name = { [Op.like]: `%${decodedTag}%` };
+    whereTag.name = { [Op.like]: `%${decodedTag}%` };
   }
 
-  Tag.findAll({ where: where })
+  Project.findOne({ where: whereProject })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Tag.findAll({ where: whereTag });
+    })
     .then(data => {
       res.json(data);
     })
@@ -80,6 +86,7 @@ function getProjectTags(req, res, next) {
  * }
  */
 function createProjectTag(req, res, next) {
+  const where = { id: req.params.project };
   const validBodyAttrs = ['name', 'metadata'];
   const requiredBodyAttrs = ['name'];
   const validationError = validateBody(
@@ -87,10 +94,14 @@ function createProjectTag(req, res, next) {
     validBodyAttrs,
     requiredBodyAttrs
   );
-  if (validationError) return next(new ErrorHTTP(validationError, 400));
+  if (validationError) throw new ErrorHTTP(validationError, 400);
   const options = _.extend(req.body, { project_id: req.params.project });
 
-  Tag.create(options)
+  Project.findOne({ where: where })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Tag.create(options);
+    })
     .then(data => {
       res.json(data);
     })
@@ -117,10 +128,16 @@ function createProjectTag(req, res, next) {
  * }
  */
 function getProjectTag(req, res, next) {
-  const where = { project_id: req.params.project, id: req.params.tag };
+  const whereProject = { id: req.params.project };
+  const whereTag = { project_id: req.params.project, id: req.params.tag };
 
-  Tag.findOne({ where: where })
+  Project.findOne({ where: whereProject })
     .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Tag.findOne({ where: whereTag });
+    })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
       res.json(data);
     })
     .catch(next);
@@ -142,16 +159,25 @@ function getProjectTag(req, res, next) {
  * [1]
  */
 function updateProjectTag(req, res, next) {
+  const whereProject = { id: req.params.project };
+  const whereTag = { project_id: req.params.project, id: req.params.tag };
+
   const validBodyAttrs = ['name', 'metadata'];
   const validationError = validateBody(req.body, validBodyAttrs);
-  if (validationError) return next(new ErrorHTTP(validationError, 400));
-  const where = { project_id: req.params.project, id: req.params.tag };
+  if (validationError) throw new ErrorHTTP(validationError, 400);
 
-  // Need to confirm that metadata either overwrites existing metadata, or develop
-  // a system for users to be able to remove metadata in addition to appending
-  Tag.update(req.body, { where: where })
+  Project.findOne({ where: whereProject })
     .then(data => {
-      res.json(data);
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Tag.findOne({ where: whereTag });
+    })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
+      const updatedBody = _.merge({}, data.dataValues, req.body);
+      return Tag.update(updatedBody, { where: whereTag, returning: true });
+    })
+    .then(data => {
+      res.json(data[1]);
     })
     .catch(next);
 }
@@ -206,10 +232,16 @@ function deleteProjectTag(req, res, next) {
  * ]
  */
 function getItemTags(req, res, next) {
-  const where = { project_id: req.params.project, id: req.params.item };
+  const whereProject = { id: req.params.project };
+  const whereItem = { project_id: req.params.project, id: req.params.item };
 
-  Item.findOne({ where: where })
+  Project.findOne({ where: whereProject })
     .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Item.findOne({ where: whereItem });
+    })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid item ID', 400);
       return data.getTags();
     })
     .then(data => {
@@ -249,21 +281,27 @@ function getItemTags(req, res, next) {
  */
 function createItemTag(req, res, next) {
   let store = {};
-  const where = { project_id: req.params.project };
-  const whereItem = _.extend(where, { id: req.params.item });
-  const whereTag = _.extend(where, { id: req.body.tag });
+  const whereProject = { id: req.params.project };
+  const whereItem = { project_id: req.params.project, id: req.params.item };
+  const whereTag = { project_id: req.params.project, id: req.body.tag };
 
-  Item.findOne({ where: whereItem })
+  Project.findOne({ where: whereProject })
     .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Item.findOne({ where: whereItem });
+    })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid item ID', 400);
       store.item = data;
       return Tag.findOne({ where: whereTag });
     })
     .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
       store.tag = data;
       return store.item.setTags(data);
     })
     .then(() => {
-      return store.item.getTags({ where: { id: req.body.tag } });
+      return store.tag.getItems({ where: { id: req.params.item } });
     })
     .then(data => {
       res.json(data);
@@ -287,18 +325,30 @@ function createItemTag(req, res, next) {
  */
 function deleteItemTag(req, res, next) {
   let store = {};
-  const where = { project_id: req.params.project, id: req.params.item };
+  const whereProject = { id: req.params.project };
+  const whereItem = { project_id: req.params.project, id: req.params.item };
 
-  Item.findOne({ where: where })
+  Project.findOne({ where: whereProject })
     .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Item.findOne({ where: whereItem });
+    })
+    .then(data => {
+      if (!data) throw new ErrorHTTP('Invalid item ID', 400);
       store.item = data;
-      data.removeTags(req.params.tag);
+      return store.item.removeTags(req.params.tag, { returning: true });
     })
-    .then(() => {
-      return store.item.getTags();
+    .then(data => {
+      if (!data)
+        throw new ErrorHTTP(
+          `Tag ID ${req.params.tag} was not associated with item ${req.params
+            .item}`,
+          400
+        );
+      return Item.findOne({ whereItem });
     })
-    .then(tags => {
-      res.json(tags);
+    .then(data => {
+      res.json(data);
     })
     .catch(next);
 }
