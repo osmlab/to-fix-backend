@@ -267,7 +267,13 @@ function createItem(req, res, next) {
     .then(item => {
       res.json(item);
     })
-    .catch(next);
+    .catch(err => {
+      if (err instanceof Sequelize.UniqueConstraintError) {
+        return next(new ErrorHTTP('Item with this id already exists', 400));
+      } else {
+        return next(err);
+      }
+    });
 }
 
 /**

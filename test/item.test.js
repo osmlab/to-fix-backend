@@ -714,6 +714,30 @@ test(
 );
 
 test(
+  'POST /:version/projects/:project/items/:item - posting item with same id raises 400',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .post('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        id: '30',
+        pin: [0, 0],
+        instructions: 'tofix'
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.equal(
+          res.body.message,
+          'Item with this id already exists',
+          'error message is correct'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
   'POST /:version/projects/:project/items/:item',
   getItemsFixture,
   (assert, token) => {
