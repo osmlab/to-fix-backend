@@ -9,13 +9,15 @@ const jwt = require('jwt-simple');
 const path = require('path');
 const exec = require('child_process').execSync;
 const db = require('../../database/index');
+const _ = require('lodash');
 
 var pendingTests = 0;
 
 const testToken = jwt.encode(
   {
     id: 123,
-    username: 'test-user'
+    username: 'test-user',
+    image: 'https://gravatar.com/awesome/image'
   },
   process.env.APP_SECRET
 );
@@ -58,6 +60,7 @@ module.exports = function(testName, fixture, cb) {
 };
 
 function setup(fixture) {
+  const store = {};
   try {
     exec(
       `DROP=true PG_DATABASE='${process.env.PG_DATABASE}' node ${path.join(
@@ -79,10 +82,24 @@ function setup(fixture) {
           name: project.name,
           metadata: project.metadata || {}
         })
-        .then(function() {
+        .then(function(createdProject) {
+          store.createdProject = createdProject;
+          var tags = project.tags || [];
+          var promise = tags.map(tag => {
+            return db.Tag.create({
+              id: tag.id,
+              project_id: project.id,
+              name: tag.name,
+              metadata: tag.metadata || {}
+            });
+          });
+          return Promise.all(promise);
+        })
+        .then(function(createdTags) {
+          store.createdTags = createdTags;
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
-          var morePromise = items.map(function(item) {
+          var promise = items.map(function(item) {
             return db.Item
               .create({
                 id: item.id,
@@ -92,7 +109,7 @@ function setup(fixture) {
                   coordinates: item.pin || [0, 0]
                 },
                 featureCollection: item.featureCollection || fc,
-                metadata: {},
+                metadata: item.metadata || {},
                 status: item.status,
                 lockedBy: item.lockedBy || null,
                 lockedTill: item.lockedTill,
@@ -116,8 +133,18 @@ function setup(fixture) {
                 return Promise.all(commentPromises);
               });
           });
-
-          return Promise.all(morePromise);
+          return Promise.all(promise);
+        })
+        .then(function(createdItems) {
+          store.createdItems = createdItems;
+          store.createdItems.forEach(item => {
+            const originalItem = _.find(project.items, { id: item.id });
+            if (originalItem.tags) {
+              originalItem.tags.forEach(tag => {
+                return item.setTags(_.find(store.createdTags, { name: tag }));
+              });
+            }
+          });
         });
     })
   );
