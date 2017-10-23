@@ -63,7 +63,7 @@ function getItems(req, res, next) {
   if (req.query.bbox) {
     const bb = req.query.bbox.split(',').map(Number);
     //TODO: do some validation of the bbox
-    search.where = Sequelize.where(
+    search.where.bbox = Sequelize.where(
       Sequelize.fn(
         'ST_Within',
         Sequelize.col('pin'),
