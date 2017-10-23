@@ -100,38 +100,21 @@ function setup(fixture) {
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
           var promise = items.map(function(item) {
-            return db.Item
-              .create({
-                id: item.id,
-                project_id: project.id,
-                pin: {
-                  type: 'Point',
-                  coordinates: item.pin || [0, 0]
-                },
-                featureCollection: item.featureCollection || fc,
-                metadata: item.metadata || {},
-                status: item.status,
-                lockedBy: item.lockedBy || null,
-                lockedTill: item.lockedTill,
-                createdBy: item.createdBy || 'userone',
-                instructions: item.instructions || 'created via the tests'
-              })
-              .then(it => {
-                item.comments = item.comments || [];
-                const commentPromises = item.comments.map(comment => {
-                  return db.Comment.create({
-                    itemAutoId: it.auto_id,
-                    createdBy: comment.createdBy || 'userone',
-                    body: comment.body || 'test',
-                    pin: {
-                      type: 'Point',
-                      coordinates: comment.pin || [0, 0]
-                    },
-                    metadata: comment.metadata || {}
-                  });
-                });
-                return Promise.all(commentPromises);
-              });
+            return db.Item.create({
+              id: item.id,
+              project_id: project.id,
+              pin: {
+                type: 'Point',
+                coordinates: item.pin || [0, 0]
+              },
+              featureCollection: item.featureCollection || fc,
+              metadata: item.metadata || {},
+              status: item.status,
+              lockedBy: item.lockedBy || null,
+              lockedTill: item.lockedTill,
+              createdBy: item.createdBy || 'userone',
+              instructions: item.instructions || 'created via the tests'
+            });
           });
           return Promise.all(promise);
         })
@@ -139,12 +122,35 @@ function setup(fixture) {
           store.createdItems = createdItems;
           store.createdItems.forEach(item => {
             const originalItem = _.find(project.items, { id: item.id });
-            if (originalItem.tags) {
+            if (originalItem && originalItem.tags) {
               originalItem.tags.forEach(tag => {
                 return item.setTags(_.find(store.createdTags, { name: tag }));
               });
             }
           });
+        })
+        .then(function() {
+          const aggregated = [];
+          project.items.forEach(item => {
+            const createdItem = _.find(store.createdItems, { id: item.id });
+            if (item.comments)
+              item.comments.forEach(comment => {
+                aggregated.push({
+                  index: createdItem.auto_id,
+                  createdBy: comment.createdBy || 'userone',
+                  body: comment.body || 'test',
+                  pin: {
+                    type: 'Point',
+                    coordinates: comment.pin || [0, 0]
+                  },
+                  metadata: comment.metadata || {}
+                });
+              });
+          });
+          const promise = aggregated.map(comment => {
+            return db.Comment.create(comment);
+          });
+          return Promise.all(promise);
         });
     })
   );
