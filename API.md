@@ -166,7 +166,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' http
 }
 ```
 
-### get-items
+### get-project-items
 
 Get a paginated list of items for a project.
 
