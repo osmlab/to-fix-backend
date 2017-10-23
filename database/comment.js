@@ -1,4 +1,5 @@
-var Sequelize = require('sequelize');
+const Sequelize = require('sequelize');
+const _ = require('lodash');
 
 module.exports = function(db) {
   var Comment = db.define('comment', {
@@ -16,8 +17,9 @@ module.exports = function(db) {
       type: Sequelize.TEXT,
       allowNull: false
     },
-    coordinates: {
-      type: Sequelize.GEOMETRY('POINT', 4326)
+    pin: {
+      type: Sequelize.GEOMETRY('POINT', 4326),
+      allowNull: true
     },
     metadata: {
       type: Sequelize.JSONB,
@@ -27,13 +29,17 @@ module.exports = function(db) {
   });
 
   Comment.beforeSave(model => {
-    if (!model.coordinates.crs) {
-      model.coordinates.crs = {
+    if (model.pin && !model.pin.crs) {
+      model.pin.crs = {
         type: 'name',
         properties: { name: 'EPSG:4326' }
       };
     }
   });
+
+  Comment.prototype.toJSON = function() {
+    return _.omit(this.dataValues, 'itemAutoId');
+  };
 
   return Comment;
 };

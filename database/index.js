@@ -30,7 +30,8 @@ Item.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
 Tag.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
 Stat.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
 
-Comment.belongsTo(Item, { foreignKey: 'item_id', targetKey: 'auto_id' });
+// Comment.belongsTo(Item, { foreignKey: 'item_id', targetKey: 'auto_id' });
+Item.hasMany(Comment);
 
 Item.belongsToMany(Tag, { through: 'item_tag' });
 Tag.belongsToMany(Item, { through: 'item_tag' });

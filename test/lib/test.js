@@ -122,7 +122,7 @@ function setup(fixture) {
           store.createdItems = createdItems;
           store.createdItems.forEach(item => {
             const originalItem = _.find(project.items, { id: item.id });
-            if (originalItem.tags) {
+            if (originalItem && originalItem.tags) {
               originalItem.tags.forEach(tag => {
                 return item.setTags(_.find(store.createdTags, { name: tag }));
               });
@@ -130,12 +130,26 @@ function setup(fixture) {
           });
         })
         .then(function() {
-          var stats = project.stats || {};
-          var promise = Object.keys(stats).map(function(user) {
-            return db.Stat.create({
-              user: user,
-              stats: stats[user]
+          const aggregated = [];
+          if (project.items)
+            project.items.forEach(item => {
+              const createdItem = _.find(store.createdItems, { id: item.id });
+              if (item.comments)
+                item.comments.forEach(comment => {
+                  aggregated.push({
+                    itemAutoId: createdItem.auto_id,
+                    createdBy: comment.createdBy || 'userone',
+                    body: comment.body || 'test',
+                    pin: {
+                      type: 'Point',
+                      coordinates: comment.pin || [0, 0]
+                    },
+                    metadata: comment.metadata || {}
+                  });
+                });
             });
+          const promise = aggregated.map(comment => {
+            return db.Comment.create(comment);
           });
           return Promise.all(promise);
         });
@@ -146,12 +160,3 @@ function setup(fixture) {
 function teardown() {
   db.close();
 }
-
-// var anotherPromise = tags.map((tag) => {
-//   if (item.tags) {
-//     item.tags.forEach((tag) => {
-//       const matchedTag = _.find(createdTags, { name: tag });
-//       return db.
-//     })
-//   }
-// })
