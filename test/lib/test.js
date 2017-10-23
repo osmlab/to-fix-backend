@@ -131,22 +131,23 @@ function setup(fixture) {
         })
         .then(function() {
           const aggregated = [];
-          project.items.forEach(item => {
-            const createdItem = _.find(store.createdItems, { id: item.id });
-            if (item.comments)
-              item.comments.forEach(comment => {
-                aggregated.push({
-                  index: createdItem.auto_id,
-                  createdBy: comment.createdBy || 'userone',
-                  body: comment.body || 'test',
-                  pin: {
-                    type: 'Point',
-                    coordinates: comment.pin || [0, 0]
-                  },
-                  metadata: comment.metadata || {}
+          if (project.items)
+            project.items.forEach(item => {
+              const createdItem = _.find(store.createdItems, { id: item.id });
+              if (item.comments)
+                item.comments.forEach(comment => {
+                  aggregated.push({
+                    itemAutoId: createdItem.auto_id,
+                    createdBy: comment.createdBy || 'userone',
+                    body: comment.body || 'test',
+                    pin: {
+                      type: 'Point',
+                      coordinates: comment.pin || [0, 0]
+                    },
+                    metadata: comment.metadata || {}
+                  });
                 });
-              });
-          });
+            });
           const promise = aggregated.map(comment => {
             return db.Comment.create(comment);
           });
