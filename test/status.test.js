@@ -3,8 +3,9 @@
 const proxyquire = require('proxyquire');
 const supertest = require('supertest');
 const tape = require('tape');
-
 const test = require('./lib/test');
+const db = require('../database/index');
+const sinon = require('sinon');
 
 test('GET / - db connection success', [], assert => {
   assert.app.get('/').expect(200, (err, res) => {
@@ -16,6 +17,9 @@ test('GET / - db connection success', [], assert => {
 
 tape('GET / - db connection failure', assert => {
   const server = proxyquire('../lib/server', {});
+  sinon.stub(db, 'authenticate').yields(() => {
+    return Promise.reject(new Error('error'));
+  });
   supertest(server)
     .get('/')
     .expect(500)
