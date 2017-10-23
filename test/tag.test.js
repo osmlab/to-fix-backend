@@ -147,6 +147,8 @@ const itemToDeleteTagFrom = [
   }
 ];
 
+/* GET /:version/projects/:project/tags */
+
 test(
   'GET /:version/projects/:project/tags - no project',
   [],
@@ -277,6 +279,8 @@ test(
   }
 );
 
+/* POST /:version/projects/:project/tags */
+
 test(
   'POST /:version/projects/:project/tags - no project',
   [],
@@ -396,6 +400,8 @@ test(
   }
 );
 
+/* GET /:version/projects/:project/tags/:tag */
+
 test(
   'GET /:version/projects/:project/tags/:tag - no project',
   [],
@@ -460,6 +466,8 @@ test('GET /:version/projects/:project/tags/:tag', oneTag, (assert, token) => {
         });
     });
 });
+
+/* PUT /:version/projects/:project/tags/:tag */
 
 test(
   'PUT /:version/projects/:project/tags/:tag - no project',
@@ -577,6 +585,110 @@ test(
       });
   }
 );
+
+/* DELETE /:version/projects/:project/tags/:tag */
+
+test(
+  'DELETE /:version/projects/:project/tags/:tag - no project',
+  [],
+  (assert, token) => {
+    assert.app
+      .delete(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/tags/22222222-2222-2222-2222-222222222222'
+      )
+      .set('authorization', token)
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.message, 'Invalid project ID');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'DELETE /:version/projects/:project/tags/:tag - no tag',
+  noTags,
+  (assert, token) => {
+    assert.app
+      .delete(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/tags/22222222-2222-2222-2222-222222222222'
+      )
+      .set('authorization', token)
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.message, 'Invalid tag ID');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'DELETE /:version/projects/:project/tags/:tag',
+  itemNotAssociatedWithTag,
+  (assert, token) => {
+    assert.app
+      .delete(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/tags/22222222-2222-2222-2222-222222222222'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body,
+          {
+            message:
+              'Successfully deleted tag 22222222-2222-2222-2222-222222222222'
+          },
+          'should return expected response'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'DELETE /:version/projects/:project/tags/:tag - associated with item',
+  itemToDeleteTagFrom,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.length, 1, 'should return 1 tag');
+        assert.app
+          .delete(
+            '/v1/projects/00000000-0000-0000-0000-000000000000/tags/22222222-2222-2222-2222-222222222222'
+          )
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            assert.ifError(err, 'should not error');
+            assert.deepEqual(
+              res.body,
+              {
+                message:
+                  'Successfully deleted tag 22222222-2222-2222-2222-222222222222'
+              },
+              'should return line number that was deleted'
+            );
+            assert.app
+              .get(
+                '/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags'
+              )
+              .set('authorization', token)
+              .expect(200, (err, res) => {
+                assert.ifError(err, 'should not error');
+                assert.deepEqual(res.body.length, 0, 'should return 0 tags');
+                assert.end();
+              });
+          });
+      });
+  }
+);
+
+/* GET /:version/projects/:project/items/:item/tags */
 
 test(
   'GET /:version/projects/:project/items/:item/tags - no project',
@@ -711,6 +823,8 @@ test(
   }
 );
 
+/* POST /:version/projects/:project/items/:item/tags */
+
 test(
   'POST /:version/projects/:project/items/:item/tags - no project',
   [],
@@ -813,6 +927,8 @@ test(
       });
   }
 );
+
+/* DELETE /:version/projects/:project/items/:item/tags */
 
 test(
   'DELETE /:version/projects/:project/items/:item/tags - no project',

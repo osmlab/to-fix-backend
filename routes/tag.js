@@ -25,7 +25,7 @@ module.exports = {
 
 /**
  * Get a list of project tags.
- * @name get-project-tag
+ * @name get-project-tags
  * @param {Object} params - The request URL parameters
  * @param {string} params.version - The API version
  * @param {string} params.project - The project ID
@@ -156,7 +156,16 @@ function getProjectTag(req, res, next) {
  * @example
  * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/33333333-3333-3333-3333-333333333333
  *
- * [1]
+ * {
+ *   id: '33333333-3333-3333-3333-333333333333',
+ *   metadata: {
+ *     key: 'value'
+ *   },
+ *   name: 'My Tag',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   updatedAt: '2017-10-20T01:00:00.000Z',
+ *   createdAt: '2017-10-20T00:00:00.000Z'
+ * }
  */
 function updateProjectTag(req, res, next) {
   const whereProject = { id: req.params.project };
@@ -192,14 +201,20 @@ function updateProjectTag(req, res, next) {
  * @example
  * curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
  *
- * 1
+ * { message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
  */
 function deleteProjectTag(req, res, next) {
-  const where = { project_id: req.params.project, id: req.params.tag };
+  const whereProject = { id: req.params.project };
+  const whereTag = { project_id: req.params.project, id: req.params.tag };
 
-  Tag.destroy({ where: where })
+  Project.findOne({ where: whereProject })
     .then(data => {
-      res.json(data);
+      if (!data) throw new ErrorHTTP('Invalid project ID', 400);
+      return Tag.destroy({ where: whereTag });
+    })
+    .then(data => {
+      if (data === 0) throw new ErrorHTTP('Invalid tag ID', 400);
+      res.json({ message: `Successfully deleted tag ${req.params.tag}` });
     })
     .catch(next);
 }
@@ -321,7 +336,21 @@ function createItemTag(req, res, next) {
  * @example
  * curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags/22222222-2222-2222-2222-222222222222
  *
- * []
+ * {
+ *   id: '111111',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   pin: { type: 'Point', coordinates: [77, 77] },
+ *   instructions: 'Fix this item',
+ *   createdBy: 'user',
+ *   featureCollection: { type: 'FeatureCollection', features: [] },
+ *   status: 'open',
+ *   lockedBy: null,
+ *   metadata: {},
+ *   sort: 0,
+ *   createdAt: '2017-10-20T00:00:00.000Z',
+ *   updatedAt: '2017-10-20T00:00:00.000Z',
+ *   lockedTill: '2017-10-20T00:00:00.000Z'
+ * }
  */
 function deleteItemTag(req, res, next) {
   let store = {};
