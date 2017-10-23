@@ -4,7 +4,7 @@ const removeDates = require('./lib/remove-dates');
 const test = require('./lib/test');
 
 test(
-  'GET /projects',
+  'GET /:version/projects',
   [
     {
       id: '00000000-0000-0000-0000-000000000000',
@@ -17,7 +17,7 @@ test(
   ],
   (assert, token) => {
     assert.app
-      .get('/projects')
+      .get('/v1/projects')
       .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
@@ -52,7 +52,7 @@ test(
 );
 
 test(
-  'CREATE /projects - invalid body attributes',
+  'CREATE /:version/projects - invalid body attributes',
   [
     {
       id: '00000000-0000-0000-0000-000000000000',
@@ -61,7 +61,7 @@ test(
   ],
   (assert, token) => {
     assert.app
-      .post('/projects')
+      .post('/v1/projects')
       .set('authorization', token)
       .send({ name: 'My Other Project', invalidAttr: true })
       .expect(400)
@@ -77,7 +77,7 @@ test(
 );
 
 test(
-  'CREATE /projects',
+  'CREATE /:version/projects',
   [
     {
       id: '00000000-0000-0000-0000-000000000000',
@@ -86,7 +86,7 @@ test(
   ],
   (assert, token) => {
     assert.app
-      .post('/projects')
+      .post('/v1/projects')
       .set('authorization', token)
       .send({ name: 'My Other Project' })
       .expect(200, (err, res) => {
@@ -104,20 +104,24 @@ test(
   }
 );
 
-test('GET /projects/:project - does not exist', [], (assert, token) => {
-  assert.app
-    .get('/projects/00000000-0000-0000-0000-000000000000')
-    .set('authorization', token)
-    .expect(404)
-    .end((err, res) => {
-      assert.ifError(err, 'should not error');
-      assert.deepEqual(res.body.message, 'Not Found');
-      assert.end();
-    });
-});
+test(
+  'GET /:version/projects/:project - does not exist',
+  [],
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects/00000000-0000-0000-0000-000000000000')
+      .set('authorization', token)
+      .expect(404)
+      .end((err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.message, 'Not Found');
+        assert.end();
+      });
+  }
+);
 
 test(
-  'GET /projects/:project',
+  'GET /:version/projects/:project',
   [
     {
       id: '00000000-0000-0000-0000-000000000000',
@@ -129,7 +133,7 @@ test(
   ],
   (assert, token) => {
     assert.app
-      .get('/projects/00000000-0000-0000-0000-000000000000')
+      .get('/v1/projects/00000000-0000-0000-0000-000000000000')
       .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
@@ -159,11 +163,11 @@ const oneproject = [
 ];
 
 test(
-  'PUT /projects/:project - update project one',
+  'PUT /:version/projects/:project - update project one',
   oneproject,
   (assert, token) => {
     assert.app
-      .put('/projects/00000000-0000-0000-0000-000000000000')
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000')
       .set('authorization', token)
       .send({ metadata: { test: 'test' } })
       .expect(200, (err, res) => {
@@ -183,21 +187,22 @@ test(
   }
 );
 
-test('PUT /projects/:project - invalid body attributes', oneproject, function(
-  assert,
-  token
-) {
-  assert.app
-    .put('/projects/00000000-0000-0000-0000-000000000000')
-    .set('authorization', token)
-    .send({ metadata: { test: 'test' }, invalidAttr: true })
-    .expect(400)
-    .end((err, res) => {
-      assert.ifError(err, 'should not error');
-      assert.deepEqual(
-        res.body.message,
-        'Request contains unexpected attribute invalidAttr'
-      );
-      assert.end();
-    });
-});
+test(
+  'PUT /:version/projects/:project - invalid body attributes',
+  oneproject,
+  function(assert, token) {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000')
+      .set('authorization', token)
+      .send({ metadata: { test: 'test' }, invalidAttr: true })
+      .expect(400)
+      .end((err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'Request contains unexpected attribute invalidAttr'
+        );
+        assert.end();
+      });
+  }
+);

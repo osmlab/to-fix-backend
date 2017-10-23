@@ -2,9 +2,9 @@
 
 const test = require('./lib/test');
 
-test('GET / - db connection success', [], (assert, token) => {
+test('GET /:version/user - user details', [], (assert, token) => {
   assert.app
-    .get('/user')
+    .get('/v1/user')
     .set('authorization', token)
     .expect(200, (err, res) => {
       if (err) return assert.end(err);

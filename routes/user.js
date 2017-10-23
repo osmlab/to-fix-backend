@@ -6,7 +6,7 @@ module.exports = {
  * Get the user info.
  * @name get-user
  * @example
- * curl https://host/user
+ * curl https://host/v1/user
  *
  * {
  *   id: 'testId',

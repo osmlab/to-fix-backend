@@ -29,11 +29,13 @@ const itemFixture = [
 ];
 
 test(
-  'GET /projects/:project/items/:item/comments - get comments for item',
+  'GET /:version/projects/:project/items/:item/comments - get comments for item',
   itemFixture,
   (assert, token) => {
     assert.app
-      .get('/projects/00000000-0000-0000-0000-000000000000/items/77/comments')
+      .get(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments'
+      )
       .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'get comments does not error');
@@ -44,11 +46,13 @@ test(
 );
 
 test(
-  'GET /projects/:project/items:item/comments - comments should be empty for no comments',
+  'GET /:version/projects/:project/items:item/comments - comments should be empty for no comments',
   itemFixture,
   (assert, token) => {
     assert.app
-      .get('/projects/00000000-0000-0000-0000-000000000000/items/30/comments')
+      .get(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/30/comments'
+      )
       .set('authorization', token)
       .expect(200, (err, res) => {
         assert.ifError(err, 'get 0 comments does not error');
@@ -59,11 +63,13 @@ test(
 );
 
 test(
-  'POST /projects/:project/items/:item/comments - create a comment',
+  'POST /:version/projects/:project/items/:item/comments - create a comment',
   itemFixture,
   (assert, token) => {
     assert.app
-      .post('/projects/00000000-0000-0000-0000-000000000000/items/30/comments')
+      .post(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/30/comments'
+      )
       .set('authorization', token)
       .send({
         body: 'test comment',
@@ -77,11 +83,13 @@ test(
 );
 
 test(
-  'DELETE /projects/:project/items/:item/comments/:comment - delete a comment',
+  'DELETE /:version/projects/:project/items/:item/comments/:comment - delete a comment',
   itemFixture,
   (assert, token) => {
     assert.app
-      .get('/projects/00000000-0000-0000-0000-000000000000/items/77/comments')
+      .get(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments'
+      )
       .set('authorization', token)
       .expect(200, (err, res) => {
         const comments = res.body;
@@ -89,7 +97,7 @@ test(
         const comment1id = res.body[0].id;
         assert.app
           .delete(
-            `/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1id}`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1id}`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
@@ -97,7 +105,7 @@ test(
             assert.equal(res.body.id, comment1id, 'correct id was deleted');
             assert.app
               .get(
-                '/projects/00000000-0000-0000-0000-000000000000/items/77/comments'
+                '/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments'
               )
               .set('authorization', token)
               .expect(200, (err, res) => {

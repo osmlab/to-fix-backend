@@ -29,7 +29,7 @@ module.exports = {
  * @param {string} query.bbox - BBOX to query by, string in W,S,E,N format - eg. -1,-1,0,0
  * @param {string} query.status - Status to filter items by
  * @example
- * curl https://host/projects/:project/items
+ * curl https://host/v1/projects/:project/items
  *
  * [
  *   {
@@ -134,7 +134,7 @@ function getItems(req, res, next) {
  * -X POST \
  * -H "Content-Type: application/json" \
  * -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' \
- * https://host/projects/00000000-0000-0000-0000-000000000000/items
+ * https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
  *
  * {
  *   status: 'open',
@@ -277,7 +277,7 @@ function createItem(req, res, next) {
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
  * @example
- * curl https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
+ * curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
  *
  * {
  *   status: 'open',
@@ -332,7 +332,7 @@ function getItem(req, res, next) {
  * -X PUT \
  * -H "Content-Type: application/json" \
  * -d '{"instructions":"Different instructions for fixing the item"}' \
- * https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
+ * https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
  *
  * {
  *   status: 'open',
