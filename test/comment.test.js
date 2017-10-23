@@ -59,33 +59,6 @@ test(
 );
 
 test(
-  'GET /projects/:project/items/:item/comments/:comment - fetch a single comment',
-  itemFixture,
-  (assert, token) => {
-    assert.app
-      .get('/projects/00000000-0000-0000-0000-000000000000/items/77/comments')
-      .set('authorization', token)
-      .expect(200, (err, res) => {
-        const comment1 = res.body[0];
-        assert.app
-          .get(
-            `/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1.id}`
-          )
-          .set('authorization', token)
-          .expect(200, (err, res) => {
-            assert.ifError(err, 'fetching single comment does not error');
-            assert.deepEqual(
-              res.body,
-              comment1,
-              'fetches single comment as expected'
-            );
-            assert.end();
-          });
-      });
-  }
-);
-
-test(
   'POST /projects/:project/items/:item/comments - create a comment',
   itemFixture,
   (assert, token) => {

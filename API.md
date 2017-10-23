@@ -187,35 +187,41 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000
 }
 ```
 
-### get-item-comment
+### create-item-comment
 
-Get an individual comment
+Create a comment
 
 **Parameters**
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
     -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-    -   `params.comment` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The comment ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.body` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Body of the comment (required)
+    -   `body.pin` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)** coordinates of pin
 
 **Examples**
 
 ```javascript
-curl https://host/projects/:project/items/:item/comments/:comment
+curl \
+-X POST \
+-H "Content-Type: application/json" \
+-d '{"body":"i like this item","pin":[0,0]}' \
+https://host/projects/00000000-0000-0000-0000-000000000000/items/77
 {
-  "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
-  "createdBy": "usertwo",
-  "body": "first",
-  "coordinates": {
-    "type": "Point",
-    "coordinates": [
-      0,
-      0
-    ]
-  },
-  "metadata": {},
-  "createdAt": "2017-10-20T20:39:06.580Z",
-  "updatedAt": "2017-10-20T20:39:06.580Z"
+"id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
+"createdBy": "userone",
+"body": "i like this item",
+"pin": {
+  "type": "Point",
+  "coordinates": [
+    0,
+    0
+  ]
+},
+"metadata": {},
+"createdAt": "2017-10-23T17:18:01.801Z",
+"updatedAt": "2017-10-23T17:18:01.801Z"
 }
 ```
 
@@ -290,44 +296,6 @@ https://host/projects/00000000-0000-0000-0000-000000000000/items
   updatedAt: '2017-10-19T00:00:00.000Z',
   createdAt: '2017-10-19T00:00:00.000Z',
   lockedBy: null
-}
-```
-
-### create-item-comment
-
-Create a comment
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.body` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Body of the comment (required)
-    -   `body.pin` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)** coordinates of pin
-
-**Examples**
-
-```javascript
-curl \
--X POST \
--H "Content-Type: application/json" \
--d '{"body":"i like this item","pin":[0,0]}' \
-https://host/projects/00000000-0000-0000-0000-000000000000/items/77
-{
-"id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
-"createdBy": "userone",
-"body": "i like this item",
-"pin": {
-  "type": "Point",
-  "coordinates": [
-    0,
-    0
-  ]
-},
-"metadata": {},
-"createdAt": "2017-10-23T17:18:01.801Z",
-"updatedAt": "2017-10-23T17:18:01.801Z"
 }
 ```
 
