@@ -142,6 +142,30 @@ curl https://host/projects/:project/items/:item/comments
 ]
 ```
 
+### create-project
+
+Create a project.
+
+**Parameters**
+
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  metadata: {},
+  name: 'My Project',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z'
+}
+```
+
 ### get-items
 
 Get a paginated list of items for a project.
@@ -154,6 +178,8 @@ Get a paginated list of items for a project.
     -   `query.lock` **(`"locked"` \| `"unlocked"`)** The item's lock status, must be 'locked' or 'unlocked' (optional, default `'locked'`)
     -   `query.page` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The pagination start page (optional, default `0`)
     -   `query.page_size` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The page size (optional, default `100`)
+    -   `query.bbox` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** BBOX to query by, string in W,S,E,N format - eg. -1,-1,0,0
+    -   `query.status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Status to filter items by
 
 **Examples**
 
@@ -183,30 +209,6 @@ curl https://host/projects/:project/items
     lockedBy: null
   }
 ]
-```
-
-### create-project
-
-Create a project.
-
-**Parameters**
-
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
-
-**Examples**
-
-```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
-
-{
-  id: '00000000-0000-0000-0000-000000000000',
-  metadata: {},
-  name: 'My Project',
-  updatedAt: '2017-10-19T00:00:00.000Z',
-  createdAt: '2017-10-19T00:00:00.000Z'
-}
 ```
 
 ### create-project-tag
@@ -513,6 +515,42 @@ curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/t
 ]
 ```
 
+### create-item-tag
+
+Add a tag to an item.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
+    -   `body.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-2222-222222222222"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+
+[
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    name: 'My Tag',
+    metadata: {},
+    createdAt: '2017-10-20T00:00:00.000Z',
+    updatedAt: '2017-10-20T00:00:00.000Z',
+    item_tag: {
+      createdAt: '2017-10-20T00:00:00.000Z',
+      updatedAt: '2017-10-20T00:00:00.000Z',
+      itemAutoId: 1,
+      tagId: '22222222-2222-2222-2222-222222222222'
+    }
+  }
+]
+```
+
 ### get-project-item
 
 Get an item for a project.
@@ -551,9 +589,9 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
 }
 ```
 
-### create-item-tag
+### delete-item-tag
 
-Add a tag to an item.
+Remove a tag from an item.
 
 **Parameters**
 
@@ -561,31 +599,31 @@ Add a tag to an item.
     -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
     -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
-    -   `body.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
 
 **Examples**
 
 ```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-2222-222222222222"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags/22222222-2222-2222-2222-222222222222
 
-[
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    project_id: '00000000-0000-0000-0000-000000000000',
-    name: 'My Tag',
-    metadata: {},
-    createdAt: '2017-10-20T00:00:00.000Z',
-    updatedAt: '2017-10-20T00:00:00.000Z',
-    item_tag: {
-      createdAt: '2017-10-20T00:00:00.000Z',
-      updatedAt: '2017-10-20T00:00:00.000Z',
-      itemAutoId: 1,
-      tagId: '22222222-2222-2222-2222-222222222222'
-    }
-  }
-]
+{
+  id: '111111',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  pin: { type: 'Point', coordinates: [77, 77] },
+  instructions: 'Fix this item',
+  createdBy: 'user',
+  featureCollection: { type: 'FeatureCollection', features: [] },
+  status: 'open',
+  lockedBy: null,
+  metadata: {},
+  sort: 0,
+  createdAt: '2017-10-20T00:00:00.000Z',
+  updatedAt: '2017-10-20T00:00:00.000Z',
+  lockedTill: '2017-10-20T00:00:00.000Z'
+}
 ```
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
 
 ### update-item
 
@@ -634,42 +672,6 @@ https://host/projects/00000000-0000-0000-0000-000000000000/items/405270
   lockedBy: null
 }
 ```
-
-### delete-item-tag
-
-Remove a tag from an item.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags/22222222-2222-2222-2222-222222222222
-
-{
-  id: '111111',
-  project_id: '00000000-0000-0000-0000-000000000000',
-  pin: { type: 'Point', coordinates: [77, 77] },
-  instructions: 'Fix this item',
-  createdBy: 'user',
-  featureCollection: { type: 'FeatureCollection', features: [] },
-  status: 'open',
-  lockedBy: null,
-  metadata: {},
-  sort: 0,
-  createdAt: '2017-10-20T00:00:00.000Z',
-  updatedAt: '2017-10-20T00:00:00.000Z',
-  lockedTill: '2017-10-20T00:00:00.000Z'
-}
-```
-
-Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
 
 ### putItemWrapper
 

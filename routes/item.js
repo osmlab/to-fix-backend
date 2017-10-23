@@ -26,7 +26,8 @@ module.exports = {
  * @param {('locked'|'unlocked')} [query.lock='locked'] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.page=0] - The pagination start page
  * @param {string} [query.page_size=100] - The page size
- * @param {string} query.bbox - BBOX to query by, string in N,S,E,W format - eg. -1,-1,0,0
+ * @param {string} query.bbox - BBOX to query by, string in W,S,E,N format - eg. -1,-1,0,0
+ * @param {string} query.status - Status to filter items by
  * @example
  * curl https://host/projects/:project/items
  *
