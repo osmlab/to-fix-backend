@@ -9,6 +9,7 @@ const jwt = require('jwt-simple');
 const path = require('path');
 const exec = require('child_process').execSync;
 const db = require('../../database/index');
+const _ = require('lodash');
 
 var pendingTests = 0;
 
@@ -59,6 +60,7 @@ module.exports = function(testName, fixture, cb) {
 };
 
 function setup(fixture) {
+  const store = {};
   try {
     exec(
       `DROP=true PG_DATABASE='${process.env.PG_DATABASE}' node ${path.join(
@@ -80,10 +82,24 @@ function setup(fixture) {
           name: project.name,
           metadata: project.metadata || {}
         })
-        .then(function() {
+        .then(function(createdProject) {
+          store.createdProject = createdProject;
+          var tags = project.tags || [];
+          var promise = tags.map(tag => {
+            return db.Tag.create({
+              id: tag.id,
+              project_id: project.id,
+              name: tag.name,
+              metadata: tag.metadata || {}
+            });
+          });
+          return Promise.all(promise);
+        })
+        .then(function(createdTags) {
+          store.createdTags = createdTags;
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
-          var morePromise = items.map(function(item) {
+          var promise = items.map(function(item) {
             return db.Item.create({
               id: item.id,
               project_id: project.id,
@@ -92,7 +108,7 @@ function setup(fixture) {
                 coordinates: item.pin || [0, 0]
               },
               featureCollection: item.featureCollection || fc,
-              metadata: {},
+              metadata: item.metadata || {},
               status: item.status,
               lockedBy: item.lockedBy || null,
               lockedTill: item.lockedTill,
@@ -100,17 +116,28 @@ function setup(fixture) {
               instructions: item.instructions || 'created via the tests'
             });
           });
-
-          var stats = project.stats || {};
-          morePromise = morePromise.concat(
-            Object.keys(stats).map(function(user) {
-              return db.Stat.create({
-                user: user,
-                stats: stats[user]
+          return Promise.all(promise);
+        })
+        .then(function(createdItems) {
+          store.createdItems = createdItems;
+          store.createdItems.forEach(item => {
+            const originalItem = _.find(project.items, { id: item.id });
+            if (originalItem.tags) {
+              originalItem.tags.forEach(tag => {
+                return item.setTags(_.find(store.createdTags, { name: tag }));
               });
-            })
-          );
-          return Promise.all(morePromise);
+            }
+          });
+        })
+        .then(function() {
+          var stats = project.stats || {};
+          var promise = Object.keys(stats).map(function(user) {
+            return db.Stat.create({
+              user: user,
+              stats: stats[user]
+            });
+          });
+          return Promise.all(promise);
         });
     })
   );
@@ -119,3 +146,12 @@ function setup(fixture) {
 function teardown() {
   db.close();
 }
+
+// var anotherPromise = tags.map((tag) => {
+//   if (item.tags) {
+//     item.tags.forEach((tag) => {
+//       const matchedTag = _.find(createdTags, { name: tag });
+//       return db.
+//     })
+//   }
+// })
