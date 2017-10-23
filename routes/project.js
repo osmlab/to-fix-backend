@@ -18,7 +18,7 @@ module.exports = {
  * Get a list of projects.
  * @name get-projects
  * @example
- * curl https://host/projects
+ * curl https://host/v1/projects
  *
  * [
  *   {
@@ -45,7 +45,7 @@ function getProjects(req, res, next) {
  * @param {string} body.name - The project name
  * @param {Object} [body.metadata={}] - The project metadata
  * @example
- * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/projects
+ * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/v1/projects
  *
  * {
  *   id: '00000000-0000-0000-0000-000000000000',
@@ -78,7 +78,7 @@ function createProject(req, res, next) {
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @example
- * curl https://host/projects/00000000-0000-0000-0000-000000000000
+ * curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
  *
  * {
  *   id: '00000000-0000-0000-0000-000000000000',
@@ -104,7 +104,7 @@ function getProject(req, res, next) {
  * @param {string} params.project - The project ID
  * @param {Object} body - The request body
  * @example
- * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/projects/00000000-0000-0000-0000-000000000000
+ * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000
  *
  * {
  *   id: '00000000-0000-0000-0000-000000000000',
