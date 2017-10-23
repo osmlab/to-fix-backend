@@ -806,18 +806,15 @@ test(
           );
           return _.omit(tag, ['id', 'createdAt', 'updatedAt', 'item_tag']);
         });
-        assert.deepEqual(prepped, [
-          {
-            project_id: '00000000-0000-0000-0000-000000000000',
-            name: 'My Other Tag',
-            metadata: {}
-          },
-          {
-            project_id: '00000000-0000-0000-0000-000000000000',
-            name: 'My Tag',
-            metadata: {}
-          }
-        ]);
+        const tagNames = ['My Tag', 'My Other Tag'];
+        assert.ok(
+          tagNames.indexOf(prepped[0].name) !== -1,
+          'should have expected tag'
+        );
+        assert.ok(
+          tagNames.indexOf(prepped[1].name) !== -1,
+          'should have expected tag'
+        );
         assert.end();
       });
   }
