@@ -19,7 +19,7 @@ module.exports = {
 
 /**
  * Get a paginated list of items for a project.
- * @name get-items
+ * @name get-project-items
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {Object} query - The request URL query parameters
