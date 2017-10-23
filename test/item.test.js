@@ -157,6 +157,29 @@ const listItemsFixture = [
     ]
   }
 ];
+
+const filterItemsFixture = [
+  {
+    id: '66666666-6666-6666-6666-666666666666',
+    name: 'Project 1',
+    items: [
+      {
+        id: '10',
+        pin: [0, 0]
+      },
+      {
+        id: '30',
+        pin: [30, 30]
+      },
+      {
+        id: '40',
+        pin: [0, 0],
+        status: 'closed'
+      }
+    ]
+  }
+];
+
 const getItemsFixture = [
   {
     id: '11111111-1111-1111-1111-111111111111',
@@ -425,6 +448,44 @@ test(
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 1, 'should have 1 noterror item');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /projects/:id/items?bbox=<bbox> - flter items by bbox',
+  filterItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/projects/66666666-6666-6666-6666-666666666666/items?bbox=-1,-1,1,1'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'bbox query should not error');
+        assert.equal(res.body.length, 2, 'bbox query should return 2 items');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /projects/:id/items?bbox=<bbox>&status=<status> - filter items by bbox and status',
+  filterItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/projects/66666666-6666-6666-6666-666666666666/items?bbox=-1,-1,1,1&status=open'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'bbox + status query should not error');
+        assert.equal(
+          res.body.length,
+          1,
+          'bbox + status query should return 1 item'
+        );
         assert.end();
       });
   }

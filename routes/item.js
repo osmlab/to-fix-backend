@@ -26,6 +26,7 @@ module.exports = {
  * @param {('locked'|'unlocked')} [query.lock='locked'] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.page=0] - The pagination start page
  * @param {string} [query.page_size=100] - The page size
+ * @param {string} query.bbox - BBOX to query by, string in N,S,E,W format - eg. -1,-1,0,0
  * @example
  * curl https://host/projects/:project/items
  *
@@ -85,6 +86,20 @@ function getItems(req, res, next) {
     }
     search.where.status = req.query.status;
   }
+
+  if (req.query.bbox) {
+    const bb = req.query.bbox.split(',').map(Number);
+    //TODO: do some validation of the bbox
+    search.where.bbox = Sequelize.where(
+      Sequelize.fn(
+        'ST_Within',
+        Sequelize.col('pin'),
+        Sequelize.fn('ST_MakeEnvelope', bb[0], bb[1], bb[2], bb[3], 4326)
+      ),
+      true
+    );
+  }
+
   /* If there are items, return them. If there are not items, confirm that the
   project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
   return empty array. */
