@@ -7,7 +7,6 @@ module.exports = {
   getItemComments: getItemComments,
   getItemComment: getItemComment,
   createItemComment: createItemComment,
-  updateItemComment: updateItemComment,
   deleteItemComment: deleteItemComment
 };
 
@@ -127,6 +126,27 @@ function getItemComment(req, res, next) {
  * @param {Object} body - The request body
  * @param {string} body.body - Body of the comment (required)
  * @param {Array} body.pin - coordinates of pin
+ * @example
+ * curl \
+ * -X POST \
+ * -H "Content-Type: application/json" \
+ * -d '{"body":"i like this item","pin":[0,0]}' \
+ * https://host/projects/00000000-0000-0000-0000-000000000000/items/77
+ * {
+ * "id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
+ * "createdBy": "userone",
+ * "body": "i like this item",
+ * "pin": {
+ *   "type": "Point",
+ *   "coordinates": [
+ *     0,
+ *     0
+ *   ]
+ * },
+ * "metadata": {},
+ * "createdAt": "2017-10-23T17:18:01.801Z",
+ * "updatedAt": "2017-10-23T17:18:01.801Z"
+ * }
  */
 function createItemComment(req, res, next) {
   const projectId = req.params.project;
@@ -186,10 +206,56 @@ function createItemComment(req, res, next) {
     });
 }
 
-function updateItemComment(req, res, next) {
-  return next();
-}
-
+/**
+ * Delete a comment - make a DELETE request
+ * @name delete-item-comment
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
+ * @pram {string} params.comment - The comment ID
+ * @example
+ * curl -X DELETE -H https://host/projects/00000000-0000-0000-0000-000000000000/items/1234/comments/abcd-1234-abcd-1234
+ * {
+ *   "id": "1640ffd8-1d60-44a0-875c-d61231dbbdd5",
+ *   "createdBy": "userone",
+ *   "body": "second",
+ *   "pin": {
+ *     "type": "Point",
+ *     "coordinates": [
+ *       0,
+ *       0
+ *     ]
+ *   },
+ *   "metadata": {},
+ *   "createdAt": "2017-10-23T17:13:25.585Z",
+ *   "updatedAt": "2017-10-23T17:13:25.585Z"
+ * }
+ */
 function deleteItemComment(req, res, next) {
-  return next();
+  const projectId = req.params.project;
+  const itemId = req.params.item;
+  const commentId = req.params.comment;
+  db.Item
+    .findOne({
+      where: {
+        id: itemId,
+        project_id: projectId
+      }
+    })
+    .then(item => {
+      return db.Comment.findOne({
+        where: {
+          itemAutoId: item.auto_id,
+          id: commentId
+        }
+      });
+    })
+    .then(comment => {
+      comment.destroy();
+      res.json(comment);
+    })
+    .catch(() => {
+      // FIXME: Confirm the error is a NOT FOUND error
+      return next(new ErrorHTTP('Not Found', 404));
+    });
 }

@@ -103,4 +103,41 @@ test(
   }
 );
 
+test(
+  'DELETE /projects/:project/items/:item/comments/:comment - delete a comment',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .get('/projects/00000000-0000-0000-0000-000000000000/items/77/comments')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        const comments = res.body;
+        assert.equal(comments.length, 2, '2 comments before deletion');
+        const comment1id = res.body[0].id;
+        assert.app
+          .delete(
+            `/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1id}`
+          )
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            assert.ifError(err, 'deleting comment did not error');
+            assert.equal(res.body.id, comment1id, 'correct id was deleted');
+            assert.app
+              .get(
+                '/projects/00000000-0000-0000-0000-000000000000/items/77/comments'
+              )
+              .set('authorization', token)
+              .expect(200, (err, res) => {
+                assert.equal(
+                  res.body.length,
+                  1,
+                  'Only 1 comment after deletion'
+                );
+                assert.end();
+              });
+          });
+      });
+  }
+);
+
 //TODO: test error conditions and other things

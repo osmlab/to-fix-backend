@@ -293,6 +293,75 @@ https://host/projects/00000000-0000-0000-0000-000000000000/items
 }
 ```
 
+### create-item-comment
+
+Create a comment
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.body` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Body of the comment (required)
+    -   `body.pin` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)** coordinates of pin
+
+**Examples**
+
+```javascript
+curl \
+-X POST \
+-H "Content-Type: application/json" \
+-d '{"body":"i like this item","pin":[0,0]}' \
+https://host/projects/00000000-0000-0000-0000-000000000000/items/77
+{
+"id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
+"createdBy": "userone",
+"body": "i like this item",
+"pin": {
+  "type": "Point",
+  "coordinates": [
+    0,
+    0
+  ]
+},
+"metadata": {},
+"createdAt": "2017-10-23T17:18:01.801Z",
+"updatedAt": "2017-10-23T17:18:01.801Z"
+}
+```
+
+### delete-item-comment
+
+Delete a comment - make a DELETE request
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+
+**Examples**
+
+```javascript
+curl -X DELETE -H https://host/projects/00000000-0000-0000-0000-000000000000/items/1234/comments/abcd-1234-abcd-1234
+{
+  "id": "1640ffd8-1d60-44a0-875c-d61231dbbdd5",
+  "createdBy": "userone",
+  "body": "second",
+  "pin": {
+    "type": "Point",
+    "coordinates": [
+      0,
+      0
+    ]
+  },
+  "metadata": {},
+  "createdAt": "2017-10-23T17:13:25.585Z",
+  "updatedAt": "2017-10-23T17:13:25.585Z"
+}
+```
+
 ### get-project-item
 
 Get an item for a project.
