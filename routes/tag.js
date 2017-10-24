@@ -313,7 +313,7 @@ function createItemTag(req, res, next) {
     .then(data => {
       if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
       store.tag = data;
-      return store.item.setTags(data);
+      return store.item.addTag(data);
     })
     .then(() => {
       return store.tag.getItems({ where: { id: req.params.item } });
@@ -365,7 +365,7 @@ function deleteItemTag(req, res, next) {
     .then(data => {
       if (!data) throw new ErrorHTTP('Invalid item ID', 400);
       store.item = data;
-      return store.item.removeTags(req.params.tag, { returning: true });
+      return store.item.removeTag(req.params.tag, { returning: true });
     })
     .then(data => {
       if (!data)
