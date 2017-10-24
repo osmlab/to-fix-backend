@@ -105,6 +105,31 @@ test(
 );
 
 test(
+  'CREATE /:version/projects - correct error when duplication project creation',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'My Project'
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .post('/v1/projects')
+      .set('authorization', token)
+      .send({ name: 'My Project' })
+      .expect(400, (err, res) => {
+        assert.ifError(err);
+        assert.equal(
+          res.body.message,
+          'Project with name already exists',
+          'correct error message'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
   'GET /:version/projects/:project - does not exist',
   [],
   (assert, token) => {

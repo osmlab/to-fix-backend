@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-
+const Sequelize = require('sequelize');
 const db = require('../database/index');
 const Project = db.Project;
 const validateBody = require('../lib/helper/validateBody');
@@ -69,7 +69,13 @@ function createProject(req, res, next) {
     .then(function(data) {
       res.json(data);
     })
-    .catch(next);
+    .catch(err => {
+      if (err instanceof Sequelize.UniqueConstraintError) {
+        return next(new ErrorHTTP('Project with name already exists', 400));
+      } else {
+        return next(err);
+      }
+    });
 }
 
 /**
