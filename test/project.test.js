@@ -52,6 +52,31 @@ test(
 );
 
 test(
+  'GET /:version/projects?name=<name> - get project filtered by name',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'My Project'
+    },
+    {
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'My Other Project'
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects?name=My%20Project')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err);
+        assert.equal(res.body.length, 1, '1 item returned');
+        assert.equal(res.body[0].id, '00000000-0000-0000-0000-000000000000');
+        assert.end();
+      });
+  }
+);
+
+test(
   'CREATE /:version/projects - invalid body attributes',
   [
     {
