@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-
+const Sequelize = require('sequelize');
 const db = require('../database/index');
 const Project = db.Project;
 const validateBody = require('../lib/helper/validateBody');
@@ -17,6 +17,8 @@ module.exports = {
 /**
  * Get a list of projects.
  * @name get-projects
+ * @param {Object} [query] - The request URL query parameters
+ * @param {string} [query.name] - Name of project to filter by (optional)
  * @example
  * curl https://host/v1/projects
  *
@@ -31,7 +33,16 @@ module.exports = {
  * ]
  */
 function getProjects(req, res, next) {
-  Project.findAll()
+  let search = {};
+
+  //FIXME: this is probably not the best way to implement this
+  // since a search for a name should always return a maximum of 1 item
+  if (req.query.name) {
+    search.where = {
+      name: req.query.name
+    };
+  }
+  Project.findAll(search)
     .then(function(projects) {
       res.json(projects);
     })
@@ -69,7 +80,13 @@ function createProject(req, res, next) {
     .then(function(data) {
       res.json(data);
     })
-    .catch(next);
+    .catch(err => {
+      if (err instanceof Sequelize.UniqueConstraintError) {
+        return next(new ErrorHTTP('Project with name already exists', 400));
+      } else {
+        return next(err);
+      }
+    });
 }
 
 /**
