@@ -256,6 +256,7 @@ function createItem(req, res, next) {
     features: []
   };
 
+  values.metadata = req.body.metadata || {};
   values.user = req.user.username;
   values.createdBy = values.user;
 
@@ -446,6 +447,7 @@ function updateItem(req, res, next) {
   }
 
   values.user = req.user.username;
+  values.metadata = req.body.metadata || {};
 
   putItemWrapper(values)
     .then(data => {

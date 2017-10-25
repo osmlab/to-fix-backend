@@ -770,6 +770,33 @@ test(
 );
 
 test(
+  'POST /:version/projects/:project/items/:item - posting metadata works',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .post('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        id: '405270',
+        instructions: 'Fix this item',
+        pin: [0, 0],
+        metadata: {
+          foo: 'bar'
+        }
+      })
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.equal(
+          res.body.metadata.foo,
+          'bar',
+          'metadata saved and returned correctly'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
   'POST /:version/projects/:id/items - bulk upload items with a linear wait',
   projectWithOneUnlockedItem,
   (assert, token) => {
