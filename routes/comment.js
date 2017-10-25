@@ -11,44 +11,44 @@ module.exports = {
 
 /**
  * Get a list of comments for an item
- * @name get-item-comments
+ * @name get-comments
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
  * @example
  * curl https://host/v1/projects/:project/items/:item/comments
- * 
+ *
  * [
- * {
- *   "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
- *   "createdBy": "usertwo",
- *   "body": "first",
- *   "coordinates": {
- *     "type": "Point",
- *     "coordinates": [
- *       0,
- *       0
- *     ]
+ *   {
+ *     "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
+ *     "createdBy": "usertwo",
+ *     "body": "first",
+ *     "coordinates": {
+ *       "type": "Point",
+ *       "coordinates": [
+ *         0,
+ *         0
+ *       ]
+ *     },
+ *     "metadata": {},
+ *     "createdAt": "2017-10-20T20:39:06.580Z",
+ *     "updatedAt": "2017-10-20T20:39:06.580Z"
  *   },
- *   "metadata": {},
- *   "createdAt": "2017-10-20T20:39:06.580Z",
- *   "updatedAt": "2017-10-20T20:39:06.580Z"
- * },
- * {
- *   "id": "3a47cd22-1761-4582-8cc6-32da1c0bd970",
- *   "createdBy": "userone",
- *   "body": "second",
- *   "coordinates": {
- *     "type": "Point",
- *     "coordinates": [
- *       0,
- *       0
- *     ]
- *   },
- *   "metadata": {},
- *   "createdAt": "2017-10-20T20:39:06.581Z",
- *   "updatedAt": "2017-10-20T20:39:06.581Z"
- * }
+ *   {
+ *     "id": "3a47cd22-1761-4582-8cc6-32da1c0bd970",
+ *     "createdBy": "userone",
+ *     "body": "second",
+ *     "coordinates": {
+ *       "type": "Point",
+ *       "coordinates": [
+ *         0,
+ *         0
+ *       ]
+ *     },
+ *     "metadata": {},
+ *     "createdAt": "2017-10-20T20:39:06.581Z",
+ *     "updatedAt": "2017-10-20T20:39:06.581Z"
+ *   }
  * ]
  */
 function getItemComments(req, res, next) {
@@ -74,33 +74,31 @@ function getItemComments(req, res, next) {
 
 /**
  * Create a comment
- * @name create-item-comment
+ * @name create-comment
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
  * @param {Object} body - The request body
- * @param {string} body.body - Body of the comment (required)
- * @param {Array} body.pin - coordinates of pin
+ * @param {string} body.body - Comment body
+ * @param {Array<number>} [body.pin=null] - Comment coordinates
+ * @param {Object} [body.metadata={}] - Comment metadata
  * @example
- * curl \
- * -X POST \
- * -H "Content-Type: application/json" \
- * -d '{"body":"i like this item","pin":[0,0]}' \
- * https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77
+ * curl -X POST -H "Content-Type: application/json" -d '{"body":"i like this item","pin":[0,0]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77
+ *
  * {
- * "id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
- * "createdBy": "userone",
- * "body": "i like this item",
- * "pin": {
- *   "type": "Point",
- *   "coordinates": [
- *     0,
- *     0
- *   ]
- * },
- * "metadata": {},
- * "createdAt": "2017-10-23T17:18:01.801Z",
- * "updatedAt": "2017-10-23T17:18:01.801Z"
+ *   "id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
+ *   "createdBy": "userone",
+ *   "body": "i like this item",
+ *   "pin": {
+ *     "type": "Point",
+ *     "coordinates": [
+ *       0,
+ *       0
+ *     ]
+ *   },
+ *   "metadata": {},
+ *   "createdAt": "2017-10-23T17:18:01.801Z",
+ *   "updatedAt": "2017-10-23T17:18:01.801Z"
  * }
  */
 function createItemComment(req, res, next) {
@@ -162,14 +160,15 @@ function createItemComment(req, res, next) {
 }
 
 /**
- * Delete a comment - make a DELETE request
- * @name delete-item-comment
+ * Delete a comment
+ * @name delete-comment
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
- * @pram {string} params.comment - The comment ID
+ * @param {string} params.comment - The comment ID
  * @example
  * curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/1234/comments/abcd-1234-abcd-1234
+ *
  * {
  *   "id": "1640ffd8-1d60-44a0-875c-d61231dbbdd5",
  *   "createdBy": "userone",

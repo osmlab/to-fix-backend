@@ -19,15 +19,15 @@ module.exports = {
 
 /**
  * Get a paginated list of items for a project.
- * @name get-project-items
+ * @name get-items
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
- * @param {Object} query - The request URL query parameters
+ * @param {Object} [query] - The request URL query parameters
  * @param {('locked'|'unlocked')} [query.lock='locked'] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.page=0] - The pagination start page
  * @param {string} [query.page_size=100] - The page size
- * @param {string} query.bbox - BBOX to query by, string in W,S,E,N format - eg. -1,-1,0,0
- * @param {string} query.status - Status to filter items by
+ * @param {string} [query.bbox] - BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
+ * @param {string} [query.status] - Status to filter items by
  * @example
  * curl https://host/v1/projects/:project/items
  *
@@ -35,7 +35,6 @@ module.exports = {
  *   {
  *     status: 'open',
  *     lockedTill: '2017-10-19T00:00:00.000Z',
- *     siblings: [],
  *     metadata: {},
  *     id: '405270',
  *     project_id: '00000000-0000-0000-0000-000000000000',
@@ -129,17 +128,13 @@ function getItems(req, res, next) {
  * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
  * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
  * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
+ * @param {Object} [body.metadata={}] - The item's metadata
  * @example
- * curl \
- * -X POST \
- * -H "Content-Type: application/json" \
- * -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' \
- * https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
+ * curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
  *
  * {
  *   status: 'open',
  *   lockedTill: '2017-10-19T00:00:00.000Z',
- *   siblings: [],
  *   metadata: {},
  *   id: '405270',
  *   project_id: '00000000-0000-0000-0000-000000000000',
@@ -165,7 +160,8 @@ function createItem(req, res, next) {
     'pin',
     'status',
     'featureCollection',
-    'instructions'
+    'instructions',
+    'metadata'
   ];
   const requiredBodyAttr = ['id', 'instructions', 'pin'];
   const validationError = validateBody(
@@ -278,7 +274,7 @@ function createItem(req, res, next) {
 
 /**
  * Get an item for a project.
- * @name get-project-item
+ * @name get-item
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {string} params.item - The item ID
@@ -288,7 +284,6 @@ function createItem(req, res, next) {
  * {
  *   status: 'open',
  *   lockedTill: '2017-10-19T00:00:00.000Z',
- *   siblings: [],
  *   metadata: {},
  *   id: '405270',
  *   project_id: '00000000-0000-0000-0000-000000000000',
@@ -333,17 +328,13 @@ function getItem(req, res, next) {
  * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
  * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
  * @param {string} [body.instructions] - Instructions on how to work on the item
+ * @param {Object} [body.metadata] - The item's metadata
  * @example
- * curl \
- * -X PUT \
- * -H "Content-Type: application/json" \
- * -d '{"instructions":"Different instructions for fixing the item"}' \
- * https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
+ * curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different instructions for fixing the item"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
  *
  * {
  *   status: 'open',
  *   lockedTill: '2017-10-19T00:00:00.000Z',
- *   siblings: [],
  *   metadata: {},
  *   id: '405270',
  *   project_id: '00000000-0000-0000-0000-000000000000',
@@ -368,7 +359,8 @@ function updateItem(req, res, next) {
     'pin',
     'status',
     'featureCollection',
-    'instructions'
+    'instructions',
+    'metadata'
   ];
   const validationError = validateBody(req.body, validBodyAttrs);
   if (validationError)
@@ -463,7 +455,7 @@ function updateItem(req, res, next) {
 }
 
 /**
- * handle all the logic and some validation for item creation and updating
+ * Handle all the logic and some validation for item creation and updating
  * @param {Object} opts - the opts for the action
  * @param {String} opts.project - the id of the project the item belongs to
  * @param {String} opts.item - the id of the item itself

@@ -99,10 +99,12 @@ function getProject(req, res, next) {
 
 /**
  * Update a project.
- * @name updateProject
+ * @name update-project
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {Object} body - The request body
+ * @param {string} [body.name] - The project name
+ * @param {Object} [body.metadata] - The project metadata
  * @example
  * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000
  *
