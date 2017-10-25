@@ -48,6 +48,11 @@ curl https://host
 
 Get a list of projects.
 
+**Parameters**
+
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The request URL query parameters
+    -   `query.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Name of project to filter by (optional)
+
 **Examples**
 
 ```javascript
@@ -238,29 +243,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://
 }
 ```
 
-### get-project
-
-Get a project.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-
-**Examples**
-
-```javascript
-curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
-
-{
-  id: '00000000-0000-0000-0000-000000000000',
-  name: 'My Project',
-  metadata: {},
-  createdAt: '2017-10-18T00:00:00.000Z',
-  updatedAt: '2017-10-18T00:00:00.000Z'
-}
-```
-
 ### create-comment
 
 Create a comment
@@ -297,29 +279,24 @@ curl -X POST -H "Content-Type: application/json" -d '{"body":"i like this item",
 }
 ```
 
-### update-project
+### get-project
 
-Update a project.
+Get a project.
 
 **Parameters**
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The project name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The project metadata
 
 **Examples**
 
 ```javascript
-curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000
+curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
 
 {
   id: '00000000-0000-0000-0000-000000000000',
   name: 'My Project',
-  metadata: {
-    key: "value"
-  },
+  metadata: {},
   createdAt: '2017-10-18T00:00:00.000Z',
   updatedAt: '2017-10-18T00:00:00.000Z'
 }
@@ -348,6 +325,34 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000/tags/33333333-33
   project_id: '00000000-0000-0000-0000-000000000000',
   updatedAt: '2017-10-20T00:00:00.000Z',
   createdAt: '2017-10-20T00:00:00.000Z'
+}
+```
+
+### update-project
+
+Update a project.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The project name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The project metadata
+
+**Examples**
+
+```javascript
+curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'My Project',
+  metadata: {
+    key: "value"
+  },
+  createdAt: '2017-10-18T00:00:00.000Z',
+  updatedAt: '2017-10-18T00:00:00.000Z'
 }
 ```
 

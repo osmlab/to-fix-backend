@@ -114,23 +114,22 @@ function createItemComment(req, res, next) {
   );
   if (validationError) return next(new ErrorHTTP(validationError, 400));
 
-  /* Validate pin */
-  if (
-    req.body.pin &&
-    (!Array.isArray(req.body.pin) || req.body.pin.length !== 2)
-  ) {
-    return next(
-      new ErrorHTTP(
-        'Comment pin must be in the [longitude, latitude] format',
-        400
-      )
-    );
+  if (req.body.pin) {
+    if (!Array.isArray(req.body.pin) || req.body.pin.length !== 2) {
+      return next(
+        new ErrorHTTP(
+          'Comment pin must be in the [longitude, latitude] format',
+          400
+        )
+      );
+    }
+    values.pin = { type: 'Point', coordinates: req.body.pin };
+    var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
+    if (pinErrors.length) {
+      return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
+    }
   }
-  values.pin = { type: 'Point', coordinates: req.body.pin };
-  var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
-  if (pinErrors.length) {
-    return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
-  }
+
   if (req.body.body.trim() === '') {
     return next(new ErrorHTTP('Comment body cannot be empty', 400));
   }
