@@ -98,7 +98,7 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags
 ]
 ```
 
-### get-item-comments
+### get-comments
 
 Get a list of comments for an item
 
@@ -114,40 +114,40 @@ Get a list of comments for an item
 curl https://host/v1/projects/:project/items/:item/comments
 
 [
-{
-  "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
-  "createdBy": "usertwo",
-  "body": "first",
-  "coordinates": {
-    "type": "Point",
-    "coordinates": [
-      0,
-      0
-    ]
+  {
+    "id": "e67c585d-d93f-4ea6-a59f-87b8b54e6efd",
+    "createdBy": "usertwo",
+    "body": "first",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        0,
+        0
+      ]
+    },
+    "metadata": {},
+    "createdAt": "2017-10-20T20:39:06.580Z",
+    "updatedAt": "2017-10-20T20:39:06.580Z"
   },
-  "metadata": {},
-  "createdAt": "2017-10-20T20:39:06.580Z",
-  "updatedAt": "2017-10-20T20:39:06.580Z"
-},
-{
-  "id": "3a47cd22-1761-4582-8cc6-32da1c0bd970",
-  "createdBy": "userone",
-  "body": "second",
-  "coordinates": {
-    "type": "Point",
-    "coordinates": [
-      0,
-      0
-    ]
-  },
-  "metadata": {},
-  "createdAt": "2017-10-20T20:39:06.581Z",
-  "updatedAt": "2017-10-20T20:39:06.581Z"
-}
+  {
+    "id": "3a47cd22-1761-4582-8cc6-32da1c0bd970",
+    "createdBy": "userone",
+    "body": "second",
+    "coordinates": {
+      "type": "Point",
+      "coordinates": [
+        0,
+        0
+      ]
+    },
+    "metadata": {},
+    "createdAt": "2017-10-20T20:39:06.581Z",
+    "updatedAt": "2017-10-20T20:39:06.581Z"
+  }
 ]
 ```
 
-### get-project-items
+### get-items
 
 Get a paginated list of items for a project.
 
@@ -155,12 +155,12 @@ Get a paginated list of items for a project.
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
--   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL query parameters
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The request URL query parameters
     -   `query.lock` **(`"locked"` \| `"unlocked"`)** The item's lock status, must be 'locked' or 'unlocked' (optional, default `'locked'`)
     -   `query.page` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The pagination start page (optional, default `0`)
     -   `query.page_size` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The page size (optional, default `100`)
-    -   `query.bbox` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** BBOX to query by, string in W,S,E,N format - eg. -1,-1,0,0
-    -   `query.status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Status to filter items by
+    -   `query.bbox` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
+    -   `query.status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Status to filter items by
 
 **Examples**
 
@@ -171,7 +171,6 @@ curl https://host/v1/projects/:project/items
   {
     status: 'open',
     lockedTill: '2017-10-19T00:00:00.000Z',
-    siblings: [],
     metadata: {},
     id: '405270',
     project_id: '00000000-0000-0000-0000-000000000000',
@@ -244,7 +243,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://
 }
 ```
 
-### create-item-comment
+### create-comment
 
 Create a comment
 
@@ -254,31 +253,29 @@ Create a comment
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
     -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
 -   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.body` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Body of the comment (required)
-    -   `body.pin` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)** coordinates of pin
+    -   `body.body` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Comment body
+    -   `body.pin` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)>** Comment coordinates (optional, default `null`)
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Comment metadata (optional, default `{}`)
 
 **Examples**
 
 ```javascript
-curl \
--X POST \
--H "Content-Type: application/json" \
--d '{"body":"i like this item","pin":[0,0]}' \
-https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77
+curl -X POST -H "Content-Type: application/json" -d '{"body":"i like this item","pin":[0,0]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77
+
 {
-"id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
-"createdBy": "userone",
-"body": "i like this item",
-"pin": {
-  "type": "Point",
-  "coordinates": [
-    0,
-    0
-  ]
-},
-"metadata": {},
-"createdAt": "2017-10-23T17:18:01.801Z",
-"updatedAt": "2017-10-23T17:18:01.801Z"
+  "id": "d0280f1f-c5cc-448d-9b88-5cf9e52f8e18",
+  "createdBy": "userone",
+  "body": "i like this item",
+  "pin": {
+    "type": "Point",
+    "coordinates": [
+      0,
+      0
+    ]
+  },
+  "metadata": {},
+  "createdAt": "2017-10-23T17:18:01.801Z",
+  "updatedAt": "2017-10-23T17:18:01.801Z"
 }
 ```
 
@@ -331,7 +328,7 @@ curl https://host/projects/00000000-0000-0000-0000-000000000000/tags/33333333-33
 }
 ```
 
-### updateProject
+### update-project
 
 Update a project.
 
@@ -340,6 +337,8 @@ Update a project.
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
 -   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The project name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The project metadata
 
 **Examples**
 
@@ -372,20 +371,16 @@ Create an item in a project.
     -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
     -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
     -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The item's metadata (optional, default `{}`)
 
 **Examples**
 
 ```javascript
-curl \
--X POST \
--H "Content-Type: application/json" \
--d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' \
-https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
+curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
 
 {
   status: 'open',
   lockedTill: '2017-10-19T00:00:00.000Z',
-  siblings: [],
   metadata: {},
   id: '405270',
   project_id: '00000000-0000-0000-0000-000000000000',
@@ -436,20 +431,22 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
-### delete-item-comment
+### delete-comment
 
-Delete a comment - make a DELETE request
+Delete a comment
 
 **Parameters**
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
     -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+    -   `params.comment` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The comment ID
 
 **Examples**
 
 ```javascript
 curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/1234/comments/abcd-1234-abcd-1234
+
 {
   "id": "1640ffd8-1d60-44a0-875c-d61231dbbdd5",
   "createdBy": "userone",
@@ -556,7 +553,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-
 ]
 ```
 
-### get-project-item
+### get-item
 
 Get an item for a project.
 
@@ -574,7 +571,6 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
 {
   status: 'open',
   lockedTill: '2017-10-19T00:00:00.000Z',
-  siblings: [],
   metadata: {},
   id: '405270',
   project_id: '00000000-0000-0000-0000-000000000000',
@@ -645,20 +641,16 @@ Update a project item.
     -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
     -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
     -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Instructions on how to work on the item
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The item's metadata
 
 **Examples**
 
 ```javascript
-curl \
--X PUT \
--H "Content-Type: application/json" \
--d '{"instructions":"Different instructions for fixing the item"}' \
-https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
+curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different instructions for fixing the item"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
 
 {
   status: 'open',
   lockedTill: '2017-10-19T00:00:00.000Z',
-  siblings: [],
   metadata: {},
   id: '405270',
   project_id: '00000000-0000-0000-0000-000000000000',
@@ -680,7 +672,7 @@ https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
 
 ### putItemWrapper
 
-handle all the logic and some validation for item creation and updating
+Handle all the logic and some validation for item creation and updating
 
 **Parameters**
 
