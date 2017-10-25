@@ -17,8 +17,8 @@ module.exports = {
 /**
  * Get a list of projects.
  * @name get-projects
- * @param {Object} query - The request URL query parameters
- * @param {string} query.name - Name of project to filter by (optional)
+ * @param {Object} [query] - The request URL query parameters
+ * @param {string} [query.name] - Name of project to filter by (optional)
  * @example
  * curl https://host/v1/projects
  *
