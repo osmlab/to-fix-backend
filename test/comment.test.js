@@ -83,6 +83,45 @@ test(
 );
 
 test(
+  'POST /:version/projects/:project/items/:item/comments - create a comment without pin',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .post(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/30/comments'
+      )
+      .set('authorization', token)
+      .send({
+        body: 'test comment'
+      })
+      .expect(200, err => {
+        assert.ifError(err, 'POSTing comment without pin did not error');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /:version/projects/:project/items/:item/comments - create a comment with invalid pin',
+  itemFixture,
+  (assert, token) => {
+    assert.app
+      .post(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/items/30/comments'
+      )
+      .set('authorization', token)
+      .send({
+        body: 'test comment',
+        pin: 'i am totally invalid'
+      })
+      .expect(400, err => {
+        assert.ifError(err, 'POSTing comment with invalid pin did not error');
+        assert.end();
+      });
+  }
+);
+
+test(
   'DELETE /:version/projects/:project/items/:item/comments/:comment - delete a comment',
   itemFixture,
   (assert, token) => {
