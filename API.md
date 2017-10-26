@@ -161,6 +161,7 @@ Get a paginated list of items for a project.
     -   `query.page_size` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The page size (optional, default `100`)
     -   `query.bbox` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
     -   `query.status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Status to filter items by
+    -   `query.tags` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Comma-separated list of tag ids
 
 **Examples**
 
@@ -356,6 +357,37 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
+### update-project-tag
+
+Update a project tag.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The new tag name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The new tag metadata
+
+**Examples**
+
+```javascript
+curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/33333333-3333-3333-3333-333333333333
+
+{
+  id: '33333333-3333-3333-3333-333333333333',
+  metadata: {
+    key: 'value'
+  },
+  name: 'My Tag',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  updatedAt: '2017-10-20T01:00:00.000Z',
+  createdAt: '2017-10-20T00:00:00.000Z'
+}
+```
+
 ### create-item
 
 Create an item in a project.
@@ -397,37 +429,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","instruction
   updatedAt: '2017-10-19T00:00:00.000Z',
   createdAt: '2017-10-19T00:00:00.000Z',
   lockedBy: null
-}
-```
-
-### update-project-tag
-
-Update a project tag.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The new tag name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The new tag metadata
-
-**Examples**
-
-```javascript
-curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/33333333-3333-3333-3333-333333333333
-
-{
-  id: '33333333-3333-3333-3333-333333333333',
-  metadata: {
-    key: 'value'
-  },
-  name: 'My Tag',
-  project_id: '00000000-0000-0000-0000-000000000000',
-  updatedAt: '2017-10-20T01:00:00.000Z',
-  createdAt: '2017-10-20T00:00:00.000Z'
 }
 ```
 
