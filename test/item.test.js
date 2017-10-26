@@ -232,6 +232,38 @@ const projectWithOneItemLockedByUserOne = [
     ]
   }
 ];
+
+const itemsWithTags = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '111111',
+        pin: [77, 77],
+        tags: ['My Tag', 'My Other Tag']
+      },
+      {
+        id: '222222',
+        pin: [33, 33],
+        tags: ['My Other Tag']
+      },
+      {
+        id: '333333',
+        pin: [44, 44]
+      }
+    ],
+    tags: [
+      {
+        name: 'My Tag'
+      },
+      {
+        name: 'My Other Tag'
+      }
+    ]
+  }
+];
+
 const delay = time => new Promise(res => setTimeout(res, time));
 
 /* GET /projects/:project/items */
@@ -555,6 +587,69 @@ test(
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 2, 'should have 2 unlocked items');
         assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:id/items?tags=<tags> - filter items by tags',
+  itemsWithTags,
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects/00000000-0000-0000-0000-000000000000/tags')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'fetching project tags should not error');
+        const filterTag = res.body.filter(tag => {
+          return tag.name === 'My Tag';
+        });
+        const tagId = filterTag[0].id;
+        assert.app
+          .get(
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${tagId}`
+          )
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            assert.ifError(err, 'filtering by tag does not error');
+            assert.equal(
+              res.body.length,
+              1,
+              'returns one item with tag filter'
+            );
+            assert.end();
+          });
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:id/items?tags=<tags> - filter items by multiple tags',
+  itemsWithTags,
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects/00000000-0000-0000-0000-000000000000/tags')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'fetching project tags should not error');
+        const tagIds = res.body
+          .map(tag => {
+            return tag.id;
+          })
+          .join(',');
+        assert.app
+          .get(
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${tagIds}`
+          )
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            assert.ifError(err, 'filtering by tag does not error');
+            assert.equal(
+              res.body.length,
+              2,
+              'returns two item with multi-tag filter'
+            );
+            assert.end();
+          });
       });
   }
 );

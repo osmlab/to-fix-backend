@@ -28,6 +28,7 @@ module.exports = {
  * @param {string} [query.page_size=100] - The page size
  * @param {string} [query.bbox] - BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
  * @param {string} [query.status] - Status to filter items by
+ * @param {string} [query.tags] - Comma-separated list of tag ids
  * @example
  * curl https://host/v1/projects/:project/items
  *
@@ -76,6 +77,21 @@ function getItems(req, res, next) {
     search.where.lockedTill = {
       [locked ? Op.gt : Op.lt]: new Date()
     };
+  }
+
+  if (req.query.tags) {
+    const tagsArr = req.query.tags.split(',');
+    search.include = [
+      {
+        model: db.Tag,
+        as: 'tags',
+        where: {
+          id: {
+            [Op.in]: tagsArr
+          }
+        }
+      }
+    ];
   }
 
   if (req.query.status) {
