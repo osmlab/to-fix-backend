@@ -120,14 +120,16 @@ function setup(fixture) {
         })
         .then(function(createdItems) {
           store.createdItems = createdItems;
-          store.createdItems.forEach(item => {
+          const allPromises = store.createdItems.map(item => {
             const originalItem = _.find(project.items, { id: item.id });
             if (originalItem && originalItem.tags) {
-              originalItem.tags.forEach(tag => {
+              const tagPromises = originalItem.tags.map(tag => {
                 return item.setTags(_.find(store.createdTags, { name: tag }));
               });
+              return Promise.all(tagPromises);
             }
           });
+          return Promise.all(allPromises);
         })
         .then(function() {
           const aggregated = [];

@@ -9,6 +9,7 @@ const validateBody = require('../lib/helper/validateBody');
 
 module.exports = {
   getProjects: getProjects,
+  getProjectStats: getProjectStats,
   createProject: createProject,
   getProject: getProject,
   updateProject: updateProject
@@ -47,6 +48,83 @@ function getProjects(req, res, next) {
       res.json(projects);
     })
     .catch(next);
+}
+
+/**
+ * Get stats for a project
+ * @name get-project-stats
+ * @example
+ * curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
+ *
+ * {
+ *   "total": 3,
+ *   "status": {
+ *     "closed": 1,
+ *     "open": 2
+ *   },
+ *   "tags": {
+ *     "foo": 2,
+ *     "bar": 2,
+ *     "baz": 1
+ *   }
+ * }
+ */
+function getProjectStats(req, res, next) {
+  const projectId = req.params.project;
+  const countPromises = [
+    db.Item.count({
+      where: {
+        project_id: projectId
+      }
+    }),
+    db.Item.findAll({
+      attributes: ['status', Sequelize.fn('COUNT', Sequelize.col('status'))],
+      where: {
+        project_id: projectId
+      },
+      group: ['status'],
+      raw: true
+    }),
+    db.Item.findAll({
+      includeIgnoreAttributes: false,
+      include: [
+        {
+          model: db.Tag,
+          attributes: ['id', 'name'],
+          through: {
+            attributes: []
+          }
+        }
+      ],
+      attributes: [
+        'tags.name',
+        Sequelize.fn('COUNT', Sequelize.col('item.id'))
+      ],
+      group: ['tags.name'],
+      distinct: true,
+      raw: true
+    })
+  ];
+  Promise.all(countPromises)
+    .then(results => {
+      const total = results[0];
+      const status = results[1].reduce((memo, value) => {
+        memo[value.status] = Number(value.count);
+        return memo;
+      }, {});
+      const tags = results[2].reduce((memo, value) => {
+        memo[value.name] = Number(value.count);
+        return memo;
+      }, {});
+      return res.json({
+        total: total,
+        status: status,
+        tags: tags
+      });
+    })
+    .catch(err => {
+      return next(err);
+    });
 }
 
 /**

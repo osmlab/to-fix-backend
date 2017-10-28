@@ -3,6 +3,47 @@
 const removeDates = require('./lib/remove-dates');
 const test = require('./lib/test');
 
+const projectStatsFixture = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'My Project',
+    tags: [
+      {
+        id: '11111111-1111-1111-1111-111111111111',
+        name: 'foo'
+      },
+      {
+        id: '22222222-2222-2222-2222-222222222222',
+        name: 'bar'
+      },
+      {
+        id: '33333333-3333-3333-3333-333333333333',
+        name: 'baz'
+      }
+    ],
+    items: [
+      {
+        id: '11',
+        pin: [0, 0],
+        status: 'open',
+        tags: ['foo']
+      },
+      {
+        id: '22',
+        pin: [1, 1],
+        status: 'closed',
+        tags: ['bar']
+      },
+      {
+        id: '33',
+        pin: [2, 2],
+        status: 'open',
+        tags: ['foo', 'bar', 'baz']
+      }
+    ]
+  }
+];
+
 test(
   'GET /:version/projects',
   [
@@ -46,6 +87,27 @@ test(
           },
           'project two should look like the fixture'
         );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/<project>/stats - get project stats',
+  projectStatsFixture,
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects/00000000-0000-0000-0000-000000000000/stats')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'project stats should not error');
+        const stats = res.body;
+        assert.equal(stats.total, 3, 'total is correct');
+        assert.equal(stats.tags.foo, 2, 'tag foo has correct count');
+        assert.equal(stats.tags.bar, 2, 'tag bar has correct count');
+        assert.equal(stats.tags.baz, 1, 'tag baz has correct count');
+        assert.equal(stats.status.open, 2, 'status open has correct count');
+        assert.equal(stats.status.closed, 1, 'status closed has correct count');
         assert.end();
       });
   }
