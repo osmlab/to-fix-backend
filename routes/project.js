@@ -100,6 +100,9 @@ function getProjectStats(req, res, next) {
         'tags.name',
         Sequelize.fn('COUNT', Sequelize.col('item.id'))
       ],
+      where: {
+        project_id: projectId
+      },
       group: ['tags.name'],
       distinct: true,
       raw: true
