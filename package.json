@@ -11,7 +11,12 @@
     "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
     "api-docs":
       "documentation readme ./routes -f md --readme-file API.md --section Endpoints --shallow",
-    "setup-database": "node bin/setup-database.js"
+    "setup-database": "node bin/setup-database.js",
+    "sequelize":
+      "node node_modules/.bin/sequelize --config sequelize-config.js",
+    "migration:create": "sequelize migration:create --name ",
+    "db:migrate": "npm run sequelize db:migrate",
+    "db:migrate:undo": "npm run sequelize db:migrate:undo"
   },
   "author": "Mapbox",
   "license": "BSD",
@@ -38,6 +43,7 @@
     "prettier": "^1.7.0",
     "request": "^2.83.0",
     "sequelize": "^4.15.0",
+    "sequelize-cli": "^3.0.0",
     "xml2json": "^0.11.0"
   },
   "engines": {
