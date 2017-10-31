@@ -50,6 +50,7 @@
     "node": ">=6.11.x"
   },
   "devDependencies": {
+    "@turf/random": "^4.7.3",
     "documentation": "^5.3.2",
     "eslint": "^2.8.0",
     "proxyquire": "^1.8.0",
