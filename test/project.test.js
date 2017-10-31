@@ -139,6 +139,21 @@ test(
 );
 
 test(
+  'GET /:version/projects/:project - get project with invalid UUID',
+  [],
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects/invalid-uuid')
+      .set('authorization', token)
+      .expect(400, (err, res) => {
+        assert.ifError(err);
+        assert.equal(res.body.message, 'Project ID must be a valid UUID');
+        assert.end();
+      });
+  }
+);
+
+test(
   'CREATE /:version/projects - invalid body attributes',
   [
     {
