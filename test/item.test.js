@@ -3,6 +3,7 @@
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');
+const turfRandom = require('@turf/random');
 
 const listItemsFixture = [
   {
@@ -218,6 +219,7 @@ const projectWithOneItemLockedByUserTwo = [
     ]
   }
 ];
+
 const projectWithOneItemLockedByUserOne = [
   {
     id: '00000000-0000-0000-0000-000000000000',
@@ -692,6 +694,27 @@ test(
           res.body.message,
           'Request contains unexpected attribute invalidAttr'
         );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /:version/projects/:project/items/:item - POST large items',
+  getItemsFixture,
+  (assert, token) => {
+    const randomFc = turfRandom('points', 10000);
+    assert.app
+      .post('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        id: '1234',
+        instructions: 'fix',
+        pin: [0, 0],
+        featureCollection: randomFc
+      })
+      .expect(200, err => {
+        assert.ifError(err, 'should not error');
         assert.end();
       });
   }
