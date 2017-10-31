@@ -43,6 +43,8 @@ PG_HOST=database-host
 PG_PORT=database-port
 ```
 
+The sequelize CLI is configured from these environment variables in the file `sequelize-config.js`.
+
 **Running tests**
 
 `npm test`
@@ -50,6 +52,15 @@ PG_PORT=database-port
 **Running locally**
 
 `npm start`
+
+## Database migrations
+Create a new database migration by running the command `npm run migration:create YOUR_MIGRATION_NAME`.  This will make a skeleton migration file as described in the [sequelize migration tutorial](http://docs.sequelizejs.com/manual/tutorial/migrations.html).
+
+Run created migrations by running the command `npm run db:migrate`
+
+Undo migrations by running the command `npm run db:migrate:undo`.
+
+When testing migrations it can be helpful to run and then immediately undo migrations, which you can do by combining the two commands `npm run db:migrate && npm run db:migrate:undo`.
 
 ## Code Formatting
 
