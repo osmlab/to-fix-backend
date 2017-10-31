@@ -29,11 +29,11 @@
     "dotenv": "^4.0.0",
     "express": "^4.15.5",
     "express-session": "^1.15.6",
-    "fastlog": "^1.1.0",
     "husky": "^0.14.3",
     "jwt-simple": "^0.5.1",
     "lint-staged": "^4.2.3",
     "lodash": "^4.17.4",
+    "logform": "^1.2.1",
     "mapbox-data-team": "^1.4.11",
     "mapbox-error": "^2.2.0",
     "memory-cache": "^0.2.0",
@@ -45,6 +45,7 @@
     "request": "^2.83.0",
     "sequelize": "^4.15.0",
     "sequelize-cli": "^3.0.0",
+    "winston": "^3.0.0-rc1",
     "xml2json": "^0.11.0"
   },
   "engines": {
