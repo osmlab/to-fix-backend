@@ -6,6 +6,8 @@ const db = require('../database/index');
 const Item = db.Item;
 const Project = db.Project;
 const geojsonhint = require('@mapbox/geojsonhint');
+const validateFeatureCollection = require('@mapbox/to-fix-validate')
+  .validateFeatureCollection;
 const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
 const _ = require('lodash');
@@ -265,6 +267,12 @@ function createItem(req, res, next) {
       return next(
         new ErrorHTTP('Invalid featureCollection: ' + fcErrors[0].message, 400)
       );
+    }
+    const tofixValidationErrors = validateFeatureCollection(
+      values.featureCollection
+    );
+    if (tofixValidationErrors) {
+      return next(new ErrorHTTP(tofixValidationErrors, 400));
     }
   }
   values.featureCollection = values.featureCollection || {

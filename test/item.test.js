@@ -676,6 +676,42 @@ test(
 /* POST /projects/:project/items */
 
 test(
+  'POST /:version/projects/:project/items/:item - invalid feature collection properties',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .post('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        id: '1234',
+        instructions: 'Fix this',
+        pin: [0, 0],
+        featureCollection: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [0, 0]
+              },
+              properties: {
+                'tofix:category': 'cat',
+                invalidProp: 'foobar'
+              }
+            }
+          ]
+        }
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.equal(res.body.message[0], 'Keys must have a type prefix');
+        assert.end();
+      });
+  }
+);
+
+test(
   'POST /:version/projects/:project/items/:item - invalid body attributes',
   getItemsFixture,
   (assert, token) => {
@@ -704,6 +740,10 @@ test(
   getItemsFixture,
   (assert, token) => {
     const randomFc = turfRandom('points', 10000);
+    randomFc.features = randomFc.features.map(feature => {
+      feature.properties['tofix:category'] = 'cat';
+      return feature;
+    });
     assert.app
       .post('/v1/projects/11111111-1111-1111-1111-111111111111/items')
       .set('authorization', token)
@@ -925,7 +965,7 @@ test(
       features: [
         {
           type: 'Feature',
-          properties: { type: 'node' },
+          properties: { 'tofix:category': 'cat' },
           geometry: {
             type: 'Point',
             coordinates: [30, 30]
@@ -970,7 +1010,7 @@ test(
       features: [
         {
           type: 'Feature',
-          properties: { type: 'node' },
+          properties: { 'tofix:category': 'cat' },
           geometry: {
             type: 'Point',
             coordinates: [30, 30]
@@ -1088,7 +1128,7 @@ test(
       features: [
         {
           type: 'Feature',
-          properties: { type: 'node' },
+          properties: { 'tofix:category': 'cat' },
           geometry: {
             type: 'Point',
             coordinates: [30, 30]
