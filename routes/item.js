@@ -380,8 +380,7 @@ function updateItem(req, res, next) {
     'metadata'
   ];
   const validationError = validateBody(req.body, validBodyAttrs);
-  if (validationError)
-    return next(new ErrorHTTP('Request contains unexpected attributes', 400));
+  if (validationError) return next(new ErrorHTTP(validationError, 400));
 
   const values = { id: req.params.item, project_id: req.params.project };
 

@@ -1256,7 +1256,7 @@ test(
         if (err) return assert.end();
         assert.equal(
           res.body.message,
-          'Request contains unexpected attributes',
+          'Request contains unexpected attribute random',
           'has right message'
         );
         assert.end();
