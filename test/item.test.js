@@ -141,13 +141,15 @@ const listItemsFixture = [
         id: '60',
         pin: [30, 30],
         lockedBy: 'userone',
-        lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+        lockedTill: new Date(Date.now() - 1000 * 15 * 60),
+        createdAt: '2017-10-03T17:49:25.928Z'
       },
       {
         id: '62',
         pin: [30, 30],
         lockedBy: 'usertwo',
-        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60),
+        createdAt: '2017-10-04T17:49:25.928Z'
       },
       {
         id: '63',
@@ -482,6 +484,47 @@ test(
       .expect(200, (err, res) => {
         assert.ifError(err, 'should not error');
         assert.equal(res.body.length, 1, 'should have 1 noterror item');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:id/items?from=<date>&to=<date> - filter items by date',
+  listItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/v1/projects/44444444-4444-4444-4444-444444444444/items?from=2017-10-01&to=2017-10-10'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'date filtering should not error');
+        assert.equal(
+          res.body.length,
+          2,
+          'should have 2 items within date filter'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:id/items?from=<date>&to=<date> - filter items by invalid date',
+  listItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/v1/projects/44444444-4444-4444-4444-444444444444/items?from=foobar'
+      )
+      .set('authorization', token)
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'invalid date filter does not error');
+        assert.equal(
+          res.body.message,
+          'from parameter must be a valid ISO 8601 date string'
+        );
         assert.end();
       });
   }
