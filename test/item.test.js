@@ -712,6 +712,40 @@ test(
 );
 
 test(
+  'POST /:version/projects/:project/items/:item - coords out of bounds',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .post('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        id: '1234',
+        instructions: 'Fix this',
+        pin: [0, 0],
+        featureCollection: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [100, 100]
+              },
+              properties: {
+                'tofix:category': 'cat'
+              }
+            }
+          ]
+        }
+      })
+      .expect(400, err => {
+        assert.ifError(err, 'should not error');
+        assert.end();
+      });
+  }
+);
+
+test(
   'POST /:version/projects/:project/items/:item - invalid body attributes',
   getItemsFixture,
   (assert, token) => {
