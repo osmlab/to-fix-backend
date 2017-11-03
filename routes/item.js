@@ -1,4 +1,5 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
+const validator = require('validator');
 const paginateSearch = require('../lib/helper/paginateSearch');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
@@ -31,6 +32,8 @@ module.exports = {
  * @param {string} [query.bbox] - BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
  * @param {string} [query.status] - Status to filter items by
  * @param {string} [query.tags] - Comma-separated list of tag ids
+ * @param {string} [query.from] - From date to filter by (must be a valid ISO 8601 date string)
+ * @param {string} [query.to] - To date to filter by (must be a valid ISO 8601 date string)
  * @example
  * curl https://host/v1/projects/:project/items
  *
@@ -94,6 +97,32 @@ function getItems(req, res, next) {
         }
       }
     ];
+  }
+
+  if (req.query.from) {
+    if (!validator.isISO8601(req.query.from)) {
+      return next(
+        new ErrorHTTP(
+          'from parameter must be a valid ISO 8601 date string',
+          400
+        )
+      );
+    }
+    search.where.createdAt = {
+      [Op.gt]: new Date(req.query.from)
+    };
+  }
+
+  if (req.query.to) {
+    if (!validator.isISO8601(req.query.to)) {
+      return next(
+        new ErrorHTTP('to parameter must be a valid ISO 8601 date string', 400)
+      );
+    }
+    if (!search.where.createdBy) {
+      search.where.createdAt = {};
+    }
+    search.where.createdAt[Op.lt] = new Date(req.query.to);
   }
 
   if (req.query.status) {

@@ -113,7 +113,8 @@ function setup(fixture) {
               lockedBy: item.lockedBy || null,
               lockedTill: item.lockedTill,
               createdBy: item.createdBy || 'userone',
-              instructions: item.instructions || 'created via the tests'
+              instructions: item.instructions || 'created via the tests',
+              createdAt: item.createdAt || new Date()
             });
           });
           return Promise.all(promise);
