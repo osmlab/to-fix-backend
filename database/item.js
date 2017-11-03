@@ -69,6 +69,9 @@ module.exports = function(db) {
           fields: ['lockedTill']
         },
         {
+          fields: ['createdAt']
+        },
+        {
           fields: ['pin'],
           using: 'gist'
         },
