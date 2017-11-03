@@ -22,7 +22,7 @@
   "license": "BSD",
   "dependencies": {
     "@mapbox/geojsonhint": "^2.0.1",
-    "@mapbox/to-fix-validate": "0.0.2",
+    "@mapbox/to-fix-validate": "0.1.0",
     "body-parser": "^1.18.2",
     "connect-session-sequelize": "^5.0.0",
     "cors": "^2.8.4",
