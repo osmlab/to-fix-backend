@@ -53,7 +53,7 @@ Gets priority value for a quadkey+project
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
     -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to request priority for
 -   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Request URL query parameters
-    -   `query.project` **UUID?** Project ID to get priority values for
+    -   `query.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID to get priority values for
 
 ### get-projects
 
@@ -90,7 +90,7 @@ The backend will handle either INSERTing or UPDATEing as appropriate
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
     -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
 -   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
-    -   `body.project` **(UUID | null)** Project ID or null
+    -   `body.set_id` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | null)** Quadkey Set ID or null
     -   `body.priority` **float** Priority value for Quadkey
 
 ### get-project-tags
@@ -339,6 +339,7 @@ Create a project.
 
 -   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
     -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project name
+    -   `body.quadkey_set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID for this project
     -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The project metadata (optional, default `{}`)
 
 **Examples**
@@ -515,6 +516,7 @@ Update a project.
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
 -   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
     -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** The project name
+    -   `body.quadkey_set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID for this project
     -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The project metadata
 
 **Examples**
