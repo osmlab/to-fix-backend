@@ -18,7 +18,7 @@ module.exports = {
  * @param {Object} [query] - Request URL query parameters
  * @param {string} [query.set_id] - Quadkey Set ID to get priority values for
  */
-function getQuadkey(req, res) {
+function getQuadkey(req, res, next) {
   const quadkey = req.params.quadkey;
   const setId = req.query.set_id || null;
   Quadkey.findOne({
@@ -26,9 +26,15 @@ function getQuadkey(req, res) {
       quadkey: quadkey,
       set_id: setId
     }
-  }).then(quadkey => {
-    res.json({ priority: quadkey.priority });
-  });
+  })
+    .then(quadkey => {
+      res.json({ priority: quadkey.priority });
+    })
+    .catch(() => {
+      return next(
+        new ErrorHTTP('quadkey and set_id combination not found', 404)
+      );
+    });
 }
 
 /**
@@ -73,10 +79,10 @@ function postQuadkey(req, res, next) {
             return res.json(quadkey);
           })
           .catch(err => {
-            return ErrorHTTP(err);
+            return next(new ErrorHTTP(err));
           });
       } else {
-        return ErrorHTTP(err);
+        return next(new ErrorHTTP(err));
       }
     });
 }

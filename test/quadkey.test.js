@@ -45,15 +45,43 @@ test(
 );
 
 test(
+  'GET /:version/quadkeys/:quadkey - expect 404 for not found quadkey',
+  [],
+  (assert, token) => {
+    assert.app
+      .get('/v1/quadkeys/111111')
+      .set('authorization', token)
+      .expect(404, () => {
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/quadkeys/:quadkey?set_id=foobar - expect 404 for not found quadkey+set_id',
+  [],
+  (assert, token) => {
+    createQuadkeys(quadkeysWithSetFixture).then(() => {
+      assert.app
+        .get('/v1/quadkeys/11002122?set_id=foobar')
+        .set('authorization', token)
+        .expect(404, () => {
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
   'GET /:version/quadkeys/:quadkey - get priority for a quadkey with set_id',
   [],
   (assert, token) => {
     createQuadkeys(quadkeysWithSetFixture).then(() => {
       assert.app
-        .get('/v1/quadkeys/11002122?setId=abc')
+        .get('/v1/quadkeys/11002122?set_id=abc')
         .set('authorization', token)
         .expect(200, (err, res) => {
-          assert.ifError(err, 'fetching quadkey for project should not error');
+          assert.ifError(err, 'fetching quadkey for set_id should not error');
           assert.equal(res.body.priority, 0.2222);
           assert.end();
         });
