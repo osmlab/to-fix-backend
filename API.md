@@ -80,19 +80,6 @@ curl https://host/v1/projects
 ]
 ```
 
-### post-quadkey-priority
-
-Write priority values for a quadkey (optionally tied to project)
-The backend will handle either INSERTing or UPDATEing as appropriate
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
-    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
-    -   `body.set_id` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | null)** Quadkey Set ID or null
-    -   `body.priority` **float** Priority value for Quadkey
-
 ### get-project-tags
 
 Get a list of project tags.
@@ -121,6 +108,19 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags
   }
 ]
 ```
+
+### post-quadkey-priority
+
+Write priority values for a quadkey (optionally tied to project)
+The backend will handle either INSERTing or UPDATEing as appropriate
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
+    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
+    -   `body.set_id` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | null)** Quadkey Set ID or null
+    -   `body.priority` **float** Priority value for Quadkey
 
 ### get-comments
 
