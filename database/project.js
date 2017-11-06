@@ -13,6 +13,11 @@ module.exports = function(db) {
       allowNull: false,
       unique: true
     },
+    quadkey_set_id: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
     metadata: {
       type: Sequelize.JSONB,
       defaultValue: {}

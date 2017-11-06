@@ -12,12 +12,12 @@ module.exports = function(db) {
       quadkey: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: 'quadkey_project'
+        unique: 'quadkey_set'
       },
-      project_id: {
-        type: Sequelize.UUID,
+      set_id: {
+        type: Sequelize.STRING,
         allowNull: true,
-        unique: 'quadkey_project'
+        unique: 'quadkey_set'
       },
       priority: {
         type: Sequelize.FLOAT,
@@ -31,6 +31,9 @@ module.exports = function(db) {
         },
         {
           fields: ['priority']
+        },
+        {
+          fields: ['set_id']
         }
       ]
     }

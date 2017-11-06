@@ -16,15 +16,15 @@ module.exports = {
  * @param {Object} params - Request URL parameters
  * @param {string} params.quadkey - Quadkey to request priority for
  * @param {Object} [query] - Request URL query parameters
- * @param {UUID} [query.project] - Project ID to get priority values for
+ * @param {string} [query.set_id] - Quadkey Set ID to get priority values for
  */
 function getQuadkey(req, res) {
   const quadkey = req.params.quadkey;
-  const projectId = req.query.project || null;
+  const setId = req.query.set_id || null;
   Quadkey.findOne({
     where: {
       quadkey: quadkey,
-      project_id: projectId
+      set_id: setId
     }
   }).then(quadkey => {
     res.json({ priority: quadkey.priority });
@@ -39,13 +39,13 @@ function getQuadkey(req, res) {
  * @param {Object} params - Request URL parameters
  * @param {string} params.quadkey - Quadkey to POST
  * @param {Object} body - Request body
- * @param {UUID|null} body.project - Project ID or null
+ * @param {string|null} body.set_id - Quadkey Set ID or null
  * @param {float} body.priority - Priority value for Quadkey
  */
 function postQuadkey(req, res, next) {
   const quadkey = req.params.quadkey;
   const body = req.body;
-  const projectId = body.project || null;
+  const setId = body.set_id || null;
   // console.log('params', quadkey, projectId, body.priority);
   let priority = body.priority;
   if (!validator.isFloat(String(priority))) {
@@ -53,7 +53,7 @@ function postQuadkey(req, res, next) {
   }
   priority = Number(priority);
   Quadkey.create({
-    project_id: projectId,
+    set_id: setId,
     quadkey: quadkey,
     priority: priority
   })
@@ -65,7 +65,7 @@ function postQuadkey(req, res, next) {
         Quadkey.update({
           priority: priority,
           where: {
-            project_id: projectId,
+            set_id: setId,
             quadkey: quadkey
           }
         })

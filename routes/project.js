@@ -135,6 +135,7 @@ function getProjectStats(req, res, next) {
  * @name create-project
  * @param {Object} body - The request body
  * @param {string} body.name - The project name
+ * @param {string} [body.quadkey_set_id] - Quadkey Set ID for this project
  * @param {Object} [body.metadata={}] - The project metadata
  * @example
  * curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' https://host/v1/projects
@@ -148,7 +149,7 @@ function getProjectStats(req, res, next) {
  * }
  */
 function createProject(req, res, next) {
-  const validBodyAttrs = ['name', 'metadata'];
+  const validBodyAttrs = ['name', 'quadkeySetId', 'metadata'];
   const requiredBodyAttr = ['name'];
   const validationError = validateBody(
     req.body,
@@ -202,6 +203,7 @@ function getProject(req, res, next) {
  * @param {string} params.project - The project ID
  * @param {Object} body - The request body
  * @param {string} [body.name] - The project name
+ * @param {string} [body.quadkey_set_id] - Quadkey Set ID for this project
  * @param {Object} [body.metadata] - The project metadata
  * @example
  * curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}' https://host/v1/projects/00000000-0000-0000-0000-000000000000
@@ -217,7 +219,7 @@ function getProject(req, res, next) {
  * }
  */
 function updateProject(req, res, next) {
-  const validBodyAttrs = ['name', 'metadata'];
+  const validBodyAttrs = ['name', 'quadkey_set_id', 'metadata'];
   const validationError = validateBody(req.body, validBodyAttrs);
   if (validationError) return next(new ErrorHTTP(validationError, 400));
 

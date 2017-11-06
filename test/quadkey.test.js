@@ -1,44 +1,37 @@
 const test = require('./lib/test');
 const createQuadkeys = require('./lib/quadkeys').createQuadkeys;
 
-const quadkeysNoProjFixture = [
+const quadkeysNoSetFixture = [
   {
     quadkey: '11002122',
-    project: null,
+    set_id: null,
     priority: 0.1234
   },
   {
     quadkey: '11002123',
-    project: null,
+    set_id: null,
     priority: 0.4321
   }
 ];
 
-const quadkeysWithProjFixture = [
+const quadkeysWithSetFixture = [
   {
     quadkey: '11002122',
-    project: '00000000-0000-0000-0000-000000000000',
+    set_id: 'abc',
     priority: 0.2222
   },
   {
     quadkey: '11002123',
-    project: '00000000-0000-0000-0000-000000000000',
+    set_id: 'abc',
     priority: 0.3333
   }
 ];
 
-const projectsFixture = [
-  {
-    id: '00000000-0000-0000-0000-000000000000',
-    name: 'My Project'
-  }
-];
-
 test(
-  'GET /:version/quadkeys/:quadkey - get priority for a quadkey without project',
+  'GET /:version/quadkeys/:quadkey - get priority for a quadkey without set_id',
   [],
   (assert, token) => {
-    createQuadkeys(quadkeysNoProjFixture).then(() => {
+    createQuadkeys(quadkeysNoSetFixture).then(() => {
       assert.app
         .get('/v1/quadkeys/11002122')
         .set('authorization', token)
@@ -52,14 +45,12 @@ test(
 );
 
 test(
-  'GET /:version/quadkeys/:quadkey - get priority for a quadkey with project',
-  projectsFixture,
+  'GET /:version/quadkeys/:quadkey - get priority for a quadkey with set_id',
+  [],
   (assert, token) => {
-    createQuadkeys(quadkeysWithProjFixture).then(() => {
+    createQuadkeys(quadkeysWithSetFixture).then(() => {
       assert.app
-        .get(
-          '/v1/quadkeys/11002122?project=00000000-0000-0000-0000-000000000000'
-        )
+        .get('/v1/quadkeys/11002122?setId=abc')
         .set('authorization', token)
         .expect(200, (err, res) => {
           assert.ifError(err, 'fetching quadkey for project should not error');
@@ -74,12 +65,12 @@ test(
   'POST /:version/quadkeys/:quadkey - POST priority for a quadkey UPDATE',
   [],
   (assert, token) => {
-    createQuadkeys(quadkeysNoProjFixture).then(() => {
+    createQuadkeys(quadkeysNoSetFixture).then(() => {
       assert.app
         .post('/v1/quadkeys/11002122')
         .set('authorization', token)
         .send({
-          project: null,
+          setId: null,
           priority: 0.1111
         })
         .expect(200, (err, res) => {
@@ -100,7 +91,7 @@ test(
       .post('/v1/quadkeys/11002122')
       .set('authorization', token)
       .send({
-        project: null,
+        setId: null,
         priority: 0.3333
       })
       .expect(200, (err, res) => {
@@ -114,21 +105,18 @@ test(
 
 test(
   'POST /:version/quadkeys/:quadkey - POSTing quadkey with project',
-  projectsFixture,
+  [],
   (assert, token) => {
     assert.app
       .post('/v1/quadkeys/11002122')
       .set('authorization', token)
       .send({
-        project: '00000000-0000-0000-0000-000000000000',
+        set_id: 'xyz',
         priority: 0.8888
       })
       .expect(200, (err, res) => {
         assert.ifError(err, 'does not error');
-        assert.equal(
-          res.body.project_id,
-          '00000000-0000-0000-0000-000000000000'
-        );
+        assert.equal(res.body.set_id, 'xyz');
         assert.equal(res.body.priority, 0.8888);
         assert.equal(res.body.quadkey, '11002122');
         assert.end();
