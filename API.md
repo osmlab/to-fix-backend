@@ -44,6 +44,17 @@ curl https://host
 }
 ```
 
+### get-quadkey-priority
+
+Gets priority value for a quadkey+project
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
+    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to request priority for
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Request URL query parameters
+    -   `query.project` **UUID?** Project ID to get priority values for
+
 ### get-projects
 
 Get a list of projects.
@@ -68,6 +79,19 @@ curl https://host/v1/projects
   }
 ]
 ```
+
+### post-quadkey-priority
+
+Write priority values for a quadkey (optionally tied to project)
+The backend will handle either INSERTing or UPDATEing as appropriate
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
+    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
+    -   `body.project` **(UUID | null)** Project ID or null
+    -   `body.priority` **float** Priority value for Quadkey
 
 ### get-project-tags
 
