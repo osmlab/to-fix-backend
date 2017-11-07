@@ -98,7 +98,7 @@ test(
         .post('/v1/quadkeys/11002122')
         .set('authorization', token)
         .send({
-          setId: null,
+          set_id: null,
           priority: 0.1111
         })
         .expect(200, (err, res) => {
@@ -119,7 +119,7 @@ test(
       .post('/v1/quadkeys/11002122')
       .set('authorization', token)
       .send({
-        setId: null,
+        set_id: null,
         priority: 0.3333
       })
       .expect(200, (err, res) => {
@@ -132,7 +132,7 @@ test(
 );
 
 test(
-  'POST /:version/quadkeys/:quadkey - POSTing quadkey with project',
+  'POST /:version/quadkeys/:quadkey - POSTing quadkey with set_id',
   [],
   (assert, token) => {
     assert.app
@@ -147,6 +147,28 @@ test(
         assert.equal(res.body.set_id, 'xyz');
         assert.equal(res.body.priority, 0.8888);
         assert.equal(res.body.quadkey, '11002122');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'POST /:version/quadkeys/:quadkey - POSTing invalid quadkey returns 400',
+  [],
+  (assert, token) => {
+    assert.app
+      .post('/v1/quadkeys/foobar')
+      .set('authorization', token)
+      .send({
+        set_id: 'xyz',
+        priority: 0.666
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'does not error');
+        assert.equal(
+          res.body.message,
+          'Please supply a valid quadkey identifier'
+        );
         assert.end();
       });
   }

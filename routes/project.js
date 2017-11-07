@@ -149,7 +149,7 @@ function getProjectStats(req, res, next) {
  * }
  */
 function createProject(req, res, next) {
-  const validBodyAttrs = ['name', 'quadkeySetId', 'metadata'];
+  const validBodyAttrs = ['name', 'quadkey_set_id', 'metadata'];
   const requiredBodyAttr = ['name'];
   const validationError = validateBody(
     req.body,
