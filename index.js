@@ -11,8 +11,5 @@ process.on('uncaughtException', function(err) {
 const port = process.env.PORT || 8889;
 server.listen(port, function(err) {
   if (err) throw err;
-  logDriver.info('listing on port: ' + port, {
-    exportLog: true,
-    event: 'AppStart'
-  });
+  logDriver.info('listing on port: ' + port);
 });
