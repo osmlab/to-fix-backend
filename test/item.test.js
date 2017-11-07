@@ -135,7 +135,8 @@ const listItemsFixture = [
         id: '53',
         pin: [30, 30],
         lockedBy: 'userone',
-        lockedTill: new Date(Date.now())
+        lockedTill: new Date(Date.now()),
+        createdAt: '2017-09-03T17:49:25.928Z'
       },
       {
         id: '60',
@@ -149,7 +150,7 @@ const listItemsFixture = [
         pin: [30, 30],
         lockedBy: 'usertwo',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60),
-        createdAt: '2017-10-04T17:49:25.928Z'
+        createdAt: '2017-10-05T17:49:25.928Z'
       },
       {
         id: '63',
@@ -505,6 +506,44 @@ test(
           2,
           'should have 2 items within date filter'
         );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:id/items?from=<date> - filter items by from date',
+  listItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/v1/projects/44444444-4444-4444-4444-444444444444/items?from=2017-11-01'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'date filtering by from should not error');
+        assert.equal(
+          res.body.length,
+          9,
+          'should have 9 items with from filter'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:id/items?to=<date> - filter items by to date',
+  listItemsFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/v1/projects/44444444-4444-4444-4444-444444444444/items?to=2017-10-04'
+      )
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'date filtering by to should not error');
+        assert.equal(res.body.length, 2, 'should have 2 items with to filter');
         assert.end();
       });
   }
