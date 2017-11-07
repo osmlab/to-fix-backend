@@ -99,6 +99,7 @@ function getItems(req, res, next) {
     ];
   }
 
+  let from, to;
   if (req.query.from) {
     if (!validator.isISO8601(req.query.from)) {
       return next(
@@ -108,9 +109,7 @@ function getItems(req, res, next) {
         )
       );
     }
-    search.where.createdAt = {
-      [Op.gt]: new Date(req.query.from)
-    };
+    from = req.query.from;
   }
 
   if (req.query.to) {
@@ -119,10 +118,22 @@ function getItems(req, res, next) {
         new ErrorHTTP('to parameter must be a valid ISO 8601 date string', 400)
       );
     }
-    if (!search.where.createdBy) {
-      search.where.createdAt = {};
-    }
-    search.where.createdAt[Op.lt] = new Date(req.query.to);
+    to = req.query.to;
+  }
+
+  if (from && to) {
+    search.where.createdAt = {
+      [Op.gt]: from,
+      [Op.lt]: to
+    };
+  } else if (from) {
+    search.where.createdAt = {
+      [Op.gt]: from
+    };
+  } else if (to) {
+    search.where.createdAt = {
+      [Op.lt]: to
+    };
   }
 
   if (req.query.status) {
