@@ -46,6 +46,8 @@
     "sequelize": "^4.15.0",
     "sequelize-cli": "^3.0.0",
     "winston": "^3.0.0-rc1",
+    "winston-firehose": "^1.0.8",
+    "winston-firetruck": "0.0.3",
     "winston-transport": "^3.0.1",
     "xml2json": "^0.11.0"
   },
