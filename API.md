@@ -156,7 +156,7 @@ Get a paginated list of items for a project.
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
 -   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The request URL query parameters
-    -   `query.lock` **(`"locked"` \| `"unlocked"`)** The item's lock status, must be 'locked' or 'unlocked' (optional, default `'locked'`)
+    -   `query.lock` **(`"locked"` \| `"unlocked"`)?** The item's lock status, must be 'locked' or 'unlocked'
     -   `query.page` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The pagination start page (optional, default `0`)
     -   `query.page_size` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The page size (optional, default `100`)
     -   `query.bbox` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
@@ -418,6 +418,25 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
 }
 ```
 
+### delete-project-tag
+
+Delete a project tag.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
+```
+
 ### create-item
 
 Create an item in a project.
@@ -460,25 +479,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","instruction
   createdAt: '2017-10-19T00:00:00.000Z',
   lockedBy: null
 }
-```
-
-### delete-project-tag
-
-Delete a project tag.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
-
-{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
 ```
 
 ### update-project
