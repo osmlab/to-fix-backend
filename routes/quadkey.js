@@ -15,13 +15,16 @@ function isValidQuadkey(quadkey) {
 }
 
 /**
- * Gets priority value for a quadkey+project
+ * Gets priority value for a quadkey+project. If quadkey does not exist, will return a priority of -1
  * 
  * @name get-quadkey-priority
  * @param {Object} params - Request URL parameters
  * @param {string} params.quadkey - Quadkey to request priority for
  * @param {Object} [query] - Request URL query parameters
  * @param {string} [query.set_id] - Quadkey Set ID to get priority values for
+ * @example
+ * curl https://host/v1/quadkeys/11002211
+ * { "priority": 0.777 }
  */
 function getQuadkey(req, res, next) {
   const quadkey = req.params.quadkey;
@@ -39,9 +42,7 @@ function getQuadkey(req, res, next) {
       res.json({ priority: quadkey.priority });
     })
     .catch(() => {
-      return next(
-        new ErrorHTTP('quadkey and set_id combination not found', 404)
-      );
+      res.json({ priority: -1 });
     });
 }
 
