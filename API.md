@@ -12,7 +12,7 @@ If you need to use this token for automated scripts, export it from the frontend
 
 ## Schema validation
 
-There are detailed rules around what we will and will not accept as part of Item FeatureCollections. These docs can be found at [DOCS.md](DOCS.md)
+There are detailed rules around what we will and will not accept as part of Item FeatureCollections. These docs can be found at [GEOJSON_SCHEMA.md](GEOJSON_SCHEMA.md)
 
 ## Endpoints
 
