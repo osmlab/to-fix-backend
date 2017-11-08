@@ -74,7 +74,8 @@ test(
           {
             id: '00000000-0000-0000-0000-000000000000',
             name: 'My Project',
-            metadata: {}
+            metadata: {},
+            quadkey_set_id: null
           },
           'project one should look like the fixture'
         );
@@ -83,7 +84,8 @@ test(
           {
             id: '11111111-1111-1111-1111-111111111111',
             name: 'My Other Project',
-            metadata: {}
+            metadata: {},
+            quadkey_set_id: null
           },
           'project two should look like the fixture'
         );
@@ -270,6 +272,7 @@ test(
           {
             id: '00000000-0000-0000-0000-000000000000',
             name: 'My Project',
+            quadkey_set_id: null,
             metadata: {}
           },
           'project one should look like the fixture without dates'
@@ -305,7 +308,8 @@ test(
           {
             id: '00000000-0000-0000-0000-000000000000',
             name: 'My Project',
-            metadata: { keep: 'keep', test: 'test' }
+            metadata: { keep: 'keep', test: 'test' },
+            quadkey_set_id: null
           },
           'check update worked'
         );
