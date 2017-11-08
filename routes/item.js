@@ -26,7 +26,7 @@ module.exports = {
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {Object} [query] - The request URL query parameters
- * @param {('locked'|'unlocked')} [query.lock='locked'] - The item's lock status, must be 'locked' or 'unlocked'
+ * @param {('locked'|'unlocked')} [query.lock] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.page=0] - The pagination start page
  * @param {string} [query.page_size=100] - The page size
  * @param {string} [query.bbox] - BBOX to query by, string in W,S,E,N format (e.g. -1,-1,0,0)
