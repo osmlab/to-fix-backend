@@ -155,7 +155,7 @@ All geometric attributes of an Item MUST be stored as Features in an item's `fea
         "tofix:has-direction": true,
         "image:Screenshot": "data:image/jpeg;base64,...",
         "date:timestamp": "2017-10-03T13:02:57.058Z",
-        "link:replayFile": "https://hey.mapbox.com/binnacle/?replayFile=BF1FBC50-9FBF-4AA3-9F1A-B7D762D42AE7#13.5/37.761571/-122.406303/7.0/"
+        "link:someFile": "https://example.com/xyz"
       }
     },
     {
