@@ -1,5 +1,5 @@
 var db = require('../database/index');
-const logger = require('fastlog')('setup-database');
+const logDriver = require('../lib/log-driver')('setup-database');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
@@ -21,10 +21,10 @@ db
     return sessionStore.sync();
   })
   .then(function() {
-    logger.info('database is setup');
+    logDriver.info('database is setup');
     db.close();
   })
   .catch(function(err) {
-    logger.error(err.message);
+    logDriver.error(err.message);
     db.close();
   });
