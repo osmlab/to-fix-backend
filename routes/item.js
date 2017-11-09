@@ -329,7 +329,7 @@ function createItem(req, res, next) {
 
   Item.create(values)
     .then(item => {
-      logDriver(
+      logDriver.info(
         {
           context: logContext,
           username: req.user.username,
