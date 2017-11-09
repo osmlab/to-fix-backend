@@ -155,14 +155,19 @@ function createItemComment(req, res, next) {
       });
     })
     .then(comment => {
-      logDriver({
-        event: logEvent,
-        context: logContext,
-        username: req.user.username,
-        action: 'create',
-        itemId: itemId,
-        projectId: projectId
-      });
+      logDriver.info(
+        {
+          context: logContext,
+          username: req.user.username,
+          action: 'create',
+          itemId: itemId,
+          projectId: projectId
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       res.json(comment);
     })
     .catch(err => {
@@ -216,14 +221,19 @@ function deleteItemComment(req, res, next) {
       });
     })
     .then(comment => {
-      logDriver({
-        event: logEvent,
-        context: logContext,
-        username: req.user.username,
-        action: 'delete',
-        itemId: itemId,
-        projectId: projectId
-      });
+      logDriver.info(
+        {
+          context: logContext,
+          username: req.user.username,
+          action: 'delete',
+          itemId: itemId,
+          projectId: projectId
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       comment.destroy();
       res.json(comment);
     })
