@@ -9,9 +9,8 @@ const Op = Sequelize.Op;
 const Item = db.Item;
 const _ = require('lodash');
 const Project = db.Project;
-const logDriver = require('../lib/log-driver');
+const logDriver = require('../lib/log-driver')('routes/tag');
 
-const logContext = 'routes/tag';
 const logEvent = 'tags';
 
 module.exports = {
@@ -109,7 +108,6 @@ function createProjectTag(req, res, next) {
     .then(data => {
       logDriver.info(
         {
-          context: logContext,
           username: req.user.username,
           action: 'create-project-tag',
           projectId: options.project_id,
@@ -233,7 +231,6 @@ function deleteProjectTag(req, res, next) {
       if (data === 0) throw new ErrorHTTP('Invalid tag ID', 400);
       logDriver.info(
         {
-          context: logContext,
           action: 'delete-project-tag',
           username: req.user.username,
           projectId: req.params.project,
@@ -352,7 +349,6 @@ function createItemTag(req, res, next) {
     .then(data => {
       logDriver.info(
         {
-          context: logContext,
           username: req.user.username,
           action: 'create-item-tag',
           itemId: req.params.item,
@@ -424,7 +420,6 @@ function deleteItemTag(req, res, next) {
     .then(data => {
       logDriver.info(
         {
-          context: logContext,
           username: req.user.username,
           action: 'delete-item-tag',
           itemId: req.params.item,

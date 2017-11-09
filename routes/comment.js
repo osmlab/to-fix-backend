@@ -2,7 +2,7 @@ const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const db = require('../database/index');
 const validateBody = require('../lib/helper/validateBody');
 const geojsonhint = require('@mapbox/geojsonhint');
-const logDriver = require('../lib/log-driver');
+const logDriver = require('../lib/log-driver')('routes/comment');
 
 module.exports = {
   getItemComments: getItemComments,
@@ -10,7 +10,6 @@ module.exports = {
   deleteItemComment: deleteItemComment
 };
 
-const logContext = 'routes/comment';
 const logEvent = 'commentAction';
 
 /**
@@ -157,7 +156,6 @@ function createItemComment(req, res, next) {
     .then(comment => {
       logDriver.info(
         {
-          context: logContext,
           username: req.user.username,
           action: 'create',
           itemId: itemId,
@@ -223,7 +221,6 @@ function deleteItemComment(req, res, next) {
     .then(comment => {
       logDriver.info(
         {
-          context: logContext,
           username: req.user.username,
           action: 'delete',
           itemId: itemId,

@@ -12,9 +12,7 @@ const validateFeatureCollection = require('@mapbox/to-fix-validate')
 const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
 const _ = require('lodash');
-const logDriver = require('../lib/log-driver');
-
-const logContext = 'routes/item';
+const logDriver = require('../lib/log-driver')('routes/item');
 
 module.exports = {
   getItems: getItems,
@@ -331,7 +329,6 @@ function createItem(req, res, next) {
     .then(item => {
       logDriver.info(
         {
-          context: logContext,
           username: req.user.username,
           itemId: item.id,
           projectId: values.project_id
@@ -468,7 +465,6 @@ function updateItem(req, res, next) {
         {
           userAction: 'unlock',
           username: req.user.username,
-          context: logContext,
           itemId: values.id,
           projectId: values.project_id
         },
@@ -482,7 +478,6 @@ function updateItem(req, res, next) {
         {
           userAction: 'lock',
           username: req.user.username,
-          context: logContext,
           itemId: values.id,
           projectId: values.project_id
         },
@@ -527,7 +522,6 @@ function updateItem(req, res, next) {
       {
         status: req.body.status,
         username: req.user.username,
-        context: logContext,
         itemId: values.id,
         projectId: values.project_id
       },
@@ -564,7 +558,6 @@ function updateItem(req, res, next) {
     };
     logs.push([
       {
-        context: logContext,
         username: req.user.username,
         itemId: values.id,
         projectId: values.project_id
