@@ -72,7 +72,6 @@ function postQuadkey(req, res, next) {
   );
   if (validationError) return next(new ErrorHTTP(validationError, 400));
   const setId = body.set_id || null;
-  // console.log('params', quadkey, projectId, body.priority);
   let priority = body.priority;
   if (!validator.isFloat(String(priority))) {
     return next(new ErrorHTTP('Priority must be a float', 400));
@@ -88,13 +87,17 @@ function postQuadkey(req, res, next) {
     })
     .catch(err => {
       if (err instanceof Sequelize.UniqueConstraintError) {
-        Quadkey.update({
-          priority: priority,
-          where: {
-            set_id: setId,
-            quadkey: quadkey
+        Quadkey.update(
+          {
+            priority: priority
+          },
+          {
+            where: {
+              set_id: setId,
+              quadkey: quadkey
+            }
           }
-        })
+        )
           .then(quadkey => {
             return res.json(quadkey);
           })
