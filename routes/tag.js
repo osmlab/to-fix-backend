@@ -9,6 +9,9 @@ const Op = Sequelize.Op;
 const Item = db.Item;
 const _ = require('lodash');
 const Project = db.Project;
+const logDriver = require('../lib/log-driver')('routes/tag');
+
+const logEvent = 'tags';
 
 module.exports = {
   /* Project-level operations */
@@ -103,6 +106,18 @@ function createProjectTag(req, res, next) {
       return Tag.create(options);
     })
     .then(data => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          action: 'create-project-tag',
+          projectId: options.project_id,
+          tag: options.name
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       res.json(data);
     })
     .catch(next);
@@ -214,6 +229,18 @@ function deleteProjectTag(req, res, next) {
     })
     .then(data => {
       if (data === 0) throw new ErrorHTTP('Invalid tag ID', 400);
+      logDriver.info(
+        {
+          action: 'delete-project-tag',
+          username: req.user.username,
+          projectId: req.params.project,
+          tagId: req.params.tag
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       res.json({ message: `Successfully deleted tag ${req.params.tag}` });
     })
     .catch(next);
@@ -299,7 +326,7 @@ function createItemTag(req, res, next) {
   const whereProject = { id: req.params.project };
   const whereItem = { project_id: req.params.project, id: req.params.item };
   const whereTag = { project_id: req.params.project, id: req.body.tag };
-
+  let tagName;
   Project.findOne({ where: whereProject })
     .then(data => {
       if (!data) throw new ErrorHTTP('Invalid project ID', 400);
@@ -313,12 +340,26 @@ function createItemTag(req, res, next) {
     .then(data => {
       if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
       store.tag = data;
+      tagName = data.name;
       return store.item.addTag(data);
     })
     .then(() => {
       return store.tag.getItems({ where: { id: req.params.item } });
     })
     .then(data => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          action: 'create-item-tag',
+          itemId: req.params.item,
+          projectId: req.params.project,
+          tag: tagName
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       res.json(data);
     })
     .catch(next);
@@ -377,6 +418,19 @@ function deleteItemTag(req, res, next) {
       return Item.findOne({ whereItem });
     })
     .then(data => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          action: 'delete-item-tag',
+          itemId: req.params.item,
+          projectId: req.params.project,
+          tagId: req.params.tag
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       res.json(data);
     })
     .catch(next);

@@ -12,6 +12,7 @@ const validateFeatureCollection = require('@mapbox/to-fix-validate')
 const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
 const _ = require('lodash');
+const logDriver = require('../lib/log-driver')('routes/item');
 
 module.exports = {
   getItems: getItems,
@@ -326,6 +327,17 @@ function createItem(req, res, next) {
 
   Item.create(values)
     .then(item => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          itemId: item.id,
+          projectId: values.project_id
+        },
+        {
+          event: 'itemCreate',
+          exportLog: true
+        }
+      );
       res.json(item);
     })
     .catch(err => {
@@ -431,6 +443,7 @@ function updateItem(req, res, next) {
   if (validationError) return next(new ErrorHTTP(validationError, 400));
 
   const values = { id: req.params.item, project_id: req.params.project };
+  const logs = [];
 
   /* Validate lock */
   if (req.body.lock) {
@@ -448,7 +461,31 @@ function updateItem(req, res, next) {
     if (req.body.lock === constants.UNLOCKED) {
       values.lockedTill = new Date();
       values.lockedBy = null;
+      logs.push([
+        {
+          userAction: 'unlock',
+          username: req.user.username,
+          itemId: values.id,
+          projectId: values.project_id
+        },
+        {
+          event: 'itemLock',
+          exportLog: true
+        }
+      ]);
     } else {
+      logs.push([
+        {
+          userAction: 'lock',
+          username: req.user.username,
+          itemId: values.id,
+          projectId: values.project_id
+        },
+        {
+          event: 'itemLock',
+          exportLog: true
+        }
+      ]);
       values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
       values.lockedBy = req.user.username;
     }
@@ -481,6 +518,18 @@ function updateItem(req, res, next) {
       values.lockedTill = new Date();
       values.lockedBy = null;
     }
+    logs.push([
+      {
+        status: req.body.status,
+        username: req.user.username,
+        itemId: values.id,
+        projectId: values.project_id
+      },
+      {
+        event: 'itemStatus',
+        exportLog: true
+      }
+    ]);
   }
 
   /* Validate instructions */
@@ -507,6 +556,17 @@ function updateItem(req, res, next) {
       type: 'FeatureCollection',
       features: []
     };
+    logs.push([
+      {
+        username: req.user.username,
+        itemId: values.id,
+        projectId: values.project_id
+      },
+      {
+        event: 'itemUpdate',
+        exportLog: true
+      }
+    ]);
   }
 
   values.user = req.user.username;
@@ -514,6 +574,9 @@ function updateItem(req, res, next) {
 
   putItemWrapper(values)
     .then(data => {
+      logs.forEach(log => {
+        logDriver.info(log[0], log[1]);
+      });
       res.json(data);
     })
     .catch(next);

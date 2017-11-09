@@ -2,12 +2,15 @@ const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const db = require('../database/index');
 const validateBody = require('../lib/helper/validateBody');
 const geojsonhint = require('@mapbox/geojsonhint');
+const logDriver = require('../lib/log-driver')('routes/comment');
 
 module.exports = {
   getItemComments: getItemComments,
   createItemComment: createItemComment,
   deleteItemComment: deleteItemComment
 };
+
+const logEvent = 'commentAction';
 
 /**
  * Get a list of comments for an item
@@ -151,6 +154,18 @@ function createItemComment(req, res, next) {
       });
     })
     .then(comment => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          action: 'create',
+          itemId: itemId,
+          projectId: projectId
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       res.json(comment);
     })
     .catch(err => {
@@ -204,6 +219,18 @@ function deleteItemComment(req, res, next) {
       });
     })
     .then(comment => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          action: 'delete',
+          itemId: itemId,
+          projectId: projectId
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
       comment.destroy();
       res.json(comment);
     })
