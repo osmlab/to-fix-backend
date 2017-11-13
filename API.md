@@ -239,7 +239,7 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
 }
 ```
 
-### getQuadkeys
+### get-quadkeys
 
 Returns a list of quadkeys with priority and item count data.
 The use-case is, for eg:
@@ -249,9 +249,6 @@ The use-case is, for eg:
 
 **Parameters**
 
--   `req`  
--   `res`  
--   `next`  
 -   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** query parameters
 -   `within` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to search within
 -   `zoom_level` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
