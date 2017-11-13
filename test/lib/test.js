@@ -9,6 +9,7 @@ const jwt = require('jwt-simple');
 const path = require('path');
 const exec = require('child_process').execSync;
 const db = require('../../database/index');
+const getQuadkeyForPoint = require('../../lib/helper/get-quadkey-for-point');
 const _ = require('lodash');
 
 var pendingTests = 0;
@@ -99,14 +100,18 @@ function setup(fixture) {
           store.createdTags = createdTags;
           var items = project.items || [];
           var fc = { type: 'FeatureCollection', features: [] };
+
           var promise = items.map(function(item) {
+            const pin = {
+              type: 'Point',
+              coordinates: item.pin || [0, 0]
+            };
+            const quadkey = getQuadkeyForPoint(pin);
             return db.Item.create({
               id: item.id,
               project_id: project.id,
-              pin: {
-                type: 'Point',
-                coordinates: item.pin || [0, 0]
-              },
+              pin: pin,
+              quadkey: quadkey,
               featureCollection: item.featureCollection || fc,
               metadata: item.metadata || {},
               status: item.status,
