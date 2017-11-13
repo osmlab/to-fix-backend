@@ -250,8 +250,9 @@ The use-case is, for eg:
 **Parameters**
 
 -   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** query parameters
+    -   `query.project_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the project_id this is scoped to (should this be a URL param instead?)
     -   `query.within` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to search within
-    -   `query.zoom_level` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+    -   `query.zoom_level` **integer** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
     -   `query.item_status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** item status to filter by for item counts
     -   `query.item_tags` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** item tags to filter by for item counts
 
