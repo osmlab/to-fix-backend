@@ -47,6 +47,39 @@ function getQuadkey(req, res, next) {
 }
 
 /**
+ * Returns a list of quadkeys with priority and item count data.
+ * The use-case is, for eg:
+ *   - Give me data for all quadkeys at z8 within this z4 tile, with counts
+ *      for items that have a status=open 
+ *
+ * @name get-quadkeys
+ * @param {Object} query - query parameters
+ * @param {string} within - Quadkey to search within
+ * @param {string} zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+ * @param {string} item_status - item status to filter by for item counts
+ * @param {Array<string>} item_tags - item tags to filter by for item counts
+ * @example curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
+ *  [
+ *    {
+ *      quadkey: '0011000',
+ *      item_count: 243,
+ *      priority: 0.004
+ *    },
+ *    {
+ *      quadkey: '00111001',
+ *      item_count: 12,
+ *      priority: 0.002
+ *    },
+ *    ...
+ *  ]
+ */
+
+function getQuadkeys(req, res, next) {
+  // eslint-disable-line no-unused-vars
+  return res.json('Not Implemented', 501);
+}
+
+/**
  * Write priority values for a quadkey (optionally tied to project)
  * The backend will handle either INSERTing or UPDATEing as appropriate
  *

@@ -169,19 +169,6 @@ curl https://host/v1/projects/:project/items/:item/comments
 ]
 ```
 
-### post-quadkey-priority
-
-Write priority values for a quadkey (optionally tied to project)
-The backend will handle either INSERTing or UPDATEing as appropriate
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
-    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
-    -   `body.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID or null
-    -   `body.priority` **float** Priority value for Quadkey
-
 ### get-items
 
 Get a paginated list of items for a project.
@@ -252,6 +239,44 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
 }
 ```
 
+### getQuadkeys
+
+Returns a list of quadkeys with priority and item count data.
+The use-case is, for eg:
+
+-   Give me data for all quadkeys at z8 within this z4 tile, with counts
+     for items that have a status=open
+
+**Parameters**
+
+-   `req`  
+-   `res`  
+-   `next`  
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** query parameters
+-   `within` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to search within
+-   `zoom_level` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+-   `item_status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** item status to filter by for item counts
+-   `item_tags` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** item tags to filter by for item counts
+
+**Examples**
+
+```javascript
+curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
+ [
+   {
+     quadkey: '0011000',
+     item_count: 243,
+     priority: 0.004
+   },
+   {
+     quadkey: '00111001',
+     item_count: 12,
+     priority: 0.002
+   },
+   ...
+ ]
+```
+
 ### create-project-tag
 
 Create a project tag.
@@ -279,6 +304,19 @@ curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://
   createdAt: '2017-10-20T00:00:00.000Z'
 }
 ```
+
+### post-quadkey-priority
+
+Write priority values for a quadkey (optionally tied to project)
+The backend will handle either INSERTing or UPDATEing as appropriate
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
+    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
+    -   `body.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID or null
+    -   `body.priority` **float** Priority value for Quadkey
 
 ### create-comment
 
@@ -398,6 +436,29 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
+### get-project
+
+Get a project.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+
+**Examples**
+
+```javascript
+curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
+
+{
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'My Project',
+  metadata: {},
+  createdAt: '2017-10-18T00:00:00.000Z',
+  updatedAt: '2017-10-18T00:00:00.000Z'
+}
+```
+
 ### delete-comment
 
 Delete a comment
@@ -429,48 +490,6 @@ curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/
   "createdAt": "2017-10-23T17:13:25.585Z",
   "updatedAt": "2017-10-23T17:13:25.585Z"
 }
-```
-
-### get-project
-
-Get a project.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-
-**Examples**
-
-```javascript
-curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
-
-{
-  id: '00000000-0000-0000-0000-000000000000',
-  name: 'My Project',
-  metadata: {},
-  createdAt: '2017-10-18T00:00:00.000Z',
-  updatedAt: '2017-10-18T00:00:00.000Z'
-}
-```
-
-### delete-project-tag
-
-Delete a project tag.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
-
-{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
 ```
 
 ### create-item
@@ -546,6 +565,25 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
+### delete-project-tag
+
+Delete a project tag.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
+```
+
 ### get-item-tags
 
 Get all tags for an item.
@@ -616,42 +654,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-
 ]
 ```
 
-### delete-item-tag
-
-Remove a tag from an item.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags/22222222-2222-2222-2222-222222222222
-
-{
-  id: '111111',
-  project_id: '00000000-0000-0000-0000-000000000000',
-  pin: { type: 'Point', coordinates: [77, 77] },
-  instructions: 'Fix this item',
-  createdBy: 'user',
-  featureCollection: { type: 'FeatureCollection', features: [] },
-  status: 'open',
-  lockedBy: null,
-  metadata: {},
-  sort: 0,
-  createdAt: '2017-10-20T00:00:00.000Z',
-  updatedAt: '2017-10-20T00:00:00.000Z',
-  lockedTill: '2017-10-20T00:00:00.000Z'
-}
-```
-
-Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
-
 ### get-item
 
 Get an item for a project.
@@ -688,6 +690,42 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
   lockedBy: null
 }
 ```
+
+### delete-item-tag
+
+Remove a tag from an item.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags/22222222-2222-2222-2222-222222222222
+
+{
+  id: '111111',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  pin: { type: 'Point', coordinates: [77, 77] },
+  instructions: 'Fix this item',
+  createdBy: 'user',
+  featureCollection: { type: 'FeatureCollection', features: [] },
+  status: 'open',
+  lockedBy: null,
+  metadata: {},
+  sort: 0,
+  createdAt: '2017-10-20T00:00:00.000Z',
+  updatedAt: '2017-10-20T00:00:00.000Z',
+  lockedTill: '2017-10-20T00:00:00.000Z'
+}
+```
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
 
 ### update-item
 
