@@ -24,6 +24,10 @@ module.exports = function(db) {
         type: Sequelize.GEOMETRY('POINT', 4326),
         allowNull: false
       },
+      quadkey: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
       instructions: {
         type: Sequelize.STRING,
         allowNull: false
@@ -70,6 +74,9 @@ module.exports = function(db) {
         },
         {
           fields: ['createdAt']
+        },
+        {
+          fields: ['quadkey']
         },
         {
           fields: ['pin'],
