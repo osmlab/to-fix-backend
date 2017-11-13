@@ -54,10 +54,10 @@ function getQuadkey(req, res, next) {
  *
  * @name get-quadkeys
  * @param {Object} query - query parameters
- * @param {string} within - Quadkey to search within
- * @param {string} zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
- * @param {string} item_status - item status to filter by for item counts
- * @param {Array<string>} item_tags - item tags to filter by for item counts
+ * @param {string} query.within - Quadkey to search within
+ * @param {string} query.zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+ * @param {string} query.item_status - item status to filter by for item counts
+ * @param {Array<string>} query.item_tags - item tags to filter by for item counts
  * @example curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
  *  [
  *    {
