@@ -50,10 +50,6 @@ module.exports = {
  *       coordinates: [0, 0]
  *     },
  *     instructions: 'Fix this item',
- *     featureCollection: {
- *       type: 'FeatureCollection',
- *       features: []
- *     },
  *     createdBy: 'user',
  *     updatedAt: '2017-10-19T00:00:00.000Z',
  *     createdAt: '2017-10-19T00:00:00.000Z',
@@ -63,6 +59,7 @@ module.exports = {
  */
 function getItems(req, res, next) {
   let search;
+
   try {
     search = paginateSearch(req.query, {
       where: {
@@ -72,6 +69,11 @@ function getItems(req, res, next) {
   } catch (e) {
     return next(e);
   }
+
+  // don't return featureCollection in listing end-point
+  search.attributes = {
+    exclude: ['featureCollection']
+  };
 
   if (req.query.lock) {
     if (constants.LOCKED_STATUS.indexOf(req.query.lock) === -1) {
