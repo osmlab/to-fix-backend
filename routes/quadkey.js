@@ -57,19 +57,25 @@ function getQuadkey(req, res, next) {
  * @param {string} query.project_id - the project_id this is scoped to (should this be a URL param instead?)
  * @param {string} query.within - Quadkey to search within
  * @param {integer} query.zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
- * @param {string} query.item_status - item status to filter by for item counts
- * @param {Array<string>} query.item_tags - item tags to filter by for item counts
+ * @param {string} [query.item_status] - item status to filter by for item counts
+ * @param {string} [query.item_tags] - item tags (comma separated) to filter by for item counts
+ * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
+ * @returns {Array<Object>} array of quadkey objects with the following keys:
+ *   - `quadkey`: quadkey value at zoom_level requested
+ *   - `item_count`: number of items within quadkey (after applying filters)
+ *   - `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
+ *
  * @example curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
  *  [
  *    {
  *      quadkey: '0011000',
  *      item_count: 243,
- *      priority: 0.004
+ *      max_priority: 0.004
  *    },
  *    {
  *      quadkey: '00111001',
  *      item_count: 12,
- *      priority: 0.002
+ *      max_priority: 0.002
  *    },
  *    ...
  *  ]
