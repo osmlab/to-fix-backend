@@ -60,7 +60,7 @@ function getQuadkey(req, res, next) {
  * @param {string} [query.item_status] - item status to filter by for item counts
  * @param {string} [query.item_tags] - item tags (comma separated) to filter by for item counts
  * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
- * @returns {Array<Object>} array of quadkey objects with the following keys:
+ * @return {Array<Object>} array of quadkey objects with the following keys:
  *   - `quadkey`: quadkey value at zoom_level requested
  *   - `item_count`: number of items within quadkey (after applying filters)
  *   - `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
