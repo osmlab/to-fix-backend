@@ -96,19 +96,19 @@ function getQuadkeys(req, res, next) {
       [
         Sequelize.fn(
           'COUNT',
-          Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel)
+          Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)
         ),
         'item_count'
       ],
       [
-        Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel),
+        Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel),
         'quadkey'
       ]
     ],
     where: {
       project_id: projectId
     },
-    group: [Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel)]
+    group: [Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)]
   });
   const queryProm2 = getQuadkeyPriorities(projectId, zoomLevel, within);
   Promise.all([queryProm1, queryProm2]).then(results => {
