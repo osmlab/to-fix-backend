@@ -253,8 +253,9 @@ The use-case is, for eg:
     -   `query.project_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the project_id this is scoped to (should this be a URL param instead?)
     -   `query.within` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to search within
     -   `query.zoom_level` **integer** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
-    -   `query.item_status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** item status to filter by for item counts
-    -   `query.item_tags` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** item tags to filter by for item counts
+    -   `query.item_status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** item status to filter by for item counts
+    -   `query.item_tags` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** item tags (comma separated) to filter by for item counts
+    -   `query.item_lock` **(`"locked"` \| `"unlocked"`)?** The item's lock status, must be 'locked' or 'unlocked'
 
 **Examples**
 
@@ -264,16 +265,20 @@ curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
    {
      quadkey: '0011000',
      item_count: 243,
-     priority: 0.004
+     max_priority: 0.004
    },
    {
      quadkey: '00111001',
      item_count: 12,
-     priority: 0.002
+     max_priority: 0.002
    },
    ...
  ]
 ```
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** array of quadkey objects with the following keys:-   `quadkey`: quadkey value at zoom_level requested
+-   `item_count`: number of items within quadkey (after applying filters)
+-   `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
 
 ### create-project-tag
 
