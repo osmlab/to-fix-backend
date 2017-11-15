@@ -8,4 +8,5 @@ test('Gets correct quadkey for point at z13', assert => {
   };
   const quadkey = getQuadkeyForPoint(pt, 13);
   assert.equal(quadkey, '1222211122033');
+  assert.end();
 });
