@@ -98,7 +98,7 @@ function getQuadkeys(req, res, next) {
           'COUNT',
           Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel)
         ),
-        'count'
+        'item_count'
       ],
       [
         Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel),
@@ -114,11 +114,21 @@ function getQuadkeys(req, res, next) {
   Promise.all([queryProm1, queryProm2]).then(results => {
     const itemCounts = results[0];
     const priorities = results[1];
-    //TODO: merge itemCounts and priorities by quadkey
-    return res.json({
-      counts: itemCounts,
-      priorities: priorities
+    const priorityMap = priorities.reduce((memo, val) => {
+      memo[val.dataValues.quadkey] = val.dataValues.max_priority;
+      return memo;
+    }, {});
+    const response = itemCounts.map(itemCount => {
+      const maxPriority = priorityMap.hasOwnProperty(itemCount.quadkey)
+        ? priorityMap[itemCount.quadkey]
+        : -1;
+      return {
+        quadkey: itemCount.quadkey,
+        item_count: Number(itemCount.dataValues.item_count),
+        max_priority: maxPriority
+      };
     });
+    return res.json(response);
   });
 }
 
