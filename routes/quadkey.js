@@ -1,12 +1,15 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const db = require('../database/index');
+const Item = db.Item;
 const Quadkey = db.Quadkey;
 const validator = require('validator');
 const Sequelize = require('sequelize');
 const validateBody = require('../lib/helper/validateBody');
+const getQuadkeyPriorities = require('../lib/helper/get-quadkey-priorities');
 
 module.exports = {
   getQuadkey,
+  getQuadkeys,
   postQuadkey
 };
 
@@ -53,14 +56,15 @@ function getQuadkey(req, res, next) {
  *      for items that have a status=open 
  *
  * @name get-quadkeys
+ * @param {Object} params - URL parameters
+ * @param {Object} params.project - Project ID
  * @param {Object} query - query parameters
- * @param {string} query.project_id - the project_id this is scoped to (should this be a URL param instead?)
  * @param {string} query.within - Quadkey to search within
  * @param {integer} query.zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
  * @param {string} [query.item_status] - item status to filter by for item counts
  * @param {string} [query.item_tags] - item tags (comma separated) to filter by for item counts
  * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
- * @return {Array<Object>} array of quadkey objects with the following keys:
+ * @return {Array<Object>} array of quadkey objects with the following keys:  
  *   - `quadkey`: quadkey value at zoom_level requested
  *   - `item_count`: number of items within quadkey (after applying filters)
  *   - `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
@@ -81,9 +85,40 @@ function getQuadkey(req, res, next) {
  *  ]
  */
 
+//eslint-disable-next-line no-unused-vars
 function getQuadkeys(req, res, next) {
-  // eslint-disable-line no-unused-vars
-  return res.json('Not Implemented', 501);
+  const projectId = req.params.project;
+  const zoomLevel = Number(req.query.zoom_level);
+  const within = req.query.within;
+  const queryProm1 = Item.findAll({
+    attributes: [
+      [
+        Sequelize.fn(
+          'COUNT',
+          Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel)
+        ),
+        'count'
+      ],
+      [
+        Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel),
+        'quadkey'
+      ]
+    ],
+    where: {
+      project_id: projectId
+    },
+    group: [Sequelize.fn('substring', Sequelize.col('quadkey'), 0, zoomLevel)]
+  });
+  const queryProm2 = getQuadkeyPriorities(projectId, zoomLevel, within);
+  Promise.all([queryProm1, queryProm2]).then(results => {
+    const itemCounts = results[0];
+    const priorities = results[1];
+    //TODO: merge itemCounts and priorities by quadkey
+    return res.json({
+      counts: itemCounts,
+      priorities: priorities
+    });
+  });
 }
 
 /**
