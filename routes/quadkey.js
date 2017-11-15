@@ -90,6 +90,7 @@ function getQuadkeys(req, res, next) {
   const projectId = req.params.project;
   const zoomLevel = Number(req.query.zoom_level);
   const within = req.query.within;
+  //TODO: build up `where` object with all item filters
   const queryProm1 = Item.findAll({
     attributes: [
       [
