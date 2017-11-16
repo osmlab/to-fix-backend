@@ -67,11 +67,6 @@
   },
   "lint-staged": {
     "*.json": ["prettier --single-quote --write", "git add"],
-    "*.js": [
-      "eslint .",
-      "prettier --single-quote --write",
-      "npm run api-docs",
-      "git add"
-    ]
+    "*.js": ["eslint .", "prettier --single-quote --write", "git add"]
   }
 }

@@ -460,7 +460,7 @@ test(
           '/v1/projects/44444444-4444-4444-4444-444444444444/items?page=-1&page_size=5'
         )
         .set('authorization', token)
-        .expect(400)
+        .expect(200)
     ];
 
     Promise.all(requests)
@@ -690,7 +690,9 @@ test(
         const tagId = filterTag[0].id;
         assert.app
           .get(
-            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${tagId}`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${
+              tagId
+            }`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
@@ -722,7 +724,9 @@ test(
           .join(',');
         assert.app
           .get(
-            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${tagIds}`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${
+              tagIds
+            }`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
