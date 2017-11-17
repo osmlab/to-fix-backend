@@ -311,7 +311,7 @@ function createItem(req, res, next) {
     const instructions = validateInstructions(body.instructions);
 
     const pin = validatePoint({ type: 'Point', coordinates: body.pin });
-    const quadKey = getQuadkeyForPoint(pin);
+    const quadkey = getQuadkeyForPoint(pin);
 
     const metadata = body.metadata || {};
     const featureCollection = body.featureCollection
@@ -321,7 +321,7 @@ function createItem(req, res, next) {
     const values = {
       id,
       pin,
-      quadKey,
+      quadkey,
       metadata,
       instructions,
       featureCollection,
@@ -350,9 +350,11 @@ function createItem(req, res, next) {
       }
       values.status = status;
     }
-
-    return Item.create(values)
+    Item.create(values)
       .then(item => {
+        res.json(item);
+      })
+      .then(() => {
         logDriver.info(
           {
             username,
@@ -364,7 +366,6 @@ function createItem(req, res, next) {
             exportLog: true
           }
         );
-        res.json(item);
       })
       .catch(err => {
         if (err instanceof Sequelize.UniqueConstraintError) {
@@ -374,7 +375,7 @@ function createItem(req, res, next) {
         }
       });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
@@ -477,100 +478,107 @@ function validateUpdateItemBody(body) {
  * }
  */
 function updateItem(req, res, next) {
-  const { project, item } = req.params;
-  const { username } = req.user;
-  const logs = [];
+  try {
+    const { project, item } = req.params;
+    const { username } = req.user;
+    const logs = [];
+    let values = {};
+    const body = validateUpdateItemBody(req.body);
+    if (body.lock) {
+      const lock = validateLock(body.lock, body.status);
+      const isUnlock = lock === constants.UNLOCKED;
 
-  const body = validateUpdateItemBody(req.body);
-  const pin = validatePoint({ type: 'Point', coordinates: body.pin });
-  const quadKey = getQuadkeyForPoint(pin);
-  const instructions = validateInstructions(body.instructions);
+      values.lockedTill = isUnlock
+        ? new Date()
+        : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
+      values.lockedBy = isUnlock ? null : username;
 
-  const featureCollection = body.featureCollection
-    ? validateFeatureCollection(body.featureCollection)
-    : blankFC;
-
-  if (body.featureCollection) {
-    logs.push([
-      {
-        username: username,
-        itemId: item,
-        projectId: project
-      },
-      {
-        event: 'itemUpdate',
-        exportLog: true
-      }
-    ]);
-  }
-
-  const metadata = body.metadata || {};
-
-  const values = {
-    pin,
-    quadKey,
-    metadata,
-    instructions,
-    featureCollection,
-    id: item,
-    user: username,
-    project_id: project
-  };
-
-  if (body.lock) {
-    const lock = validateLock(body.lock, body.status);
-    const isUnlock = lock === constants.UNLOCKED;
-
-    values.lockedTill = isUnlock
-      ? new Date()
-      : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-    values.lockedBy = isUnlock ? null : username;
-
-    logs.push([
-      {
-        userAction: isUnlock ? 'unlock' : 'lock',
-        username: username,
-        itemId: item,
-        projectId: project
-      },
-      {
-        event: 'itemLock',
-        exportLog: true
-      }
-    ]);
-  }
-
-  if (body.status) {
-    const status = validateStatus(body.status);
-    if (constants.INACTIVE_STATUS.indexOf(status) !== -1) {
-      // If the item has been marked as done, expire the lock
-      values.lockedTill = new Date();
-      values.lockedBy = null;
+      logs.push([
+        {
+          userAction: isUnlock ? 'unlock' : 'lock',
+          username: username,
+          itemId: item,
+          projectId: project
+        },
+        {
+          event: 'itemLock',
+          exportLog: true
+        }
+      ]);
     }
-    values.status = status;
-
-    logs.push([
-      {
-        status: status,
-        username,
-        itemId: item,
-        projectId: project
-      },
-      {
-        event: 'itemStatus',
-        exportLog: true
+    if (body.pin) {
+      values.pin = validatePoint({ type: 'Point', coordinates: body.pin });
+      values.quadkey = getQuadkeyForPoint(values.pin);
+    }
+    if (body.status) {
+      const status = validateStatus(body.status);
+      if (constants.INACTIVE_STATUS.indexOf(status) !== -1) {
+        // If the item has been marked as done, expire the lock
+        values.lockedTill = new Date();
+        values.lockedBy = null;
       }
-    ]);
-  }
+      values.status = status;
 
-  return putItemWrapper(values)
-    .then(data => {
-      logs.forEach(log => {
-        logDriver.info(log[0], log[1]);
-      });
-      res.json(data);
-    })
-    .catch(next);
+      logs.push([
+        {
+          status: status,
+          username,
+          itemId: item,
+          projectId: project
+        },
+        {
+          event: 'itemStatus',
+          exportLog: true
+        }
+      ]);
+    }
+
+    if (body.instructions) {
+      values.instructions = validateInstructions(body.instructions);
+    }
+
+    const featureCollection = body.featureCollection
+      ? validateFeatureCollection(body.featureCollection)
+      : blankFC;
+
+    if (body.featureCollection) {
+      logs.push([
+        {
+          username: username,
+          itemId: item,
+          projectId: project
+        },
+        {
+          event: 'itemUpdate',
+          exportLog: true
+        }
+      ]);
+    }
+
+    const metadata = body.metadata || {};
+
+    values = Object.assign({}, values, {
+      // pin,
+      metadata,
+      featureCollection,
+      id: item,
+      user: username,
+      project_id: project
+    });
+
+    return putItemWrapper(values)
+      .then(data => {
+        res.json(data);
+      })
+      .then(() => {
+        logs.forEach(log => {
+          logDriver.info(log[0], log[1]);
+        });
+      })
+      .catch(next);
+  } catch (err) {
+    next(err);
+  }
 }
 
 /**

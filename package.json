@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@turf/random": "^4.7.3",
-    "documentation": "^5.3.2",
+    "documentation": "5.3.1",
     "eslint": "^2.8.0",
     "proxyquire": "^1.8.0",
     "sinon": "^4.0.1",
@@ -67,6 +67,11 @@
   },
   "lint-staged": {
     "*.json": ["prettier --single-quote --write", "git add"],
-    "*.js": ["eslint .", "prettier --single-quote --write", "git add"]
+    "*.js": [
+      "eslint .",
+      "prettier --single-quote --write",
+      "npm run api-docs",
+      "git add"
+    ]
   }
 }
