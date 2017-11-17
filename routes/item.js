@@ -1,23 +1,28 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-const validator = require('validator');
 const paginateSearch = require('../lib/helper/paginateSearch');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const db = require('../database/index');
 const Item = db.Item;
 const Project = db.Project;
-const geojsonhint = require('@mapbox/geojsonhint');
-const validateFC = require('@mapbox/to-fix-validate').validateFeatureCollection;
 const constants = require('../lib/constants');
-const validateBody = require('../lib/helper/validateBody');
-const getQuadkeyForPoint = require('../lib/helper/get-quadkey-for-point');
+const getQuadkeyForPin = require('../lib/helper/get-quadkey-for-pin');
 const _ = require('lodash');
 const logDriver = require('../lib/log-driver')('routes/item');
-
-const blankFC = {
-  type: 'FeatureCollection',
-  features: []
-};
+const {
+  blankFC,
+  getLockedTill,
+  validateDate,
+  validateStatus,
+  bboxToEnvelope,
+  validateCreateItemBody,
+  validateAlphanumeric,
+  validateInstructions,
+  validatePoint,
+  validateFeatureCollection,
+  validateUpdateItemBody,
+  validateLockStatus
+} = require('../lib/helper/item-route-validators');
 
 module.exports = {
   getItems: getItems,
@@ -25,49 +30,6 @@ module.exports = {
   getItem: getItem,
   updateItem: updateItem
 };
-
-function getLockedTill(lock) {
-  if (constants.LOCKED_STATUS.indexOf(lock) === -1) {
-    throw new ErrorHTTP(`Invalid req.query.lock: ${lock}`, 400);
-  }
-  const locked = lock === constants.LOCKED;
-  return {
-    [locked ? Op.gt : Op.lt]: new Date()
-  };
-}
-
-function validateDate(date) {
-  if (!validator.isISO8601(date)) {
-    throw new ErrorHTTP(
-      'from parameter must be a valid ISO 8601 date string',
-      400
-    );
-  }
-  return date;
-}
-
-function validateStatus(status) {
-  if (constants.ALL_STATUS.indexOf(status) === -1) {
-    throw new ErrorHTTP(`Invalid status: ${status}`, 400);
-  }
-  return status;
-}
-
-function bboxToEnvelope(bbox) {
-  const bb = bbox.split(',').map(n => parseFloat(n));
-  if (bb.find(n => Number.isNaN(n) || bb.length !== 4)) {
-    throw new ErrorHTTP(`Invalid req.query.bbox: ${bbox}`, 400);
-  }
-  //TODO: do some validation of the bbox
-  return Sequelize.where(
-    Sequelize.fn(
-      'ST_Within',
-      Sequelize.col('pin'),
-      Sequelize.fn('ST_MakeEnvelope', bb[0], bb[1], bb[2], bb[3], 4326)
-    ),
-    true
-  );
-}
 
 /**
  * Get a paginated list of items for a project.
@@ -112,36 +74,30 @@ function bboxToEnvelope(bbox) {
 function getItems(req, res, next) {
   try {
     const { page_size, page, lock, tags, from, to, status, bbox } = req.query;
-    const { project } = req.params;
-    const where = {
-      project_id: project
-    };
-
-    if (lock) {
-      where.lockedTill = getLockedTill(lock);
-    }
+    const { project: project_id } = req.params;
+    let createdAt;
 
     if (from || to) {
-      where.createdAt = _.pickBy({
+      createdAt = _.pickBy({
         [Op.gt]: from && validateDate(from),
         [Op.lt]: to && validateDate(to)
       });
     }
 
-    if (status) {
-      where.status = validateStatus(status);
-    }
-
-    if (bbox) {
-      where.bbox = bboxToEnvelope(bbox);
-    }
+    const where = {
+      createdAt,
+      project_id,
+      bbox: bbox && bboxToEnvelope(bbox),
+      status: status && validateStatus(status),
+      lockedTill: lock && getLockedTill(lock)
+    };
 
     const { limit, offset } = paginateSearch(page, page_size);
 
     const search = {
       limit,
       offset,
-      where
+      where: _.pickBy(where) // removes any undefined values
     };
 
     if (tags) {
@@ -169,7 +125,7 @@ function getItems(req, res, next) {
           return res.json(data);
         }
         return Project.findOne({
-          where: { id: req.params.project }
+          where: { id: project_id }
         }).then(data => {
           if (data == null) return next();
           res.json([]);
@@ -181,87 +137,26 @@ function getItems(req, res, next) {
   }
 }
 
-function validateCreateItemBody(body) {
-  const validBodyAttrs = [
-    'id',
-    'lock',
-    'pin',
-    'status',
-    'featureCollection',
-    'instructions',
-    'metadata'
-  ];
-  const requiredBodyAttr = ['id', 'instructions', 'pin'];
-  const validationError = validateBody(body, validBodyAttrs, requiredBodyAttr);
+function validateAndProcessLock(lock, status, username) {
+  let lockedTill;
+  let lockedBy;
 
-  if (validationError) {
-    throw new ErrorHTTP(validationError, 400);
-  }
-  return body;
-}
+  validateLockStatus(lock, status);
 
-function validateAlphanumeric(string) {
-  if (!/^[a-zA-Z0-9-]+$/.test(string)) {
-    throw new ErrorHTTP(
-      'An item must have a valid ID comprised only of letters, numbers, and hyphens',
-      400
-    );
-  }
-  return string;
-}
+  if (lock) {
+    const isUnlock = lock === constants.UNLOCKED;
+    lockedTill = isUnlock ? new Date() : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
 
-function validateInstructions(instructions) {
-  if (typeof instructions !== 'string' || instructions.length < 1) {
-    throw new ErrorHTTP('An item must have a valid instruction', 400);
-  }
-  return instructions;
-}
-
-function validatePoint(point) {
-  const pin = point.coordinates;
-
-  if (!Array.isArray(pin) || pin.length !== 2)
-    throw new ErrorHTTP(
-      'An item must have a pin in the [longitude, latitude] format',
-      400
-    );
-  const pinErrors = geojsonhint.hint(point, { precisionWarning: false });
-
-  if (pinErrors.length > 0) {
-    throw new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400);
+    lockedBy = isUnlock ? null : username;
   }
 
-  return point;
-}
+  if (status && constants.INACTIVE_STATUS.indexOf(status) !== -1) {
+    // If the item has been marked as done, expire the lock
+    lockedTill = new Date();
+    lockedBy = null;
+  }
 
-function validateLock(lock, status) {
-  if (lock && status) {
-    throw new ErrorHTTP(
-      'It is invalid to set the status and change the lock in one request',
-      400
-    );
-  }
-  if (constants.LOCKED_STATUS.indexOf(lock) === -1) {
-    throw new ErrorHTTP(`Invalid lock change action`, 400);
-  }
-  return lock;
-}
-
-function validateFeatureCollection(fc) {
-  var fcErrors = geojsonhint.hint(fc, {
-    precisionWarning: false
-  });
-  if (fcErrors.length > 0) {
-    throw new ErrorHTTP(
-      'Invalid featureCollection: ' + fcErrors[0].message,
-      400
-    );
-  }
-  const tofixValidationErrors = validateFC(fc);
-  if (tofixValidationErrors) {
-    throw new ErrorHTTP(tofixValidationErrors, 400);
-  }
-  return fc;
+  return { lockedTill, lockedBy, lock, status };
 }
 
 /**
@@ -307,49 +202,38 @@ function createItem(req, res, next) {
     const { username } = req.user;
 
     const body = validateCreateItemBody(req.body);
+
     const id = validateAlphanumeric(body.id);
     const instructions = validateInstructions(body.instructions);
+    const point = validatePoint({ type: 'Point', coordinates: body.pin });
+    const quadkey = getQuadkeyForPin(body.pin);
 
-    const pin = validatePoint({ type: 'Point', coordinates: body.pin });
-    const quadkey = getQuadkeyForPoint(pin);
+    const { lockedBy, lockedTill, status } = validateAndProcessLock(
+      body.lock,
+      body.status,
+      username
+    );
 
     const metadata = body.metadata || {};
     const featureCollection = body.featureCollection
       ? validateFeatureCollection(body.featureCollection)
       : blankFC;
 
-    const values = {
-      id,
-      pin,
-      quadkey,
-      metadata,
-      instructions,
+    let values = _.pickBy({
+      createdBy: username,
       featureCollection,
-      user: username,
+      id,
+      instructions,
+      lockedBy,
+      lockedTill,
+      metadata,
+      pin: point,
       project_id: project,
-      createdBy: username
-    };
+      quadkey,
+      status,
+      user: username
+    });
 
-    if (body.lock) {
-      const lock = validateLock(body.lock, body.status);
-      const isUnlock = lock === constants.UNLOCKED;
-
-      values.lockedTill = isUnlock
-        ? new Date()
-        : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-
-      values.lockedBy = isUnlock ? null : username;
-    }
-
-    if (body.status) {
-      const status = validateStatus(body.status);
-      if (constants.INACTIVE_STATUS.indexOf(status) !== -1) {
-        // If the item has been marked as done, expire the lock
-        values.lockedTill = new Date();
-        values.lockedBy = null;
-      }
-      values.status = status;
-    }
     Item.create(values)
       .then(item => {
         res.json(item);
@@ -423,23 +307,6 @@ function getItem(req, res, next) {
     .catch(next);
 }
 
-function validateUpdateItemBody(body) {
-  const validBodyAttrs = [
-    'lock',
-    'pin',
-    'status',
-    'featureCollection',
-    'instructions',
-    'metadata'
-  ];
-  const validationError = validateBody(body, validBodyAttrs);
-
-  if (validationError) {
-    throw new ErrorHTTP(validationError, 400);
-  }
-  return body;
-}
-
 /**
  * Update a project item.
  * @name update-item
@@ -479,52 +346,54 @@ function validateUpdateItemBody(body) {
  */
 function updateItem(req, res, next) {
   try {
-    const { project, item } = req.params;
+    const { project: project_id, item } = req.params;
     const { username } = req.user;
     const logs = [];
-    let values = {};
     const body = validateUpdateItemBody(req.body);
-    if (body.lock) {
-      const lock = validateLock(body.lock, body.status);
-      const isUnlock = lock === constants.UNLOCKED;
 
-      values.lockedTill = isUnlock
-        ? new Date()
-        : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-      values.lockedBy = isUnlock ? null : username;
+    const { lockedBy, lockedTill, status } = validateAndProcessLock(
+      body.lock,
+      body.status,
+      username
+    );
 
-      logs.push([
-        {
-          userAction: isUnlock ? 'unlock' : 'lock',
-          username: username,
-          itemId: item,
-          projectId: project
-        },
-        {
-          event: 'itemLock',
-          exportLog: true
-        }
-      ]);
-    }
-    if (body.pin) {
-      values.pin = validatePoint({ type: 'Point', coordinates: body.pin });
-      values.quadkey = getQuadkeyForPoint(values.pin);
-    }
+    const point =
+      body.pin && validatePoint({ type: 'Point', coordinates: body.pin });
+
+    const quadkey = body.pin && getQuadkeyForPin(body.pin);
+
+    const instructions =
+      body.instructions && validateInstructions(body.instructions);
+
+    const featureCollection = body.featureCollection
+      ? validateFeatureCollection(body.featureCollection)
+      : blankFC;
+
+    const metadata = body.metadata || {};
+
+    const values = _.pickBy({
+      featureCollection,
+      id: item,
+      instructions,
+      metadata,
+      pin: point,
+      project_id,
+      quadkey,
+      status,
+      user: username
+    });
+
+    // putItemWrapper needs `lockedBy` and `lockedTill` keys
+    values.lockedBy = lockedBy;
+    values.lockedTill = lockedTill;
+
     if (body.status) {
-      const status = validateStatus(body.status);
-      if (constants.INACTIVE_STATUS.indexOf(status) !== -1) {
-        // If the item has been marked as done, expire the lock
-        values.lockedTill = new Date();
-        values.lockedBy = null;
-      }
-      values.status = status;
-
       logs.push([
         {
-          status: status,
+          status: body.status,
           username,
           itemId: item,
-          projectId: project
+          projectId: project_id
         },
         {
           event: 'itemStatus',
@@ -532,21 +401,12 @@ function updateItem(req, res, next) {
         }
       ]);
     }
-
-    if (body.instructions) {
-      values.instructions = validateInstructions(body.instructions);
-    }
-
-    const featureCollection = body.featureCollection
-      ? validateFeatureCollection(body.featureCollection)
-      : blankFC;
-
     if (body.featureCollection) {
       logs.push([
         {
           username: username,
           itemId: item,
-          projectId: project
+          projectId: project_id
         },
         {
           event: 'itemUpdate',
@@ -554,17 +414,6 @@ function updateItem(req, res, next) {
         }
       ]);
     }
-
-    const metadata = body.metadata || {};
-
-    values = Object.assign({}, values, {
-      // pin,
-      metadata,
-      featureCollection,
-      id: item,
-      user: username,
-      project_id: project
-    });
 
     return putItemWrapper(values)
       .then(data => {
