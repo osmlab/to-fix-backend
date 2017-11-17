@@ -22,6 +22,7 @@
   "license": "BSD",
   "dependencies": {
     "@mapbox/geojsonhint": "^2.0.1",
+    "@mapbox/tilebelt": "^1.0.1",
     "@mapbox/to-fix-validate": "0.1.0",
     "body-parser": "^1.18.2",
     "connect-session-sequelize": "^5.0.0",
@@ -39,6 +40,7 @@
     "memory-cache": "^0.2.0",
     "oauth": "^0.9.15",
     "ohauth": "^1.0.0",
+    "p-map": "^1.2.0",
     "pg": "^7.3.0",
     "pg-hstore": "^2.3.2",
     "prettier": "^1.7.0",

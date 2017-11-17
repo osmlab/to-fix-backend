@@ -998,6 +998,7 @@ test(
           id: '405270',
           project_id: '11111111-1111-1111-1111-111111111111',
           pin: { type: 'Point', coordinates: [0, 0] },
+          quadkey: '3000000000000',
           instructions: 'Fix this item',
           featureCollection: { type: 'FeatureCollection', features: [] },
           createdBy: 'test-user',
@@ -1148,6 +1149,7 @@ test(
             type: 'Point',
             coordinates: [30, 30]
           },
+          quadkey: '1221210321032',
           status: 'open',
           lockedBy: null,
           featureCollection: {

@@ -1,18 +1,22 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const db = require('../database/index');
+const Item = db.Item;
 const Quadkey = db.Quadkey;
 const validator = require('validator');
 const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
+const getQuadkeyPriorities = require('../lib/helper/get-quadkey-priorities');
+const isValidQuadkey = require('../lib/helper/is-valid-quadkey');
+const validateQuadkeysQuery = require('../lib/helper/validate-query-params')
+  .validateQuadkeysQuery;
 
 module.exports = {
   getQuadkey,
+  getQuadkeys,
   postQuadkey
 };
-
-function isValidQuadkey(quadkey) {
-  return /^[0-3]+$/.test(quadkey);
-}
 
 /**
  * Gets priority value for a quadkey+project. If quadkey does not exist, will return a priority of -1
@@ -44,6 +48,106 @@ function getQuadkey(req, res, next) {
     .catch(() => {
       res.json({ priority: -1 });
     });
+}
+
+/**
+ * Returns a list of quadkeys with priority and item count data.
+ * The use-case is, for eg:
+ *   - Give me data for all quadkeys at z8 within this z4 tile, with counts
+ *      for items that have a status=open 
+ *
+ * @name get-quadkeys
+ * @param {Object} params - URL parameters
+ * @param {Object} params.project - Project ID
+ * @param {Object} query - query parameters
+ * @param {string} query.within - Quadkey to search within
+ * @param {integer} query.zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+ * @param {string} [query.item_status] - item status to filter by for item counts
+ * @param {string} [query.item_tags] - item tags (comma separated) to filter by for item counts
+ * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
+ * @return {Array<Object>} array of quadkey objects with the following keys:  
+ *   - `quadkey`: quadkey value at zoom_level requested
+ *   - `item_count`: number of items within quadkey (after applying filters)
+ *   - `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
+ *
+ * @example curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
+ *  [
+ *    {
+ *      quadkey: '0011000',
+ *      item_count: 243,
+ *      max_priority: 0.004
+ *    },
+ *    {
+ *      quadkey: '00111001',
+ *      item_count: 12,
+ *      max_priority: 0.002
+ *    },
+ *    ...
+ *  ]
+ */
+
+//eslint-disable-next-line no-unused-vars
+function getQuadkeys(req, res, next) {
+  const projectId = req.params.project;
+  const validationErrors = validateQuadkeysQuery(req.query);
+  if (validationErrors) {
+    return next(new ErrorHTTP(validationErrors, 400));
+  }
+  const zoomLevel = Number(req.query.zoom_level);
+  const within = req.query.within;
+  let where = {
+    project_id: projectId,
+    quadkey: {
+      [Op.like]: `${within}%`
+    }
+  };
+  if (req.query.item_lock) {
+    const locked = req.query.lock === constants.LOCKED;
+    where.lockedTill = {
+      [locked ? Op.gt : Op.lt]: new Date()
+    };
+  }
+  if (req.query.item_status) {
+    where.status = req.query.item_status;
+  }
+  const search = {
+    attributes: [
+      [
+        Sequelize.fn(
+          'COUNT',
+          Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)
+        ),
+        'item_count'
+      ],
+      [
+        Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel),
+        'quadkey'
+      ]
+    ],
+    where: where,
+    group: [Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)]
+  };
+  const queryProm1 = Item.findAll(search);
+  const queryProm2 = getQuadkeyPriorities(projectId, zoomLevel, within);
+  Promise.all([queryProm1, queryProm2]).then(results => {
+    const itemCounts = results[0];
+    const priorities = results[1];
+    const priorityMap = priorities.reduce((memo, val) => {
+      memo[val.dataValues.quadkey] = val.dataValues.max_priority;
+      return memo;
+    }, {});
+    const response = itemCounts.map(itemCount => {
+      const maxPriority = priorityMap.hasOwnProperty(itemCount.quadkey)
+        ? priorityMap[itemCount.quadkey]
+        : -1;
+      return {
+        quadkey: itemCount.quadkey,
+        item_count: Number(itemCount.dataValues.item_count),
+        max_priority: maxPriority
+      };
+    });
+    return res.json(response);
+  });
 }
 
 /**

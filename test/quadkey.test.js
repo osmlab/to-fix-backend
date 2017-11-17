@@ -27,6 +27,159 @@ const quadkeysWithSetFixture = [
   }
 ];
 
+const quadkeysz13Fixture = [
+  {
+    quadkey: '0000000000001',
+    set_id: null,
+    priority: 0.6
+  },
+  {
+    quadkey: '0000000000002',
+    set_id: null,
+    priority: 0.2
+  },
+  {
+    quadkey: '0000000000003',
+    set_id: null,
+    priority: 0.3
+  },
+  {
+    quadkey: '1010101010101',
+    set_id: null,
+    priority: 1
+  },
+  {
+    quadkey: '1010000000000',
+    set_id: null,
+    priority: 0.01
+  }
+];
+
+const projectFixture = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '01',
+        pin: [-179.94, 85.05]
+      },
+      {
+        id: '02',
+        pin: [-179.98, 85.046],
+        lockedBy: 'userone',
+        lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
+      },
+      {
+        id: '03',
+        pin: [-179.92, 85.045],
+        status: 'closed'
+      },
+      {
+        id: '10',
+        pin: [60, 85.05]
+      }
+    ]
+  }
+];
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data for a project with within param',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get quadkeys does not error');
+          assert.equal(
+            res.body[0].quadkey,
+            '00000000',
+            'correct quadkey returned'
+          );
+          assert.equal(res.body[0].item_count, 3, '3 items returned');
+          assert.equal(
+            res.body[0].max_priority,
+            0.6,
+            'correct max_priority returned'
+          );
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by status',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_status=open'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get filtered quadkeys does not error');
+          assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by item_lock',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_lock=unlocked'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get filtered quadkeys does not error');
+          assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys should error with required params not supplied',
+  projectFixture,
+  (assert, token) => {
+    assert.app
+      .get('/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys')
+      .set('authorization', token)
+      .expect(400, err => {
+        assert.ifError(err);
+        assert.end();
+      });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys should error with invalid within parameter',
+  projectFixture,
+  (assert, token) => {
+    assert.app
+      .get(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?zoom_level=8&within=foobar'
+      )
+      .set('authorization', token)
+      .expect(400, err => {
+        assert.ifError(err);
+        assert.end();
+      });
+  }
+);
+
 test(
   'GET /:version/quadkeys/:quadkey - get priority for a quadkey without set_id',
   [],

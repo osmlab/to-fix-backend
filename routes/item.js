@@ -11,6 +11,7 @@ const validateFeatureCollection = require('@mapbox/to-fix-validate')
   .validateFeatureCollection;
 const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
+const getQuadkeyForPoint = require('../lib/helper/get-quadkey-for-point');
 const _ = require('lodash');
 const logDriver = require('../lib/log-driver')('routes/item');
 
@@ -265,6 +266,8 @@ function createItem(req, res, next) {
     return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
   }
 
+  values.quadkey = getQuadkeyForPoint(values.pin);
+
   /* Validate lock */
   if (req.body.lock) {
     if (req.body.lock && req.body.status) {
@@ -507,6 +510,7 @@ function updateItem(req, res, next) {
     if (pinErrors.length) {
       return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
     }
+    values.quadkey = getQuadkeyForPoint(values.pin);
   }
 
   /* Validate status */
