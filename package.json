@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@turf/random": "^4.7.3",
-    "documentation": "5.3.1",
+    "documentation": "^5.3.2",
     "eslint": "^2.8.0",
     "proxyquire": "^1.8.0",
     "sinon": "^4.0.1",

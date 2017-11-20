@@ -1,28 +1,19 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
+const validator = require('validator');
 const paginateSearch = require('../lib/helper/paginateSearch');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const db = require('../database/index');
 const Item = db.Item;
 const Project = db.Project;
+const geojsonhint = require('@mapbox/geojsonhint');
+const validateFeatureCollection = require('@mapbox/to-fix-validate')
+  .validateFeatureCollection;
 const constants = require('../lib/constants');
-const getQuadkeyForPin = require('../lib/helper/get-quadkey-for-pin');
+const validateBody = require('../lib/helper/validateBody');
+const getQuadkeyForPoint = require('../lib/helper/get-quadkey-for-point');
 const _ = require('lodash');
 const logDriver = require('../lib/log-driver')('routes/item');
-const {
-  blankFC,
-  getLockedTill,
-  validateDate,
-  validateStatus,
-  bboxToEnvelope,
-  validateCreateItemBody,
-  validateAlphanumeric,
-  validateInstructions,
-  validatePoint,
-  validateFeatureCollection,
-  validateUpdateItemBody,
-  validateLockStatus
-} = require('../lib/helper/item-route-validators');
 
 module.exports = {
   getItems: getItems,
@@ -72,91 +63,117 @@ module.exports = {
  * ]
  */
 function getItems(req, res, next) {
+  let search;
   try {
-    const { page_size, page, lock, tags, from, to, status, bbox } = req.query;
-    const { project: project_id } = req.params;
-    let createdAt;
+    search = paginateSearch(req.query, {
+      where: {
+        project_id: req.params.project
+      }
+    });
+  } catch (e) {
+    return next(e);
+  }
 
-    if (from || to) {
-      createdAt = _.pickBy({
-        [Op.gt]: from && validateDate(from),
-        [Op.lt]: to && validateDate(to)
-      });
+  if (req.query.lock) {
+    if (constants.LOCKED_STATUS.indexOf(req.query.lock) === -1) {
+      return next(
+        new ErrorHTTP(`Invalid req.query.lock: ${req.query.lock}`, 400)
+      );
     }
-
-    const where = {
-      createdAt,
-      project_id,
-      bbox: bbox && bboxToEnvelope(bbox),
-      status: status && validateStatus(status),
-      lockedTill: lock && getLockedTill(lock)
+    const locked = req.query.lock === constants.LOCKED;
+    search.where.lockedTill = {
+      [locked ? Op.gt : Op.lt]: new Date()
     };
+  }
 
-    const { limit, offset } = paginateSearch(page, page_size);
-
-    const search = {
-      limit,
-      offset,
-      where: _.pickBy(where) // removes any undefined values
-    };
-
-    if (tags) {
-      search.include = [
-        {
-          model: db.Tag,
-          as: 'tags',
-          where: {
-            id: {
-              [Op.in]: tags.split(',')
-            }
+  if (req.query.tags) {
+    const tagsArr = req.query.tags.split(',');
+    search.include = [
+      {
+        model: db.Tag,
+        as: 'tags',
+        where: {
+          id: {
+            [Op.in]: tagsArr
           }
         }
-      ];
+      }
+    ];
+  }
+
+  let from, to;
+  if (req.query.from) {
+    if (!validator.isISO8601(req.query.from)) {
+      return next(
+        new ErrorHTTP(
+          'from parameter must be a valid ISO 8601 date string',
+          400
+        )
+      );
     }
-
-    /**
-     * If there are items, return them. If there are not items, confirm that the
-     * project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
-     * return empty array.
-     */
-    return Item.findAll(search)
-      .then(data => {
-        if (data.length > 0) {
-          return res.json(data);
-        }
-        return Project.findOne({
-          where: { id: project_id }
-        }).then(data => {
-          if (data == null) return next();
-          res.json([]);
-        });
-      })
-      .catch(next);
-  } catch (e) {
-    next(e);
-  }
-}
-
-function validateAndProcessLock(lock, status, username) {
-  let lockedTill;
-  let lockedBy;
-
-  validateLockStatus(lock, status);
-
-  if (lock) {
-    const isUnlock = lock === constants.UNLOCKED;
-    lockedTill = isUnlock ? new Date() : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-
-    lockedBy = isUnlock ? null : username;
+    from = req.query.from;
   }
 
-  if (status && constants.INACTIVE_STATUS.indexOf(status) !== -1) {
-    // If the item has been marked as done, expire the lock
-    lockedTill = new Date();
-    lockedBy = null;
+  if (req.query.to) {
+    if (!validator.isISO8601(req.query.to)) {
+      return next(
+        new ErrorHTTP('to parameter must be a valid ISO 8601 date string', 400)
+      );
+    }
+    to = req.query.to;
   }
 
-  return { lockedTill, lockedBy, lock, status };
+  if (from && to) {
+    search.where.createdAt = {
+      [Op.gt]: from,
+      [Op.lt]: to
+    };
+  } else if (from) {
+    search.where.createdAt = {
+      [Op.gt]: from
+    };
+  } else if (to) {
+    search.where.createdAt = {
+      [Op.lt]: to
+    };
+  }
+
+  if (req.query.status) {
+    if (constants.ALL_STATUS.indexOf(req.query.status) === -1) {
+      return next(
+        new ErrorHTTP(`Invalid req.query.status: ${req.query.status}`, 400)
+      );
+    }
+    search.where.status = req.query.status;
+  }
+
+  if (req.query.bbox) {
+    const bb = req.query.bbox.split(',').map(Number);
+    //TODO: do some validation of the bbox
+    search.where.bbox = Sequelize.where(
+      Sequelize.fn(
+        'ST_Within',
+        Sequelize.col('pin'),
+        Sequelize.fn('ST_MakeEnvelope', bb[0], bb[1], bb[2], bb[3], 4326)
+      ),
+      true
+    );
+  }
+
+  /* If there are items, return them. If there are not items, confirm that the
+  project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
+  return empty array. */
+  Item.findAll(search)
+    .then(data => {
+      if (data.length > 0) return res.json(data);
+      return Project.findOne({
+        where: { id: req.params.project }
+      }).then(data => {
+        if (data === null) return next();
+        res.json([]);
+      });
+    })
+    .catch(next);
 }
 
 /**
@@ -197,70 +214,142 @@ function validateAndProcessLock(lock, status, username) {
  * }
  */
 function createItem(req, res, next) {
-  try {
-    const { project } = req.params;
-    const { username } = req.user;
+  const validBodyAttrs = [
+    'id',
+    'lock',
+    'pin',
+    'status',
+    'featureCollection',
+    'instructions',
+    'metadata'
+  ];
+  const requiredBodyAttr = ['id', 'instructions', 'pin'];
+  const validationError = validateBody(
+    req.body,
+    validBodyAttrs,
+    requiredBodyAttr
+  );
+  if (validationError) return next(new ErrorHTTP(validationError, 400));
 
-    const body = validateCreateItemBody(req.body);
+  const values = { project_id: req.params.project };
 
-    const id = validateAlphanumeric(body.id);
-    const instructions = validateInstructions(body.instructions);
-    const point = validatePoint({ type: 'Point', coordinates: body.pin });
-    const quadkey = getQuadkeyForPin(body.pin);
-
-    const { lockedBy, lockedTill, status } = validateAndProcessLock(
-      body.lock,
-      body.status,
-      username
+  /* Validate ID */
+  if (!/^[a-zA-Z0-9-]+$/.test(req.body.id))
+    return next(
+      new ErrorHTTP(
+        'An item must have a valid ID comprised only of letters, numbers, and hyphens',
+        400
+      )
     );
+  values.id = req.body.id;
 
-    const metadata = body.metadata || {};
-    const featureCollection = body.featureCollection
-      ? validateFeatureCollection(body.featureCollection)
-      : blankFC;
-
-    let values = _.pickBy({
-      createdBy: username,
-      featureCollection,
-      id,
-      instructions,
-      lockedBy,
-      lockedTill,
-      metadata,
-      pin: point,
-      project_id: project,
-      quadkey,
-      status,
-      user: username
-    });
-
-    Item.create(values)
-      .then(item => {
-        res.json(item);
-      })
-      .then(() => {
-        logDriver.info(
-          {
-            username,
-            itemId: id,
-            projectId: project
-          },
-          {
-            event: 'itemCreate',
-            exportLog: true
-          }
-        );
-      })
-      .catch(err => {
-        if (err instanceof Sequelize.UniqueConstraintError) {
-          return next(new ErrorHTTP('Item with this id already exists', 400));
-        } else {
-          return next(err);
-        }
-      });
-  } catch (err) {
-    next(err);
+  /* Validate instructions */
+  const instructions = req.body.instructions;
+  if (typeof instructions !== 'string' || instructions.length < 1) {
+    return next(new ErrorHTTP('An item must have a valid instruction', 400));
   }
+  values.instructions = req.body.instructions;
+
+  /* Validate pin */
+  if (!Array.isArray(req.body.pin) || req.body.pin.length !== 2)
+    return next(
+      new ErrorHTTP(
+        'An item must have a pin in the [longitude, latitude] format',
+        400
+      )
+    );
+  values.pin = { type: 'Point', coordinates: req.body.pin };
+  var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
+  if (pinErrors.length) {
+    return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
+  }
+
+  values.quadkey = getQuadkeyForPoint(values.pin);
+
+  /* Validate lock */
+  if (req.body.lock) {
+    if (req.body.lock && req.body.status) {
+      return next(
+        new ErrorHTTP(
+          'It is invalid to set the status and change the lock in one request'
+        ),
+        400
+      );
+    }
+    if (constants.LOCKED_STATUS.indexOf(req.body.lock) === -1) {
+      return next(new ErrorHTTP(`Invalid lock change action`, 400));
+    }
+    if (req.body.lock === constants.UNLOCKED) {
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    } else {
+      values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
+      values.lockedBy = req.user.username;
+    }
+  }
+
+  /* Validate status */
+  if (req.body.status) {
+    if (constants.ALL_STATUS.indexOf(req.body.status) === -1) {
+      return next(new ErrorHTTP('Invalid status', 400));
+    }
+    values.status = req.body.status;
+    if (constants.INACTIVE_STATUS.indexOf(values.status) !== -1) {
+      // If the item has been marked as done, expire the lock
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    }
+  }
+
+  /* Validate feature collection */
+  if (req.body.featureCollection) {
+    values.featureCollection = req.body.featureCollection;
+    var fcErrors = geojsonhint.hint(values.featureCollection, {
+      precisionWarning: false
+    });
+    if (fcErrors.length) {
+      return next(
+        new ErrorHTTP('Invalid featureCollection: ' + fcErrors[0].message, 400)
+      );
+    }
+    const tofixValidationErrors = validateFeatureCollection(
+      values.featureCollection
+    );
+    if (tofixValidationErrors) {
+      return next(new ErrorHTTP(tofixValidationErrors, 400));
+    }
+  }
+  values.featureCollection = values.featureCollection || {
+    type: 'FeatureCollection',
+    features: []
+  };
+
+  values.metadata = req.body.metadata || {};
+  values.user = req.user.username;
+  values.createdBy = values.user;
+
+  Item.create(values)
+    .then(item => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          itemId: item.id,
+          projectId: values.project_id
+        },
+        {
+          event: 'itemCreate',
+          exportLog: true
+        }
+      );
+      res.json(item);
+    })
+    .catch(err => {
+      if (err instanceof Sequelize.UniqueConstraintError) {
+        return next(new ErrorHTTP('Item with this id already exists', 400));
+      } else {
+        return next(err);
+      }
+    });
 }
 
 /**
@@ -345,89 +434,156 @@ function getItem(req, res, next) {
  * }
  */
 function updateItem(req, res, next) {
-  try {
-    const { project: project_id, item } = req.params;
-    const { username } = req.user;
-    const logs = [];
-    const body = validateUpdateItemBody(req.body);
+  const validBodyAttrs = [
+    'lock',
+    'pin',
+    'status',
+    'featureCollection',
+    'instructions',
+    'metadata'
+  ];
+  const validationError = validateBody(req.body, validBodyAttrs);
+  if (validationError) return next(new ErrorHTTP(validationError, 400));
 
-    const { lockedBy, lockedTill, status } = validateAndProcessLock(
-      body.lock,
-      body.status,
-      username
-    );
+  const values = { id: req.params.item, project_id: req.params.project };
+  const logs = [];
 
-    const point =
-      body.pin && validatePoint({ type: 'Point', coordinates: body.pin });
-
-    const quadkey = body.pin && getQuadkeyForPin(body.pin);
-
-    const instructions =
-      body.instructions && validateInstructions(body.instructions);
-
-    const featureCollection = body.featureCollection
-      ? validateFeatureCollection(body.featureCollection)
-      : blankFC;
-
-    const metadata = body.metadata || {};
-
-    const values = _.pickBy({
-      featureCollection,
-      id: item,
-      instructions,
-      metadata,
-      pin: point,
-      project_id,
-      quadkey,
-      status,
-      user: username
-    });
-
-    // putItemWrapper needs `lockedBy` and `lockedTill` keys
-    values.lockedBy = lockedBy;
-    values.lockedTill = lockedTill;
-
-    if (body.status) {
+  /* Validate lock */
+  if (req.body.lock) {
+    if (req.body.lock && req.body.status) {
+      return next(
+        new ErrorHTTP(
+          'It is invalid to set the status and change the lock in one request'
+        ),
+        400
+      );
+    }
+    if (constants.LOCKED_STATUS.indexOf(req.body.lock) === -1) {
+      return next(new ErrorHTTP(`Invalid lock change action`, 400));
+    }
+    if (req.body.lock === constants.UNLOCKED) {
+      values.lockedTill = new Date();
+      values.lockedBy = null;
       logs.push([
         {
-          status: body.status,
-          username,
-          itemId: item,
-          projectId: project_id
+          userAction: 'unlock',
+          username: req.user.username,
+          itemId: values.id,
+          projectId: values.project_id
         },
         {
-          event: 'itemStatus',
+          event: 'itemLock',
           exportLog: true
         }
       ]);
-    }
-    if (body.featureCollection) {
+    } else {
       logs.push([
         {
-          username: username,
-          itemId: item,
-          projectId: project_id
+          userAction: 'lock',
+          username: req.user.username,
+          itemId: values.id,
+          projectId: values.project_id
         },
         {
-          event: 'itemUpdate',
+          event: 'itemLock',
           exportLog: true
         }
       ]);
+      values.lockedTill = new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
+      values.lockedBy = req.user.username;
     }
-
-    return putItemWrapper(values)
-      .then(data => {
-        res.json(data);
-      })
-      .then(() => {
-        logs.forEach(log => {
-          logDriver.info(log[0], log[1]);
-        });
-      })
-      .catch(next);
-  } catch (err) {
-    next(err);
   }
+
+  /* Validate pin */
+  if (req.body.pin) {
+    if (!Array.isArray(req.body.pin) || req.body.pin.length !== 2)
+      return next(
+        new ErrorHTTP(
+          'An item must have a pin in the [longitude, latitude] format',
+          400
+        )
+      );
+    values.pin = { type: 'Point', coordinates: req.body.pin };
+    var pinErrors = geojsonhint.hint(values.pin, { precisionWarning: false });
+    if (pinErrors.length) {
+      return next(new ErrorHTTP(`Invalid Pin ${pinErrors[0].message}`, 400));
+    }
+    values.quadkey = getQuadkeyForPoint(values.pin);
+  }
+
+  /* Validate status */
+  if (req.body.status) {
+    if (constants.ALL_STATUS.indexOf(req.body.status) === -1) {
+      return next(new ErrorHTTP('Invalid status', 400));
+    }
+    values.status = req.body.status;
+    if (constants.INACTIVE_STATUS.indexOf(values.status) !== -1) {
+      // If the item has been marked as done, expire the lock
+      values.lockedTill = new Date();
+      values.lockedBy = null;
+    }
+    logs.push([
+      {
+        status: req.body.status,
+        username: req.user.username,
+        itemId: values.id,
+        projectId: values.project_id
+      },
+      {
+        event: 'itemStatus',
+        exportLog: true
+      }
+    ]);
+  }
+
+  /* Validate instructions */
+  if (req.body.instructions) {
+    const instructions = req.body.instructions;
+    if (typeof instructions !== 'string' || instructions.length < 1) {
+      return next(ErrorHTTP('An item must have a valid instruction', 400));
+    }
+    values.instructions = instructions;
+  }
+
+  /* Validate feature collection */
+  if (req.body.featureCollection) {
+    values.featureCollection = req.body.featureCollection;
+    var fcErrors = geojsonhint.hint(values.featureCollection, {
+      precisionWarning: false
+    });
+    if (fcErrors.length) {
+      return next(
+        new ErrorHTTP('Invalid featureCollection: ' + fcErrors[0].message, 400)
+      );
+    }
+    values.featureCollection = values.featureCollection || {
+      type: 'FeatureCollection',
+      features: []
+    };
+    logs.push([
+      {
+        username: req.user.username,
+        itemId: values.id,
+        projectId: values.project_id
+      },
+      {
+        event: 'itemUpdate',
+        exportLog: true
+      }
+    ]);
+  }
+
+  values.user = req.user.username;
+  values.metadata = req.body.metadata || {};
+
+  putItemWrapper(values)
+    .then(data => {
+      logs.forEach(log => {
+        logDriver.info(log[0], log[1]);
+      });
+      res.json(data);
+    })
+    .catch(next);
 }
 
 /**
