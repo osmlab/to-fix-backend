@@ -165,9 +165,15 @@ function getItems(req, res, next) {
   /* If there are items, return them. If there are not items, confirm that the
   project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
   return empty array. */
-  Item.findAll(search)
+  Item.findAndCountAll(search)
     .then(data => {
-      if (data.length > 0) return res.json(data);
+      if (data.rows.length > 0) {
+        const ret = {
+          count: data.count,
+          items: data.rows
+        };
+        return res.json(ret);
+      }
       return Project.findOne({
         where: { id: req.params.project }
       }).then(data => {
