@@ -4,18 +4,19 @@ const Item = db.Item;
 const Quadkey = db.Quadkey;
 const validator = require('validator');
 const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
 const getQuadkeyPriorities = require('../lib/helper/get-quadkey-priorities');
+const isValidQuadkey = require('../lib/helper/is-valid-quadkey');
+const validateQuadkeysQuery = require('../lib/helper/validate-query-params')
+  .validateQuadkeysQuery;
 
 module.exports = {
   getQuadkey,
   getQuadkeys,
   postQuadkey
 };
-
-function isValidQuadkey(quadkey) {
-  return /^[0-3]+$/.test(quadkey);
-}
 
 /**
  * Gets priority value for a quadkey+project. If quadkey does not exist, will return a priority of -1
@@ -88,10 +89,28 @@ function getQuadkey(req, res, next) {
 //eslint-disable-next-line no-unused-vars
 function getQuadkeys(req, res, next) {
   const projectId = req.params.project;
+  const validationErrors = validateQuadkeysQuery(req.query);
+  if (validationErrors) {
+    return next(new ErrorHTTP(validationErrors, 400));
+  }
   const zoomLevel = Number(req.query.zoom_level);
   const within = req.query.within;
-  //TODO: build up `where` object with all item filters
-  const queryProm1 = Item.findAll({
+  let where = {
+    project_id: projectId,
+    quadkey: {
+      [Op.like]: `${within}%`
+    }
+  };
+  if (req.query.item_lock) {
+    const locked = req.query.lock === constants.LOCKED;
+    where.lockedTill = {
+      [locked ? Op.gt : Op.lt]: new Date()
+    };
+  }
+  if (req.query.item_status) {
+    where.status = req.query.item_status;
+  }
+  const search = {
     attributes: [
       [
         Sequelize.fn(
@@ -105,11 +124,10 @@ function getQuadkeys(req, res, next) {
         'quadkey'
       ]
     ],
-    where: {
-      project_id: projectId
-    },
+    where: where,
     group: [Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)]
-  });
+  };
+  const queryProm1 = Item.findAll(search);
   const queryProm2 = getQuadkeyPriorities(projectId, zoomLevel, within);
   Promise.all([queryProm1, queryProm2]).then(results => {
     const itemCounts = results[0];

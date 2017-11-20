@@ -275,10 +275,6 @@ curl https://host/v1/projects/:project/items
       coordinates: [0, 0]
     },
     instructions: 'Fix this item',
-    featureCollection: {
-      type: 'FeatureCollection',
-      features: []
-    },
     createdBy: 'user',
     updatedAt: '2017-10-19T00:00:00.000Z',
     createdAt: '2017-10-19T00:00:00.000Z',
@@ -286,6 +282,19 @@ curl https://host/v1/projects/:project/items
   }
 ]
 ```
+
+### post-quadkey-priority
+
+Write priority values for a quadkey (optionally tied to project)
+The backend will handle either INSERTing or UPDATEing as appropriate
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
+    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
+    -   `body.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID or null
+    -   `body.priority` **float** Priority value for Quadkey
 
 ### get-project-stats
 

@@ -60,10 +60,6 @@ module.exports = {
  *       coordinates: [0, 0]
  *     },
  *     instructions: 'Fix this item',
- *     featureCollection: {
- *       type: 'FeatureCollection',
- *       features: []
- *     },
  *     createdBy: 'user',
  *     updatedAt: '2017-10-19T00:00:00.000Z',
  *     createdAt: '2017-10-19T00:00:00.000Z',
@@ -97,7 +93,10 @@ function getItems(req, res, next) {
     const search = {
       limit,
       offset,
-      where: _.pickBy(where) // removes any undefined values
+      where: _.pickBy(where), // removes any undefined values
+      attributes: {
+        exclude: ['featureCollection'] // for performance
+      }
     };
 
     if (tags) {
