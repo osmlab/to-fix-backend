@@ -414,7 +414,7 @@ function updateItem(req, res, next) {
 
 /**
  * Updates an array of items. Note: max limit is 500
- * @name update-all-item
+ * @name update-all-items
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
  * @param {Object[]} body - The request body
