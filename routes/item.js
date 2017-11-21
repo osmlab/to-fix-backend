@@ -497,7 +497,7 @@ function deleteItem(req, res, next) {
 function updateAllItems(req, res, next) {
   try {
     const { project: project_id } = req.params;
-
+    const logs = [];
     const { username } = req.user;
     const body = validateUpdateAllItemsBody(req.body);
 
@@ -517,6 +517,20 @@ function updateAllItems(req, res, next) {
         }
       }
     };
+
+    logs.push([
+      {
+        status: body.status,
+        lock: body.lock,
+        username,
+        itemIds,
+        projectId: project_id
+      },
+      {
+        event: 'itemUpdateAll',
+        exportLog: true
+      }
+    ]);
 
     Item.findAll(search)
       .then(data => {
@@ -551,6 +565,11 @@ function updateAllItems(req, res, next) {
       })
       .then(data => {
         res.json(data[1]);
+      })
+      .then(() => {
+        logs.forEach(log => {
+          logDriver.info(log[0], log[1]);
+        });
       })
       .catch(next);
   } catch (err) {

@@ -74,6 +74,7 @@ Get a list of projects.
 
 -   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The request URL query parameters
     -   `query.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Name of project to filter by (optional)
+    -   `query.is_archived` **(`true` \| `false`)?** default is false - set to true to return archived projects
 
 **Examples**
 
@@ -169,42 +170,6 @@ curl https://host/v1/projects/:project/items/:item/comments
 ]
 ```
 
-### validateLockStatus
-
-Checks the mutual exclusivity of lock and status.
-This validation check the fact that lock, status
-can never be updated simultaneously
-
-**Parameters**
-
--   `lock` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** {lock, status}
-
-### get-project-stats
-
-Get stats for a project
-
-**Examples**
-
-```javascript
-curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
-
-{
-  "total": 3,
-  "status": {
-    "closed": 1,
-    "open": 2
-  },
-  "tags": {
-    "foo": 2,
-    "bar": 2,
-    "baz": 1
-  }
-}
-```
-
 ### get-items
 
 Get a paginated list of items for a project.
@@ -246,6 +211,29 @@ curl https://host/v1/projects/:project/items
     lockedBy: null
   }
 ]
+```
+
+### get-project-stats
+
+Get stats for a project
+
+**Examples**
+
+```javascript
+curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
+
+{
+  "total": 3,
+  "status": {
+    "closed": 1,
+    "open": 2
+  },
+  "tags": {
+    "foo": 2,
+    "bar": 2,
+    "baz": 1
+  }
+}
 ```
 
 ### get-quadkeys
@@ -353,6 +341,14 @@ curl -X POST -H "Content-Type: application/json" -d '{"body":"i like this item",
   "updatedAt": "2017-10-23T17:18:01.801Z"
 }
 ```
+
+### beforeSave
+
+This is a bit of a hack to get incoming GeoJSON saved with the correct
+SRID in the database.
+Ideally, we would not modify the GeoJSON but enforce saving into the database
+with something like ST_SetSrid(St_FromGeoJson(geojson), 4326) but I'm not quite
+sure how to do this with Sequelize, so this will probably do for now.
 
 ### catch
 
@@ -555,14 +551,24 @@ curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/
 }
 ```
 
-### validateAndUpdateItem
+### delete-project-tag
 
-Handle all the logic and some validation for creating and updating an item
+Delete a project tag.
 
 **Parameters**
 
--   `prevItem` **Item** the item in DB
--   `newItem` **Item** the newItem for the action
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
+```
 
 ### update-project
 
@@ -593,45 +599,55 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
-### delete-project-tag
+### delete-project
 
-Delete a project tag.
+Delete a project. Marks a project as "soft deleted"
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL params
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Project ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000
+{"id": "00000000-0000-0000-0000-000000000000"}
+```
+
+### get-item-tags
+
+Get all tags for an item.
 
 **Parameters**
 
 -   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
     -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
     -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
 
 **Examples**
 
 ```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
 
-{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
+[
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    name: 'My Tag',
+    metadata: {},
+    createdAt: '2017-10-20T00:00:00.000Z',
+    updatedAt: '2017-10-20T00:00:00.000Z',
+    item_tag: {
+      createdAt: '2017-10-20T00:00:00.000Z',
+      updatedAt: '2017-10-20T00:00:00.000Z',
+      itemAutoId: 1,
+      tagId: '22222222-2222-2222-2222-222222222222'
+    }
+  }
+]
 ```
-
-### isAllowedToUnlock
-
-**Parameters**
-
--   `user` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the user asking for lock
--   `lockedBy` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** user who locked it
--   `lockedTill` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the date lock is locked till
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** whether the `user` can modify the lock or not
-
-### isAllowedToSetStatus
-
-check for an expired lock on status update
-
-**Parameters**
-
--   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
 ### get-item
 
@@ -669,48 +685,6 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
   lockedBy: null
 }
 ```
-
-### get-item-tags
-
-Get all tags for an item.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-
-**Examples**
-
-```javascript
-curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
-
-[
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    project_id: '00000000-0000-0000-0000-000000000000',
-    name: 'My Tag',
-    metadata: {},
-    createdAt: '2017-10-20T00:00:00.000Z',
-    updatedAt: '2017-10-20T00:00:00.000Z',
-    item_tag: {
-      createdAt: '2017-10-20T00:00:00.000Z',
-      updatedAt: '2017-10-20T00:00:00.000Z',
-      itemAutoId: 1,
-      tagId: '22222222-2222-2222-2222-222222222222'
-    }
-  }
-]
-```
-
-### isLockExpired
-
-**Parameters**
-
--   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
 ### create-item-tag
 
@@ -828,6 +802,23 @@ curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/ite
 
 Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
 
+### deleteItem
+
+Delete an item. Sets the is_archived property to true
+
+**Parameters**
+
+-   `req`  
+-   `res`  
+-   `next`  
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000000000/items/30
+{"id": "30", "project": "00000000-0000-0000-0000000000"}
+```
+
 ### update-all-items
 
 Updates an array of items. Note: max limit is 500
@@ -882,3 +873,7 @@ curl -X PUT -H "Content-Type: application/json" -d '{lock: 'locked', ids: ["1111
   }
 ]
 ```
+
+### test
+
+update-all-item test
