@@ -337,3 +337,56 @@ test(
       });
   }
 );
+
+const twoprojects = oneproject.concat([
+  {
+    id: '11111111-1111-1111-1111-111111111111',
+    name: 'Project 2'
+  }
+]);
+
+test(
+  'DELETE /:version/projects/:project - DELETE a project',
+  twoprojects,
+  (assert, token) => {
+    assert.app
+      .delete('/v1/projects/11111111-1111-1111-1111-111111111111')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'DELETE does not error');
+        assert.equal(
+          res.body.id,
+          '11111111-1111-1111-1111-111111111111',
+          'expected response for DELETE'
+        );
+        assert.app
+          .get('/v1/projects')
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            const results = res.body;
+            assert.equal(results.length, 1, 'One result returned');
+            const returnedIds = res.body.map(project => project.id);
+            assert.equal(
+              returnedIds.indexOf('11111111-1111-1111-1111-111111111111'),
+              -1,
+              'deleted project not present in results'
+            );
+            assert.end();
+          });
+      });
+  }
+);
+
+test(
+  'DELETE /:version/projects/:project - DELETING unknown project id should 404',
+  twoprojects,
+  (assert, token) => {
+    assert.app
+      .delete('/v1/projects/22222222-2222-2222-2222-222222222222')
+      .set('authorization', token)
+      .expect(404, err => {
+        assert.ifError(err, 'does not error');
+        assert.end();
+      });
+  }
+);

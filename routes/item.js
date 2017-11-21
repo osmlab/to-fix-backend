@@ -30,6 +30,7 @@ module.exports = {
   createItem,
   getItem,
   updateItem,
+  deleteItem,
   updateAllItems
 };
 
@@ -87,7 +88,8 @@ function getItems(req, res, next) {
       project_id,
       bbox: bbox && bboxToEnvelope(bbox),
       status: status && validateStatus(status),
-      lockedTill: lock && getLockedTill(lock)
+      lockedTill: lock && getLockedTill(lock),
+      is_archived: false
     };
 
     const { limit, offset } = paginateSearch(page, page_size);
@@ -95,7 +97,7 @@ function getItems(req, res, next) {
     const search = {
       limit,
       offset,
-      where: _.pickBy(where), // removes any undefined values
+      where: _.pickBy(where, value => !_.isNil(value)), // removes any undefined values
       attributes: {
         exclude: ['featureCollection'] // for performance
       }
@@ -359,9 +361,7 @@ function updateItem(req, res, next) {
       project_id,
       quadkey,
       status,
-      user: username,
-      lockedBy,
-      lockedTill
+      user: username
     });
 
     // validateAndUpdateItem needs `lockedBy` and `lockedTill` when merging to overwrite the entry in db.
@@ -411,7 +411,41 @@ function updateItem(req, res, next) {
     next(err);
   }
 }
-
+/**
+ * Delete an item. Sets the is_archived property to true
+ * @param {Object} req.params - Request URL parameters
+ * @param {string} req.params.project - Project ID
+ * @param {string} req.params.item - Item ID
+ * @example
+ * curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000000000/items/30
+ * {"id": "30", "project": "00000000-0000-0000-0000000000"}
+ */
+function deleteItem(req, res, next) {
+  const projectId = req.params.project;
+  const itemId = req.params.item;
+  Item.update(
+    {
+      is_archived: true
+    },
+    {
+      where: {
+        project_id: projectId,
+        id: itemId
+      }
+    }
+  )
+    .then(updated => {
+      const updatedCount = updated[0];
+      if (updatedCount === 0) {
+        return next(new ErrorHTTP('Item not found', 404));
+      }
+      return res.json({
+        id: itemId,
+        project: projectId
+      });
+    })
+    .catch(next);
+}
 /**
  * Updates an array of items. Note: max limit is 500
  * @name update-all-items
