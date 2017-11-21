@@ -368,6 +368,21 @@ function updateItem(req, res, next) {
     values.lockedBy = lockedBy;
     values.lockedTill = lockedTill;
 
+    if (body.lock) {
+      logs.push([
+        {
+          userAction: body.lock,
+          username: req.user.username,
+          itemId: values.id,
+          projectId: values.project_id
+        },
+        {
+          event: 'itemLock',
+          exportLog: true
+        }
+      ]);
+    }
+
     if (body.status) {
       logs.push([
         {
