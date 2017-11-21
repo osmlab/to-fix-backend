@@ -173,6 +173,29 @@ curl https://host/v1/projects/:project/items/:item/comments
 ]
 ```
 
+### get-project-stats
+
+Get stats for a project
+
+**Examples**
+
+```javascript
+curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
+
+{
+  "total": 3,
+  "status": {
+    "closed": 1,
+    "open": 2
+  },
+  "tags": {
+    "foo": 2,
+    "bar": 2,
+    "baz": 1
+  }
+}
+```
+
 ### get-items
 
 Get a paginated list of items for a project.
@@ -214,29 +237,6 @@ curl https://host/v1/projects/:project/items
     lockedBy: null
   }
 ]
-```
-
-### get-project-stats
-
-Get stats for a project
-
-**Examples**
-
-```javascript
-curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
-
-{
-  "total": 3,
-  "status": {
-    "closed": 1,
-    "open": 2
-  },
-  "tags": {
-    "foo": 2,
-    "bar": 2,
-    "baz": 1
-  }
-}
 ```
 
 ### validateLockStatus
@@ -428,6 +428,50 @@ The backend will handle either INSERTing or UPDATEing as appropriate
     -   `body.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID or null
     -   `body.priority` **float** Priority value for Quadkey
 
+### create-item
+
+Create an item in a project.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
+    -   `body.id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** An identifier that can be used in future API requests for the item
+    -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Instructions on how to work on the item
+    -   `body.pin` **\[Lon, Lat]** A 2D geometry point to represent the feature
+    -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
+    -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
+    -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The item's metadata (optional, default `{}`)
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
+
+{
+  status: 'open',
+  lockedTill: '2017-10-19T00:00:00.000Z',
+  metadata: {},
+  id: '405270',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  pin: {
+    type: 'Point',
+    coordinates: [0, 0]
+  },
+  instructions: 'Fix this item',
+  featureCollection: {
+    type: 'FeatureCollection',
+    features: []
+  },
+  createdBy: 'user',
+  updatedAt: '2017-10-19T00:00:00.000Z',
+  createdAt: '2017-10-19T00:00:00.000Z',
+  lockedBy: null
+}
+```
+
 ### update-project-tag
 
 Update a project tag.
@@ -482,50 +526,6 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000
 }
 ```
 
-### create-item
-
-Create an item in a project.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** An identifier that can be used in future API requests for the item
-    -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Instructions on how to work on the item
-    -   `body.pin` **\[Lon, Lat]** A 2D geometry point to represent the feature
-    -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
-    -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
-    -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The item's metadata (optional, default `{}`)
-
-**Examples**
-
-```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"id":"405270","instructions":"Fix this item","pin":[0,0]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
-
-{
-  status: 'open',
-  lockedTill: '2017-10-19T00:00:00.000Z',
-  metadata: {},
-  id: '405270',
-  project_id: '00000000-0000-0000-0000-000000000000',
-  pin: {
-    type: 'Point',
-    coordinates: [0, 0]
-  },
-  instructions: 'Fix this item',
-  featureCollection: {
-    type: 'FeatureCollection',
-    features: []
-  },
-  createdBy: 'user',
-  updatedAt: '2017-10-19T00:00:00.000Z',
-  createdAt: '2017-10-19T00:00:00.000Z',
-  lockedBy: null
-}
-```
-
 ### delete-comment
 
 Delete a comment
@@ -559,14 +559,24 @@ curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/
 }
 ```
 
-### validateAndUpdateItem
+### delete-project-tag
 
-Handle all the logic and some validation for creating and updating an item
+Delete a project tag.
 
 **Parameters**
 
--   `prevItem` **Item** the item in DB
--   `newItem` **Item** the newItem for the action
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
+```
 
 ### update-project
 
@@ -597,24 +607,14 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
-### delete-project-tag
+### validateAndUpdateItem
 
-Delete a project tag.
+Handle all the logic and some validation for creating and updating an item
 
 **Parameters**
 
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
-
-{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
-```
+-   `prevItem` **Item** the item in DB
+-   `newItem` **Item** the newItem for the action
 
 ### isAllowedToUnlock
 
@@ -625,59 +625,6 @@ curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tag
 -   `lockedTill` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the date lock is locked till
 
 Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** whether the `user` can modify the lock or not
-
-### isAllowedToSetStatus
-
-check for an expired lock on status update
-
-**Parameters**
-
--   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
-
-### isLockExpired
-
-**Parameters**
-
--   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
-
-### get-item-tags
-
-Get all tags for an item.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-
-**Examples**
-
-```javascript
-curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
-
-[
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    project_id: '00000000-0000-0000-0000-000000000000',
-    name: 'My Tag',
-    metadata: {},
-    createdAt: '2017-10-20T00:00:00.000Z',
-    updatedAt: '2017-10-20T00:00:00.000Z',
-    item_tag: {
-      createdAt: '2017-10-20T00:00:00.000Z',
-      updatedAt: '2017-10-20T00:00:00.000Z',
-      itemAutoId: 1,
-      tagId: '22222222-2222-2222-2222-222222222222'
-    }
-  }
-]
-```
 
 ### get-item
 
@@ -715,6 +662,59 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
   lockedBy: null
 }
 ```
+
+### get-item-tags
+
+Get all tags for an item.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+
+**Examples**
+
+```javascript
+curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+
+[
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    name: 'My Tag',
+    metadata: {},
+    createdAt: '2017-10-20T00:00:00.000Z',
+    updatedAt: '2017-10-20T00:00:00.000Z',
+    item_tag: {
+      createdAt: '2017-10-20T00:00:00.000Z',
+      updatedAt: '2017-10-20T00:00:00.000Z',
+      itemAutoId: 1,
+      tagId: '22222222-2222-2222-2222-222222222222'
+    }
+  }
+]
+```
+
+### isAllowedToSetStatus
+
+check for an expired lock on status update
+
+**Parameters**
+
+-   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+
+### isLockExpired
+
+**Parameters**
+
+-   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
 ### create-item-tag
 
@@ -796,50 +796,6 @@ curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different i
 }
 ```
 
-### update-all-item
-
-Updates an array of items.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request body
-    -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
-    -   `body.pin` **\[Lon, Lat]?** A 2D geometry point to represent the feature
-    -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
-    -   `body.featureCollection` **FeatureCollection?** The item's featureCollection context
-    -   `body.instructions` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Instructions on how to work on the item
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** The item's metadata
-
-**Examples**
-
-```javascript
-curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different instructions for fixing the item"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
-
-{
-  status: 'open',
-  lockedTill: '2017-10-19T00:00:00.000Z',
-  metadata: {},
-  id: '405270',
-  project_id: '00000000-0000-0000-0000-000000000000',
-  pin: {
-    type: 'Point',
-    coordinates: [0, 0]
-  },
-  instructions: 'Different instructions for fixing the item',
-  featureCollection: {
-    type: 'FeatureCollection',
-    features: []
-  },
-  createdBy: 'user',
-  updatedAt: '2017-10-19T00:00:00.000Z',
-  createdAt: '2017-10-19T00:00:00.000Z',
-  lockedBy: null
-}
-```
-
 ### delete-item-tag
 
 Remove a tag from an item.
@@ -875,3 +831,58 @@ curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/ite
 ```
 
 Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
+
+### update-all-item
+
+Updates an array of items. Note: max limit is 500
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+-   `body` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** The request body
+    -   `body.ids` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>?** The item's unique iD
+    -   `body.lock` **(`"unlocked"` \| `"locked"`)?** The item's lock status
+    -   `body.status` **(`"open"` \| `"fixed"` \| `"noterror"`)?** The item's status
+
+**Examples**
+
+```javascript
+curl -X PUT -H "Content-Type: application/json" -d '{lock: 'locked', ids: ["111111", "2222222"]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
+[
+  {
+    status: 'open',
+    lockedTill: '2017-10-19T00:00:00.000Z',
+    metadata: {},
+    id: '111111',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    pin: {
+      type: 'Point',
+      coordinates: [0, 0]
+    },
+    instructions: 'Fix this item',
+    createdBy: 'user',
+    updatedAt: '2017-10-19T00:00:00.000Z',
+    createdAt: '2017-10-19T00:00:00.000Z',
+    lockedBy: 'you',
+    lockedTill: '2017-10-19T00:15:00.000Z'
+  },
+  {
+    status: 'open',
+    lockedTill: '2017-10-19T00:00:00.000Z',
+    metadata: {},
+    id: '2222222',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    pin: {
+      type: 'Point',
+      coordinates: [0, 0]
+    },
+    instructions: 'Fix this item',
+    createdBy: 'user',
+    updatedAt: '2017-10-19T00:00:00.000Z',
+    createdAt: '2017-10-19T00:00:00.000Z',
+    lockedBy: 'you',
+    lockedTill: '2017-10-19T00:15:00.000Z'
+  }
+]
+```
