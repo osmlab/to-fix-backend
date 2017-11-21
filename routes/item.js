@@ -95,7 +95,7 @@ function getItems(req, res, next) {
     const search = {
       limit,
       offset,
-      where: _.pickBy(where), // removes any undefined values
+      where: _.pickBy(where, value => !_.isNil(value)), // removes any undefined values
       attributes: {
         exclude: ['featureCollection'] // for performance
       }
