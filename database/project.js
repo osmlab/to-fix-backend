@@ -1,4 +1,5 @@
 var Sequelize = require('sequelize');
+const _ = require('lodash');
 
 module.exports = function(db) {
   var Project = db.define('project', {
@@ -21,8 +22,16 @@ module.exports = function(db) {
     metadata: {
       type: Sequelize.JSONB,
       defaultValue: {}
+    },
+    is_archived: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false
     }
   });
+
+  Project.prototype.toJSON = function() {
+    return _.omit(this.dataValues, 'is_archived');
+  };
 
   return Project;
 };

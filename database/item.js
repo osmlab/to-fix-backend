@@ -62,6 +62,10 @@ module.exports = function(db) {
         type: Sequelize.INTEGER,
         allowNull: false,
         defaultValue: 0
+      },
+      is_archived: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       }
     },
     {
@@ -77,6 +81,9 @@ module.exports = function(db) {
         },
         {
           fields: ['quadkey']
+        },
+        {
+          fields: ['is_archived']
         },
         {
           fields: ['pin'],
