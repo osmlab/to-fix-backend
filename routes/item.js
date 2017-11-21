@@ -19,7 +19,8 @@ module.exports = {
   getItems: getItems,
   createItem: createItem,
   getItem: getItem,
-  updateItem: updateItem
+  updateItem: updateItem,
+  deleteItem: deleteItem
 };
 
 /**
@@ -64,7 +65,8 @@ function getItems(req, res, next) {
   try {
     search = paginateSearch(req.query, {
       where: {
-        project_id: req.params.project
+        project_id: req.params.project,
+        is_archived: false
       }
     });
   } catch (e) {
@@ -584,6 +586,42 @@ function updateItem(req, res, next) {
         logDriver.info(log[0], log[1]);
       });
       res.json(data);
+    })
+    .catch(next);
+}
+
+/**
+ * Delete an item. Sets the is_archived property to true
+ * @param {Object} req.params - Request URL parameters
+ * @param {string} req.params.project - Project ID
+ * @param {string} req.params.item - Item ID
+ * @example
+ * curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000000000/items/30
+ * {"id": "30", "project": "00000000-0000-0000-0000000000"}
+ */
+function deleteItem(req, res, next) {
+  const projectId = req.params.project;
+  const itemId = req.params.item;
+  Item.update(
+    {
+      is_archived: true
+    },
+    {
+      where: {
+        project_id: projectId,
+        id: itemId
+      }
+    }
+  )
+    .then(updated => {
+      const updatedCount = updated[0];
+      if (updatedCount === 0) {
+        return next(new ErrorHTTP('Item not found', 404));
+      }
+      return res.json({
+        id: itemId,
+        project: projectId
+      });
     })
     .catch(next);
 }

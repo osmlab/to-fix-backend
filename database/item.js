@@ -98,7 +98,7 @@ module.exports = function(db) {
   );
 
   Item.prototype.toJSON = function() {
-    return _.omit(this.dataValues, 'auto_id');
+    return _.omit(this.dataValues, 'auto_id', 'is_archived');
   };
 
   /**

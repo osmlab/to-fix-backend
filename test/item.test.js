@@ -1369,7 +1369,7 @@ test(
 );
 
 test(
-  'PUT /:version/projects/:id/items:id - an item update cannot have unexpected body content',
+  'PUT /:version/projects/:id/items/:id - an item update cannot have unexpected body content',
   projectWithOneUnlockedItem,
   (assert, token) => {
     assert.app
@@ -1384,6 +1384,39 @@ test(
           'has right message'
         );
         assert.end();
+      });
+  }
+);
+
+test(
+  'DELETE /:version/projects/:id/items/:id - DELETE deletes an item',
+  filterItemsFixture,
+  (assert, token) => {
+    assert.app
+      .delete('/v1/projects/66666666-6666-6666-6666-666666666666/items/30')
+      .set('authorization', token)
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'DELETE item does not error');
+        assert.equal(res.body.id, '30', 'item id returned');
+        assert.equal(
+          res.body.project,
+          '66666666-6666-6666-6666-666666666666',
+          'project id returned'
+        );
+        assert.app
+          .get('/v1/projects/66666666-6666-6666-6666-666666666666/items')
+          .set('authorization', token)
+          .expect(200, (err, res) => {
+            const results = res.body;
+            const resultIds = results.map(item => item.id);
+            assert.equal(results.length, 2, '2 items returned after delete');
+            assert.equal(
+              resultIds.indexOf('30'),
+              -1,
+              'item id not in list result'
+            );
+            assert.end();
+          });
       });
   }
 );
