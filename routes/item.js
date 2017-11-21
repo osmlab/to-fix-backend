@@ -21,7 +21,8 @@ const {
   validatePoint,
   validateFeatureCollection,
   validateUpdateItemBody,
-  validateLockStatus
+  validateLockStatus,
+  validateAndUpdateItem
 } = require('../lib/helper/item-route-validators');
 
 module.exports = {
@@ -379,10 +380,12 @@ function updateItem(req, res, next) {
       project_id,
       quadkey,
       status,
-      user: username
+      user: username,
+      lockedBy,
+      lockedTill
     });
 
-    // putItemWrapper needs `lockedBy` and `lockedTill` keys
+    // validateAndUpdateItem needs `lockedBy` and `lockedTill` when merging to overwrite the entry in db.
     values.lockedBy = lockedBy;
     values.lockedTill = lockedTill;
 
@@ -414,10 +417,11 @@ function updateItem(req, res, next) {
       ]);
     }
 
-    return putItemWrapper(values)
-      .then(data => {
-        res.json(data);
-      })
+    return Item.findOne({
+      where: { id: item, project_id }
+    })
+      .then(data => validateAndUpdateItem(data.dataValues, values))
+      .then(data => res.json(data))
       .then(() => {
         logs.forEach(log => {
           logDriver.info(log[0], log[1]);
@@ -430,41 +434,43 @@ function updateItem(req, res, next) {
 }
 
 /**
- * Handle all the logic and some validation for item creation and updating
- * @param {Object} opts - the opts for the action
- * @param {String} opts.project - the id of the project the item belongs to
- * @param {String} opts.item - the id of the item itself
- * @param {String} opts.user - the user making the change
- * @param {FeatureCollection} [opts.featureCollection] - a validated GeoJSON feature collection, required on create
- * @param {Point} [opts.pin] - a validated GeoJSON point representing the queryable location of this item, required on create
- * @param {String} [opts.instructions] - the instructions for what needs to be done, required on create
- * @param {String} [opts.status] - the status to set the item to
- * @param {String} [opts.lockedTill] - the time the lock expires at
+ * Updates an array of items.
+ * @name update-all-item
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
+ * @param {Object} body - The request body
+ * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
+ * @param {[Lon,Lat]} [body.pin] - A 2D geometry point to represent the feature
+ * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
+ * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
+ * @param {string} [body.instructions] - Instructions on how to work on the item
+ * @param {Object} [body.metadata] - The item's metadata
+ * @example
+ * curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different instructions for fixing the item"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
+ *
+ * {
+ *   status: 'open',
+ *   lockedTill: '2017-10-19T00:00:00.000Z',
+ *   metadata: {},
+ *   id: '405270',
+ *   project_id: '00000000-0000-0000-0000-000000000000',
+ *   pin: {
+ *     type: 'Point',
+ *     coordinates: [0, 0]
+ *   },
+ *   instructions: 'Different instructions for fixing the item',
+ *   featureCollection: {
+ *     type: 'FeatureCollection',
+ *     features: []
+ *   },
+ *   createdBy: 'user',
+ *   updatedAt: '2017-10-19T00:00:00.000Z',
+ *   createdAt: '2017-10-19T00:00:00.000Z',
+ *   lockedBy: null
+ * }
  */
-function putItemWrapper(opts) {
-  return Item.findOne({
-    where: { id: opts.id, project_id: opts.project_id }
-  }).then(function(data) {
-    if (
-      (opts.lockedTill !== undefined || opts.status !== undefined) && // we're changing the lock or the status
-      data.lockedTill > new Date() && // there is an active lock
-      data.lockedBy !== opts.user // and its not owned by this user
-    ) {
-      throw new ErrorHTTP(
-        `This item is currently locked by ${data.lockedBy}`,
-        423
-      );
-    }
-
-    // check for an expired lock on status update
-    if (opts.status !== undefined && data.lockedTill < new Date()) {
-      throw new ErrorHTTP('Cannot update an items status without a lock', 423);
-    }
-
-    var featureCollection = opts.featureCollection;
-    delete opts.featureCollection; // removing so the merge doesn't try to merge the old feature collection with the new one
-    var updated = _.merge({}, data.dataValues, opts);
-    updated.featureCollection = featureCollection || updated.featureCollection; // set the feature collection back
-    return data.update(updated);
-  });
-}
+// function updateAllItems(req, res, next) {
+//   try {
+//   } catch (err) {}
+// }
