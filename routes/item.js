@@ -5,7 +5,6 @@ const Op = Sequelize.Op;
 const db = require('../database/index');
 const Item = db.Item;
 const Project = db.Project;
-const constants = require('../lib/constants');
 const getQuadkeyForPin = require('../lib/helper/get-quadkey-for-pin');
 const _ = require('lodash');
 const logDriver = require('../lib/log-driver')('routes/item');
@@ -21,15 +20,17 @@ const {
   validatePoint,
   validateFeatureCollection,
   validateUpdateItemBody,
-  validateLockStatus,
+  validateUpdateAllItemsBody,
+  validateAndProcessLock,
   validateAndUpdateItem
 } = require('../lib/helper/item-route-validators');
 
 module.exports = {
-  getItems: getItems,
-  createItem: createItem,
-  getItem: getItem,
-  updateItem: updateItem
+  getItems,
+  createItem,
+  getItem,
+  updateItem,
+  updateAllItems
 };
 
 /**
@@ -135,28 +136,6 @@ function getItems(req, res, next) {
   } catch (e) {
     next(e);
   }
-}
-
-function validateAndProcessLock(lock, status, username) {
-  let lockedTill;
-  let lockedBy;
-
-  validateLockStatus(lock, status);
-
-  if (lock) {
-    const isUnlock = lock === constants.UNLOCKED;
-    lockedTill = isUnlock ? new Date() : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-
-    lockedBy = isUnlock ? null : username;
-  }
-
-  if (status && constants.INACTIVE_STATUS.indexOf(status) !== -1) {
-    // If the item has been marked as done, expire the lock
-    lockedTill = new Date();
-    lockedBy = null;
-  }
-
-  return { lockedTill, lockedBy, lock, status };
 }
 
 /**
@@ -420,7 +399,7 @@ function updateItem(req, res, next) {
     return Item.findOne({
       where: { id: item, project_id }
     })
-      .then(data => validateAndUpdateItem(data.dataValues, values))
+      .then(data => data.update(validateAndUpdateItem(data.dataValues, values)))
       .then(data => res.json(data))
       .then(() => {
         logs.forEach(log => {
@@ -434,43 +413,113 @@ function updateItem(req, res, next) {
 }
 
 /**
- * Updates an array of items.
+ * Updates an array of items. Note: max limit is 500
  * @name update-all-item
  * @param {Object} params - The request URL parameters
  * @param {string} params.project - The project ID
- * @param {string} params.item - The item ID
- * @param {Object} body - The request body
+ * @param {Object[]} body - The request body
+ * @param {String[]} [body.ids] - The item's unique iD
  * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
- * @param {[Lon,Lat]} [body.pin] - A 2D geometry point to represent the feature
  * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
- * @param {FeatureCollection} [body.featureCollection] - The item's featureCollection context
- * @param {string} [body.instructions] - Instructions on how to work on the item
- * @param {Object} [body.metadata] - The item's metadata
  * @example
- * curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different instructions for fixing the item"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
- *
- * {
- *   status: 'open',
- *   lockedTill: '2017-10-19T00:00:00.000Z',
- *   metadata: {},
- *   id: '405270',
- *   project_id: '00000000-0000-0000-0000-000000000000',
- *   pin: {
- *     type: 'Point',
- *     coordinates: [0, 0]
+ * curl -X PUT -H "Content-Type: application/json" -d '{lock: 'locked', ids: ["111111", "2222222"]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
+ * [
+ *   {
+ *     status: 'open',
+ *     lockedTill: '2017-10-19T00:00:00.000Z',
+ *     metadata: {},
+ *     id: '111111',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     pin: {
+ *       type: 'Point',
+ *       coordinates: [0, 0]
+ *     },
+ *     instructions: 'Fix this item',
+ *     createdBy: 'user',
+ *     updatedAt: '2017-10-19T00:00:00.000Z',
+ *     createdAt: '2017-10-19T00:00:00.000Z',
+ *     lockedBy: 'you',
+ *     lockedTill: '2017-10-19T00:15:00.000Z'
  *   },
- *   instructions: 'Different instructions for fixing the item',
- *   featureCollection: {
- *     type: 'FeatureCollection',
- *     features: []
- *   },
- *   createdBy: 'user',
- *   updatedAt: '2017-10-19T00:00:00.000Z',
- *   createdAt: '2017-10-19T00:00:00.000Z',
- *   lockedBy: null
- * }
+ *   {
+ *     status: 'open',
+ *     lockedTill: '2017-10-19T00:00:00.000Z',
+ *     metadata: {},
+ *     id: '2222222',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     pin: {
+ *       type: 'Point',
+ *       coordinates: [0, 0]
+ *     },
+ *     instructions: 'Fix this item',
+ *     createdBy: 'user',
+ *     updatedAt: '2017-10-19T00:00:00.000Z',
+ *     createdAt: '2017-10-19T00:00:00.000Z',
+ *     lockedBy: 'you',
+ *     lockedTill: '2017-10-19T00:15:00.000Z'
+ *   }
+ * ]
  */
-// function updateAllItems(req, res, next) {
-//   try {
-//   } catch (err) {}
-// }
+function updateAllItems(req, res, next) {
+  try {
+    const { project: project_id } = req.params;
+
+    const { username } = req.user;
+    const body = validateUpdateAllItemsBody(req.body);
+
+    const { lockedTill, lockedBy, lock, status } = validateAndProcessLock(
+      body.lock,
+      body.status,
+      username
+    );
+
+    const itemIds = body.ids;
+
+    const search = {
+      where: {
+        project_id,
+        id: {
+          [Op.in]: itemIds
+        }
+      }
+    };
+
+    Item.findAll(search)
+      .then(data => {
+        if (data.length !== itemIds.length) {
+          throw new ErrorHTTP('item ids were not found in database');
+        }
+        const oldItems = data
+          .map(item => item.dataValues)
+          .reduce((prev, item) => {
+            prev[item.id] = item;
+            return prev;
+          }, {});
+
+        // validate if the user can do
+        itemIds.forEach(id =>
+          validateAndUpdateItem(oldItems[id], {
+            lockedTill,
+            lockedBy,
+            lock,
+            status,
+            user: username
+          })
+        );
+        return Item.update(
+          {
+            lockedTill,
+            lockedBy,
+            status
+          },
+          Object.assign({}, search, { returning: true })
+        );
+      })
+      .then(data => {
+        res.json(data[1]);
+      })
+      .catch(next);
+  } catch (err) {
+    next(err);
+  }
+}

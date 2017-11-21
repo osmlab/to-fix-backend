@@ -1,10 +1,10 @@
 'use strict';
+const _ = require('lodash');
 
 const test = require('./lib/test');
 const removeDates = require('./lib/remove-dates');
 const checkLock = require('./lib/check-lock');
 const turfRandom = require('@turf/random');
-
 const listItemsFixture = [
   {
     id: '00000000-0000-0000-0000-000000000000',
@@ -1388,6 +1388,508 @@ test(
           'has right message'
         );
         assert.end();
+      });
+  }
+);
+
+/**
+ * update-all-item test
+ */
+
+test(
+  'PUT /:version/projects/:project/items - invalid body array',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        ids: '405270',
+        status: 'fixed'
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.message, 'body.ids should be an array');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - valid body array',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        ids: ['30'],
+        status: 'fixed'
+      })
+      .expect(200, () => {
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - body array should have id',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        kid: '405270'
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(res.body.message, 'body.ids should be an array');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - try change both lock and status',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        ids: ['405270'],
+        status: 'open',
+        lock: 'locked'
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'It is invalid to set the status and change the lock in one request'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - body array should throw error if body.length >500',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        ids: _.range(0, 501),
+        lock: 'locked'
+      })
+      .expect(400, (err, res) => {
+        assert.ifError(err, 'should not error');
+        assert.deepEqual(
+          res.body.message,
+          'Only allowed to update a maximum of 500 items and a minimum of 1 item at a time'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - basic update array of items',
+  itemsWithTags,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items/111111')
+      .set('authorization', token)
+      .send({ lock: 'locked' })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.ok(checkLock.locked(res.body), 'the item is locked');
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+          .set('authorization', token)
+          .send({
+            ids: ['111111'],
+            lock: 'unlocked'
+          })
+          .expect(200, (err, res) => {
+            assert.equal(res.body.length, 1, 'should update 1 items');
+            assert.ok(checkLock.unlocked(res.body[0]), 'is unlocked');
+            assert.end();
+          });
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - one item locked by another user',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'Project 0',
+      items: [
+        {
+          id: '1',
+          pin: [30, 30],
+          lockedBy: 'usertwo',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        },
+        {
+          id: '2',
+          pin: [30, 30],
+          lockedBy: 'test-user',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        }
+      ]
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({
+        ids: ['1', '2'],
+        lock: 'unlocked'
+      })
+      .expect(423, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'This item is currently locked by usertwo'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - both items locked by another user',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'Project 0',
+      items: [
+        {
+          id: '1',
+          pin: [30, 30],
+          lockedBy: 'usertwo',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        },
+        {
+          id: '2',
+          pin: [30, 30],
+          lockedBy: 'usertwo',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        }
+      ]
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({
+        ids: ['1', '2'],
+        lock: 'locked'
+      })
+      .expect(423, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'This item is currently locked by usertwo'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - both items available',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'Project 0',
+      items: [
+        {
+          id: '1',
+          pin: [30, 30]
+        },
+        {
+          id: '2',
+          pin: [30, 30]
+        }
+      ]
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({
+        ids: ['1', '2'],
+        lock: 'locked'
+      })
+      .expect(200, (err, res) => {
+        assert.equal(res.body.length, 2, 'should update 2 items');
+        assert.ok(checkLock.locked(res.body[0]), 'first is locked');
+        assert.ok(checkLock.locked(res.body[1]), 'second is locked');
+        assert.equal(
+          res.body[0].lockedBy,
+          'test-user',
+          'item locked by the current user'
+        );
+        assert.equal(
+          res.body[1].lockedBy,
+          'test-user',
+          'item locked by the current user'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:id/items - the lock can be activated via {lock: locked}',
+  projectWithOneUnlockedItem,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'locked', ids: ['30'] })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.ok(checkLock.locked(res.body[0]), 'the item is locked');
+        assert.equal(
+          res.body[0].lockedBy,
+          'test-user',
+          'item locked by the current user'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - the lock can be deactivated via {lock: unlocked}',
+  projectWithOneItemLockedByUserOne,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'unlocked', ids: ['30'] })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.ok(checkLock.unlocked(res.body[0]), 'the item is unlocked');
+        assert.equal(
+          res.body[0].lockedBy,
+          null,
+          'item locked by the current user'
+        );
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:id/items - the status cannot be changed by a user who doesnt have an active lock',
+  projectWithOneUnlockedItem,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ status: 'fixed', ids: ['30'] })
+      .expect(423, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'Cannot update an items status without a lock'
+        );
+        assert.end();
+      });
+  }
+);
+test(
+  'PUT /:version/projects/:id/items- the status can be changed by the user who has the active lock',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'Project 0',
+      items: [
+        {
+          id: '30',
+          pin: [30, 30]
+        },
+        {
+          id: '31',
+          pin: [30, 30]
+        }
+      ]
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'locked', ids: ['30', '31'] })
+      .expect(200, function(err) {
+        if (err) return assert.end(err);
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+          .set('authorization', token)
+          .send({ status: 'fixed', ids: ['30', '31'] })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.equal(
+              res.body[0].status,
+              'fixed',
+              'item1 has the right status'
+            );
+            assert.equal(
+              res.body[1].status,
+              'fixed',
+              'item2 has the right status'
+            );
+
+            assert.equal(
+              res.body[0].lockedBy,
+              null,
+              'the lock1 was released because it was moved to a complete status'
+            );
+            assert.equal(
+              res.body[1].lockedBy,
+              null,
+              'the lock2 was released because it was moved to a complete status'
+            );
+
+            assert.ok(checkLock.unlocked(res.body[0]), 'item1 is unlocked');
+            assert.ok(checkLock.unlocked(res.body[1]), 'item2 is unlocked');
+
+            assert.end();
+          });
+      });
+  }
+);
+test(
+  'PUT /:version/projects/:id/items - an active lock cannot be changed by a non-locking user',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'Project 0',
+      items: [
+        {
+          id: '30',
+          pin: [30, 30],
+          lockedBy: 'usertwo',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        },
+        {
+          id: '31',
+          pin: [30, 30],
+          lockedBy: 'usertwo',
+          lockedTill: new Date(Date.now() - 1000 * 15 * 60)
+        }
+      ]
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'unlocked', ids: ['30', '31'] })
+      .expect(423, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(
+          res.body.message,
+          'This item is currently locked by usertwo'
+        );
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+          .set('authorization', token)
+          .send({ lock: 'unlocked', ids: ['31'] })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.ok(checkLock.unlocked(res.body[0]), 'item31 is unlocked');
+            assert.end();
+          });
+      });
+  }
+);
+test(
+  'PUT /:version/projects/:id/items - an active lock can be changed by the locking user',
+  [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'Project 0',
+      items: [
+        {
+          id: '30',
+          pin: [30, 30],
+          lockedBy: 'test-user',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        },
+        {
+          id: '31',
+          pin: [30, 30],
+          lockedBy: 'test-user',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        },
+        {
+          id: '32',
+          pin: [30, 30],
+          lockedBy: 'usertwo',
+          lockedTill: new Date(Date.now() + 1000 * 15 * 60)
+        }
+      ]
+    }
+  ],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'locked', ids: ['30', '31'] })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.length, 2, 'should change 2 ids only');
+        assert.equal(res.body[0].lockedBy, 'test-user');
+        assert.equal(res.body[1].lockedBy, 'test-user');
+
+        assert.ok(checkLock.locked(res.body[0]), 'item30 locked');
+        assert.ok(checkLock.locked(res.body[1]), 'item31 locked');
+
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+          .set('authorization', token)
+          .send({ lock: 'unlocked', ids: ['31', '30'] })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.equal(res.body.length, 2, 'should change 2 ids only');
+            assert.equal(
+              res.body[0].lockedBy,
+              null,
+              'item30 no one holds the lock'
+            );
+            assert.equal(
+              res.body[1].lockedBy,
+              null,
+              'item31 no one holds the lock'
+            );
+
+            assert.ok(checkLock.unlocked(res.body[0]), 'item30 not locked');
+            assert.ok(checkLock.unlocked(res.body[1]), 'item31 not locked');
+            assert.app
+              .get('/v1/projects/00000000-0000-0000-0000-000000000000/items/32')
+              .set('authorization', token)
+              .expect(200, function(err, res) {
+                if (err) return assert.end(err);
+                assert.equal(
+                  res.body.lockedBy,
+                  'usertwo',
+                  "doesn't change else's lock"
+                );
+                assert.end();
+              });
+          });
       });
   }
 );
