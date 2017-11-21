@@ -48,10 +48,6 @@ curl https://host/v1/user
 }
 ```
 
-### blankFC
-
-A number, or a string containing a number.
-
 ### get-quadkey-priority
 
 Gets priority value for a quadkey+project. If quadkey does not exist, will return a priority of -1
@@ -173,6 +169,19 @@ curl https://host/v1/projects/:project/items/:item/comments
 ]
 ```
 
+### validateLockStatus
+
+Checks the mutual exclusivity of lock and status.
+This validation check the fact that lock, status
+can never be updated simultaneously
+
+**Parameters**
+
+-   `lock` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** {lock, status}
+
 ### get-project-stats
 
 Get stats for a project
@@ -238,19 +247,6 @@ curl https://host/v1/projects/:project/items
   }
 ]
 ```
-
-### validateLockStatus
-
-Checks the mutual exclusivity of lock and status.
-This validation check the fact that lock, status
-can never be updated simultaneously
-
-**Parameters**
-
--   `lock` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** {lock, status}
 
 ### get-quadkeys
 
@@ -559,24 +555,14 @@ curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/
 }
 ```
 
-### delete-project-tag
+### validateAndUpdateItem
 
-Delete a project tag.
+Handle all the logic and some validation for creating and updating an item
 
 **Parameters**
 
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
-
-{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
-```
+-   `prevItem` **Item** the item in DB
+-   `newItem` **Item** the newItem for the action
 
 ### update-project
 
@@ -607,14 +593,24 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
 }
 ```
 
-### validateAndUpdateItem
+### delete-project-tag
 
-Handle all the logic and some validation for creating and updating an item
+Delete a project tag.
 
 **Parameters**
 
--   `prevItem` **Item** the item in DB
--   `newItem` **Item** the newItem for the action
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
+```
 
 ### isAllowedToUnlock
 
@@ -625,6 +621,17 @@ Handle all the logic and some validation for creating and updating an item
 -   `lockedTill` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** the date lock is locked till
 
 Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** whether the `user` can modify the lock or not
+
+### isAllowedToSetStatus
+
+check for an expired lock on status update
+
+**Parameters**
+
+-   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
 ### get-item
 
@@ -696,17 +703,6 @@ curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/t
   }
 ]
 ```
-
-### isAllowedToSetStatus
-
-check for an expired lock on status update
-
-**Parameters**
-
--   `status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `lockedTill` **[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)** 
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
 ### isLockExpired
 
@@ -832,7 +828,7 @@ curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/ite
 
 Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** tags - An array of remaining tags on the item
 
-### update-all-item
+### update-all-items
 
 Updates an array of items. Note: max limit is 500
 
