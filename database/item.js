@@ -62,6 +62,10 @@ module.exports = function(db) {
         type: Sequelize.INTEGER,
         allowNull: false,
         defaultValue: 0
+      },
+      is_archived: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       }
     },
     {
@@ -79,6 +83,9 @@ module.exports = function(db) {
           fields: ['quadkey']
         },
         {
+          fields: ['is_archived']
+        },
+        {
           fields: ['pin'],
           using: 'gist'
         },
@@ -91,7 +98,7 @@ module.exports = function(db) {
   );
 
   Item.prototype.toJSON = function() {
-    return _.omit(this.dataValues, 'auto_id');
+    return _.omit(this.dataValues, 'auto_id', 'is_archived');
   };
 
   /**

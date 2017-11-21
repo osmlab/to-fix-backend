@@ -12,7 +12,8 @@ module.exports = {
   getProjectStats: getProjectStats,
   createProject: createProject,
   getProject: getProject,
-  updateProject: updateProject
+  updateProject: updateProject,
+  deleteProject: deleteProject
 };
 
 /**
@@ -20,6 +21,7 @@ module.exports = {
  * @name get-projects
  * @param {Object} [query] - The request URL query parameters
  * @param {string} [query.name] - Name of project to filter by (optional)
+ * @param {true|false} [query.is_archived] - default is false - set to true to return archived projects
  * @example
  * curl https://host/v1/projects
  *
@@ -35,14 +37,18 @@ module.exports = {
  */
 function getProjects(req, res, next) {
   let search = {};
-
+  let where = {};
+  if (req.query.is_archived && req.query.is_archived === 'true') {
+    where.is_archived = true;
+  } else {
+    where.is_archived = false;
+  }
   //FIXME: this is probably not the best way to implement this
   // since a search for a name should always return a maximum of 1 item
   if (req.query.name) {
-    search.where = {
-      name: req.query.name
-    };
+    where.name = req.query.name;
   }
+  search.where = where;
   Project.findAll(search)
     .then(function(projects) {
       res.json(projects);
@@ -231,6 +237,38 @@ function updateProject(req, res, next) {
     })
     .then(function(data) {
       res.json(data);
+    })
+    .catch(next);
+}
+
+/**
+ * Delete a project. Marks a project as "soft deleted"
+ * @name delete-project
+ * @param {Object} params - Request URL params
+ * @param {string} params.project - Project ID
+ * @example curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000
+ * {"id": "00000000-0000-0000-0000-000000000000"}
+ */
+function deleteProject(req, res, next) {
+  const projectId = req.params.project;
+  return Project.update(
+    {
+      is_archived: true
+    },
+    {
+      where: {
+        id: projectId
+      }
+    }
+  )
+    .then(updated => {
+      // `updated` is an array whose first member is the count of objects updated:
+      // http://docs.sequelizejs.com/class/lib/model.js~Model.html#static-method-update
+      const updatedCount = updated[0];
+      if (updatedCount === 0) {
+        return next(new ErrorHTTP('Project not found', 404));
+      }
+      return res.json({ id: projectId });
     })
     .catch(next);
 }
