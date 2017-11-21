@@ -460,7 +460,7 @@ test(
           '/v1/projects/44444444-4444-4444-4444-444444444444/items?page=-1&page_size=5'
         )
         .set('authorization', token)
-        .expect(400)
+        .expect(200)
     ];
 
     Promise.all(requests)
