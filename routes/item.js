@@ -568,19 +568,29 @@ function updateAllItems(req, res, next) {
       })
       .then(() => {
         itemIds.forEach(itemId => {
-          logDriver.info(
-            {
+          let itemLog, logEvent;
+          const isStatusUpdate = !!body.status;
+          if (isStatusUpdate) {
+            itemLog = {
               status: body.status,
-              lock: body.lock,
               username,
               itemId,
               projectId: project_id
-            },
-            {
-              event: 'itemBulkUpdate',
-              exportLog: true
-            }
-          );
+            };
+            logEvent = 'itemStatus';
+          } else {
+            itemLog = {
+              userAction: body.lock,
+              username,
+              itemId,
+              projectId: project_id
+            };
+            logEvent = 'itemLock';
+          }
+          logDriver.info(itemLog, {
+            event: logEvent,
+            exportLog: true
+          });
         });
       })
       .catch(next);
