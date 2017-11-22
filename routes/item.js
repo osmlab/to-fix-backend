@@ -350,7 +350,7 @@ function updateItem(req, res, next) {
       body.featureCollection &&
       validateFeatureCollection(body.featureCollection);
 
-    const metadata = body.metadata || {};
+    const metadata = body.metadata;
 
     const values = _.pickBy({
       featureCollection,

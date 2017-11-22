@@ -1238,6 +1238,45 @@ test(
 );
 
 test(
+  'PUT /:version/projects/:id/items:id - update an item shouldnt change the featureCollection',
+  projectWithOneUnlockedItem,
+  (assert, token) => {
+    var fc = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { 'tofix:category': 'cat' },
+          geometry: {
+            type: 'Point',
+            coordinates: [30, 30]
+          }
+        }
+      ]
+    };
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .set('authorization', token)
+      .send({ featureCollection: fc })
+      .expect(200, function(err) {
+        if (err) return assert.end(err);
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items/30')
+          .set('authorization', token)
+          .send({ lock: 'unlocked' })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.ok(checkLock.unlocked(res.body), 'the item is locked');
+            var item = removeDates(res.body);
+            assert.deepEqual(item.featureCollection, fc);
+            assert.end();
+          });
+        // assert.end();
+      });
+  }
+);
+
+test(
   'PUT /:version/projects/:id/items:id - the lock can be activated via {lock: locked}',
   projectWithOneUnlockedItem,
   (assert, token) => {
