@@ -5,7 +5,6 @@ const Op = Sequelize.Op;
 const db = require('../database/index');
 const Item = db.Item;
 const Project = db.Project;
-const constants = require('../lib/constants');
 const getQuadkeyForPin = require('../lib/helper/get-quadkey-for-pin');
 const _ = require('lodash');
 const logDriver = require('../lib/log-driver')('routes/item');
@@ -21,15 +20,18 @@ const {
   validatePoint,
   validateFeatureCollection,
   validateUpdateItemBody,
-  validateLockStatus
+  validateUpdateAllItemsBody,
+  validateAndProcessLock,
+  validateAndUpdateItem
 } = require('../lib/helper/item-route-validators');
 
 module.exports = {
-  getItems: getItems,
-  createItem: createItem,
-  getItem: getItem,
-  updateItem: updateItem,
-  deleteItem: deleteItem
+  getItems,
+  createItem,
+  getItem,
+  updateItem,
+  deleteItem,
+  updateAllItems
 };
 
 /**
@@ -136,28 +138,6 @@ function getItems(req, res, next) {
   } catch (e) {
     next(e);
   }
-}
-
-function validateAndProcessLock(lock, status, username) {
-  let lockedTill;
-  let lockedBy;
-
-  validateLockStatus(lock, status);
-
-  if (lock) {
-    const isUnlock = lock === constants.UNLOCKED;
-    lockedTill = isUnlock ? new Date() : new Date(Date.now() + 1000 * 60 * 15); // put a lock 15 min in future
-
-    lockedBy = isUnlock ? null : username;
-  }
-
-  if (status && constants.INACTIVE_STATUS.indexOf(status) !== -1) {
-    // If the item has been marked as done, expire the lock
-    lockedTill = new Date();
-    lockedBy = null;
-  }
-
-  return { lockedTill, lockedBy, lock, status };
 }
 
 /**
@@ -384,9 +364,24 @@ function updateItem(req, res, next) {
       user: username
     });
 
-    // putItemWrapper needs `lockedBy` and `lockedTill` keys
+    // validateAndUpdateItem needs `lockedBy` and `lockedTill` when merging to overwrite the entry in db.
     values.lockedBy = lockedBy;
     values.lockedTill = lockedTill;
+
+    if (body.lock) {
+      logs.push([
+        {
+          userAction: body.lock,
+          username: req.user.username,
+          itemId: values.id,
+          projectId: values.project_id
+        },
+        {
+          event: 'itemLock',
+          exportLog: true
+        }
+      ]);
+    }
 
     if (body.status) {
       logs.push([
@@ -416,10 +411,11 @@ function updateItem(req, res, next) {
       ]);
     }
 
-    return putItemWrapper(values)
-      .then(data => {
-        res.json(data);
-      })
+    return Item.findOne({
+      where: { id: item, project_id }
+    })
+      .then(data => data.update(validateAndUpdateItem(data.dataValues, values)))
+      .then(data => res.json(data))
       .then(() => {
         logs.forEach(log => {
           logDriver.info(log[0], log[1]);
@@ -430,7 +426,6 @@ function updateItem(req, res, next) {
     next(err);
   }
 }
-
 /**
  * Delete an item. Sets the is_archived property to true
  * @param {Object} req.params - Request URL parameters
@@ -466,43 +461,140 @@ function deleteItem(req, res, next) {
     })
     .catch(next);
 }
-
 /**
- * Handle all the logic and some validation for item creation and updating
- * @param {Object} opts - the opts for the action
- * @param {String} opts.project - the id of the project the item belongs to
- * @param {String} opts.item - the id of the item itself
- * @param {String} opts.user - the user making the change
- * @param {FeatureCollection} [opts.featureCollection] - a validated GeoJSON feature collection, required on create
- * @param {Point} [opts.pin] - a validated GeoJSON point representing the queryable location of this item, required on create
- * @param {String} [opts.instructions] - the instructions for what needs to be done, required on create
- * @param {String} [opts.status] - the status to set the item to
- * @param {String} [opts.lockedTill] - the time the lock expires at
+ * Updates an array of items. Note: max limit is 500
+ * @name update-all-items
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {Object[]} body - The request body
+ * @param {String[]} [body.ids] - The item's unique iD
+ * @param {('unlocked'|'locked')} [body.lock] - The item's lock status
+ * @param {('open'|'fixed'|'noterror')} [body.status] - The item's status
+ * @example
+ * curl -X PUT -H "Content-Type: application/json" -d '{lock: 'locked', ids: ["111111", "2222222"]}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items
+ * [
+ *   {
+ *     status: 'open',
+ *     lockedTill: '2017-10-19T00:00:00.000Z',
+ *     metadata: {},
+ *     id: '111111',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     pin: {
+ *       type: 'Point',
+ *       coordinates: [0, 0]
+ *     },
+ *     instructions: 'Fix this item',
+ *     createdBy: 'user',
+ *     updatedAt: '2017-10-19T00:00:00.000Z',
+ *     createdAt: '2017-10-19T00:00:00.000Z',
+ *     lockedBy: 'you',
+ *     lockedTill: '2017-10-19T00:15:00.000Z'
+ *   },
+ *   {
+ *     status: 'open',
+ *     lockedTill: '2017-10-19T00:00:00.000Z',
+ *     metadata: {},
+ *     id: '2222222',
+ *     project_id: '00000000-0000-0000-0000-000000000000',
+ *     pin: {
+ *       type: 'Point',
+ *       coordinates: [0, 0]
+ *     },
+ *     instructions: 'Fix this item',
+ *     createdBy: 'user',
+ *     updatedAt: '2017-10-19T00:00:00.000Z',
+ *     createdAt: '2017-10-19T00:00:00.000Z',
+ *     lockedBy: 'you',
+ *     lockedTill: '2017-10-19T00:15:00.000Z'
+ *   }
+ * ]
  */
-function putItemWrapper(opts) {
-  return Item.findOne({
-    where: { id: opts.id, project_id: opts.project_id }
-  }).then(function(data) {
-    if (
-      (opts.lockedTill !== undefined || opts.status !== undefined) && // we're changing the lock or the status
-      data.lockedTill > new Date() && // there is an active lock
-      data.lockedBy !== opts.user // and its not owned by this user
-    ) {
-      throw new ErrorHTTP(
-        `This item is currently locked by ${data.lockedBy}`,
-        423
-      );
-    }
+function updateAllItems(req, res, next) {
+  try {
+    const { project: project_id } = req.params;
+    const { username } = req.user;
+    const body = validateUpdateAllItemsBody(req.body);
 
-    // check for an expired lock on status update
-    if (opts.status !== undefined && data.lockedTill < new Date()) {
-      throw new ErrorHTTP('Cannot update an items status without a lock', 423);
-    }
+    const { lockedTill, lockedBy, lock, status } = validateAndProcessLock(
+      body.lock,
+      body.status,
+      username
+    );
 
-    var featureCollection = opts.featureCollection;
-    delete opts.featureCollection; // removing so the merge doesn't try to merge the old feature collection with the new one
-    var updated = _.merge({}, data.dataValues, opts);
-    updated.featureCollection = featureCollection || updated.featureCollection; // set the feature collection back
-    return data.update(updated);
-  });
+    const itemIds = body.ids;
+
+    const search = {
+      where: {
+        project_id,
+        id: {
+          [Op.in]: itemIds
+        }
+      }
+    };
+
+    Item.findAll(search)
+      .then(data => {
+        if (data.length !== itemIds.length) {
+          throw new ErrorHTTP('item ids were not found in database');
+        }
+        const oldItems = data
+          .map(item => item.dataValues)
+          .reduce((prev, item) => {
+            prev[item.id] = item;
+            return prev;
+          }, {});
+
+        // validate if the user can do
+        itemIds.forEach(id =>
+          validateAndUpdateItem(oldItems[id], {
+            lockedTill,
+            lockedBy,
+            lock,
+            status,
+            user: username
+          })
+        );
+        return Item.update(
+          {
+            lockedTill,
+            lockedBy,
+            status
+          },
+          Object.assign({}, search, { returning: true })
+        );
+      })
+      .then(data => {
+        res.json(data[1]);
+      })
+      .then(() => {
+        itemIds.forEach(itemId => {
+          let itemLog, logEvent;
+          const isStatusUpdate = !!body.status;
+          if (isStatusUpdate) {
+            itemLog = {
+              status: body.status,
+              username,
+              itemId,
+              projectId: project_id
+            };
+            logEvent = 'itemStatus';
+          } else {
+            itemLog = {
+              userAction: body.lock,
+              username,
+              itemId,
+              projectId: project_id
+            };
+            logEvent = 'itemLock';
+          }
+          logDriver.info(itemLog, {
+            event: logEvent,
+            exportLog: true
+          });
+        });
+      })
+      .catch(next);
+  } catch (err) {
+    next(err);
+  }
 }
