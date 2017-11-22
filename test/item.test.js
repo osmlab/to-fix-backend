@@ -1271,7 +1271,6 @@ test(
             assert.deepEqual(item.featureCollection, fc);
             assert.end();
           });
-        // assert.end();
       });
   }
 );
