@@ -346,9 +346,9 @@ function updateItem(req, res, next) {
     const instructions =
       body.instructions && validateInstructions(body.instructions);
 
-    const featureCollection = body.featureCollection
-      ? validateFeatureCollection(body.featureCollection)
-      : blankFC;
+    const featureCollection =
+      body.featureCollection &&
+      validateFeatureCollection(body.featureCollection);
 
     const metadata = body.metadata || {};
 
