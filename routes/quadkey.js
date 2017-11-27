@@ -1,4 +1,5 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
+const _ = require('lodash');
 const db = require('../database/index');
 const Item = db.Item;
 const Quadkey = db.Quadkey;
@@ -65,6 +66,8 @@ function getQuadkey(req, res, next) {
  * @param {string} [query.item_status] - item status to filter by for item counts
  * @param {string} [query.item_tags] - item tags (comma separated) to filter by for item counts
  * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
+ * @param {string} [query.item_from] - From date of items, valid ISO8601 date string
+ * @param {string} [query.item_to] - To date of items, valid ISO8601 date string
  * @return {Array<Object>} array of quadkey objects with the following keys:  
  *   - `quadkey`: quadkey value at zoom_level requested
  *   - `item_count`: number of items within quadkey (after applying filters)
@@ -109,6 +112,12 @@ function getQuadkeys(req, res, next) {
   }
   if (req.query.item_status) {
     where.status = req.query.item_status;
+  }
+  if (req.query.item_from || req.query.item_to) {
+    where.createdAt = _.pickBy({
+      [Op.gt]: req.query.item_from,
+      [Op.lt]: req.query.item_to
+    });
   }
   const search = {
     attributes: [
