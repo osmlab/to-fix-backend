@@ -2161,7 +2161,7 @@ test(
     assert.app
       .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
       .set('authorization', token)
-      .send({ lock: 'locked', ids: ['30', '32'] })
+      .send({ lock: 'locked', ids: ['32', '30'] })
       .expect(200, function(err, res) {
         if (err) return assert.end(err);
         assert.equal(res.body.length, 2, 'should change 1 ids only');
@@ -2171,56 +2171,66 @@ test(
         assert.app
           .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
           .set('authorization', token)
-          .send({ status: 'noterror', ids: ['30', '32'] })
+          .send({ status: 'noterror', ids: ['32', '30'] })
           .expect(200, function(err, res) {
-            for (var i = 0; i < 2; i++) {
-              var response = _.cloneDeep(res.body[i]);
-              var toMatch = _.cloneDeep(
-                variedData.items.find(item => item.id == response.id)
-              );
-              // createdAt
-              assert.equal(!!response['createdAt'], true);
-              response = _.omit(response, 'createdAt');
-              toMatch = _.omit(toMatch, 'createdAt');
+            if (err) return assert.end(err);
+            assert.equal(
+              res.body.find(item => item.id === '30').status,
+              'noterror',
+              'should set the status'
+            );
+            var response = _.cloneDeep(res.body.find(item => item.id === '32'));
+            var toMatch = _.cloneDeep(
+              variedData.items.find(item => item.id == response.id)
+            );
+            // createdAt
+            assert.equal(!!response['createdAt'], true);
+            response = _.omit(response, 'createdAt');
+            toMatch = _.omit(toMatch, 'createdAt');
 
-              // updatedAt
-              assert.equal(!!response['updatedAt'], true);
-              response = _.omit(response, 'updatedAt');
-              toMatch = _.omit(toMatch, 'updatedAt');
+            // updatedAt
+            assert.equal(!!response['updatedAt'], true);
+            response = _.omit(response, 'updatedAt');
+            toMatch = _.omit(toMatch, 'updatedAt');
 
-              // lockedTill
-              assert.equal(
-                new Date(response['lockedTill']) < new Date(Date.now()),
-                true,
-                'should be in the past'
-              );
-              response = _.omit(response, 'lockedTill');
-              toMatch = _.omit(toMatch, 'lockedTill');
+            // lockedTill
+            assert.equal(
+              new Date(response['lockedTill']) < new Date(Date.now()),
+              true,
+              'should be in the past'
+            );
+            response = _.omit(response, 'lockedTill');
+            toMatch = _.omit(toMatch, 'lockedTill');
 
-              // pin
-              assert.deepEqual(response.pin, {
-                type: 'Point',
-                coordinates: toMatch.pin
-              });
-              response = _.omit(response, 'pin');
-              toMatch = _.omit(toMatch, 'pin');
+            // pin
+            assert.deepEqual(response.pin, {
+              type: 'Point',
+              coordinates: toMatch.pin
+            });
+            response = _.omit(response, 'pin');
+            toMatch = _.omit(toMatch, 'pin');
 
-              // lockedBy
-              assert.equal(response['lockedBy'], null);
-              response = _.omit(response, 'lockedBy');
-              toMatch = _.omit(toMatch, 'lockedBy');
+            // lockedBy
+            assert.equal(response['lockedBy'], null);
+            response = _.omit(response, 'lockedBy');
+            toMatch = _.omit(toMatch, 'lockedBy');
 
-              // project_id
-              assert.equal(response['project_id'], variedData.id);
-              response = _.omit(response, 'project_id');
-              toMatch = _.omit(toMatch, 'project_id');
+            // project_id
+            assert.equal(response['project_id'], variedData.id);
+            response = _.omit(response, 'project_id');
+            toMatch = _.omit(toMatch, 'project_id');
 
-              // sort
-              response = _.omit(response, 'sort');
-              toMatch = _.omit(toMatch, 'sort');
-              // deep equal anything left
-              assert.deepEqual(response, toMatch);
-            }
+            // sort
+            response = _.omit(response, 'sort');
+            toMatch = _.omit(toMatch, 'sort');
+
+            // project_id
+            assert.equal(response['status'], 'noterror');
+            response = _.omit(response, 'status');
+            toMatch = _.omit(toMatch, 'status');
+
+            // deep equal anything left
+            assert.deepEqual(response, toMatch);
             assert.end();
           });
       });
