@@ -554,12 +554,18 @@ function updateAllItems(req, res, next) {
             user: username
           })
         );
+
+        const keysToUpdate = {
+          lockedTill,
+          lockedBy
+        };
+
+        if (status) {
+          keysToUpdate.status = status;
+        }
+
         return Item.update(
-          {
-            lockedTill,
-            lockedBy,
-            status
-          },
+          keysToUpdate,
           Object.assign({}, search, { returning: true })
         );
       })

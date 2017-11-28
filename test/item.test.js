@@ -1840,6 +1840,7 @@ test(
       });
   }
 );
+
 test(
   'PUT /:version/projects/:id/items - an active lock cannot be changed by a non-locking user',
   [
@@ -1885,6 +1886,7 @@ test(
       });
   }
 );
+
 test(
   'PUT /:version/projects/:id/items - an active lock can be changed by the locking user',
   [
@@ -1959,6 +1961,265 @@ test(
                 );
                 assert.end();
               });
+          });
+      });
+  }
+);
+
+const variedData = {
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'Project 0',
+  items: [
+    {
+      id: '30',
+      pin: [30, 30],
+      status: 'fixed'
+    },
+    {
+      id: '31',
+      pin: [30, 30],
+      status: 'fixed'
+    },
+    {
+      id: '32',
+      pin: [-122.45819852581384, 37.746826497065165],
+      quadkey: '0230102033323',
+      instructions: 'todo',
+      createdBy: 'mapbox-machine',
+      status: 'fixed',
+      lockedTill: '2017-11-28T07:10:37.346Z',
+      lockedBy: null,
+      featureCollection: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [0, 0]
+            },
+            properties: {
+              'tofix:category': 'cat',
+              invalidProp: 'foobar'
+            }
+          }
+        ]
+      },
+      metadata: {
+        test: 'metadata'
+      },
+      createdAt: '2017-11-21T21:02:23.442Z',
+      updatedAt: '2017-11-28T07:10:37.701Z'
+    }
+  ]
+};
+
+test(
+  'PUT /:version/projects/:id/items- relevant item keys should remain intact when the status can be changed by the user who has the active lock',
+  [variedData],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'locked', ids: ['30', '32'] })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        var response = _.cloneDeep(res.body[1]);
+        var toMatch = _.cloneDeep(variedData.items[2]);
+
+        // createdAt
+        assert.equal(!!response['createdAt'], true);
+        response = _.omit(response, 'createdAt');
+        toMatch = _.omit(toMatch, 'createdAt');
+
+        // updatedAt
+        assert.equal(!!response['updatedAt'], true);
+        response = _.omit(response, 'updatedAt');
+        toMatch = _.omit(toMatch, 'updatedAt');
+
+        // lockedTill
+        assert.equal(
+          new Date(response['lockedTill']) <
+            new Date(Date.now() + 1000 * 60 * 15),
+          true,
+          'should be less than 15min'
+        );
+        assert.equal(
+          new Date(response['lockedTill']) >
+            new Date(Date.now() + 1000 * 60 * 14),
+          true,
+          'should be more than 14min'
+        );
+        response = _.omit(response, 'lockedTill');
+        toMatch = _.omit(toMatch, 'lockedTill');
+
+        // pin
+        assert.deepEqual(response.pin, {
+          type: 'Point',
+          coordinates: toMatch.pin
+        });
+        response = _.omit(response, 'pin');
+        toMatch = _.omit(toMatch, 'pin');
+
+        // lockedBy
+        assert.equal(response['lockedBy'], 'test-user');
+        response = _.omit(response, 'lockedBy');
+        toMatch = _.omit(toMatch, 'lockedBy');
+
+        // project_id
+        assert.equal(response['project_id'], variedData.id);
+        response = _.omit(response, 'project_id');
+        toMatch = _.omit(toMatch, 'project_id');
+
+        // sort
+        response = _.omit(response, 'sort');
+        toMatch = _.omit(toMatch, 'sort');
+
+        // deep equal anything left
+        assert.deepEqual(response, toMatch);
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:id/items - relevant item keys should remain intact when locking ',
+  [variedData],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'locked', ids: ['32'] })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.length, 1, 'should change 1 ids only');
+        assert.equal(res.body[0].lockedBy, 'test-user');
+        assert.ok(checkLock.locked(res.body[0]), 'item32 locked');
+
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+          .set('authorization', token)
+          .send({ lock: 'unlocked', ids: ['32'] })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            var response = _.cloneDeep(res.body[0]);
+            var toMatch = _.cloneDeep(variedData.items[2]);
+
+            // createdAt
+            assert.equal(!!response['createdAt'], true);
+            response = _.omit(response, 'createdAt');
+            toMatch = _.omit(toMatch, 'createdAt');
+
+            // updatedAt
+            assert.equal(!!response['updatedAt'], true);
+            response = _.omit(response, 'updatedAt');
+            toMatch = _.omit(toMatch, 'updatedAt');
+
+            // lockedTill
+            assert.equal(
+              new Date(response['lockedTill']) < new Date(Date.now()),
+              true,
+              'should be in the past'
+            );
+            response = _.omit(response, 'lockedTill');
+            toMatch = _.omit(toMatch, 'lockedTill');
+
+            // pin
+            assert.deepEqual(response.pin, {
+              type: 'Point',
+              coordinates: toMatch.pin
+            });
+            response = _.omit(response, 'pin');
+            toMatch = _.omit(toMatch, 'pin');
+
+            // lockedBy
+            assert.equal(response['lockedBy'], null);
+            response = _.omit(response, 'lockedBy');
+            toMatch = _.omit(toMatch, 'lockedBy');
+
+            // project_id
+            assert.equal(response['project_id'], variedData.id);
+            response = _.omit(response, 'project_id');
+            toMatch = _.omit(toMatch, 'project_id');
+
+            // sort
+            response = _.omit(response, 'sort');
+            toMatch = _.omit(toMatch, 'sort');
+
+            // deep equal anything left
+            assert.deepEqual(response, toMatch);
+            assert.end();
+          });
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:id/items - relevant item keys should remain intact when locking ',
+  [variedData],
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+      .set('authorization', token)
+      .send({ lock: 'locked', ids: ['30', '32'] })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.length, 2, 'should change 1 ids only');
+        assert.equal(res.body[0].lockedBy, 'test-user');
+        assert.ok(checkLock.locked(res.body[0]), 'item32 locked');
+        // change status
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items')
+          .set('authorization', token)
+          .send({ status: 'noterror', ids: ['30', '32'] })
+          .expect(200, function(err, res) {
+            for (var i = 0; i < 2; i++) {
+              var response = _.cloneDeep(res.body[i]);
+              var toMatch = _.cloneDeep(
+                variedData.items.find(item => item.id == response.id)
+              );
+              // createdAt
+              assert.equal(!!response['createdAt'], true);
+              response = _.omit(response, 'createdAt');
+              toMatch = _.omit(toMatch, 'createdAt');
+
+              // updatedAt
+              assert.equal(!!response['updatedAt'], true);
+              response = _.omit(response, 'updatedAt');
+              toMatch = _.omit(toMatch, 'updatedAt');
+
+              // lockedTill
+              assert.equal(
+                new Date(response['lockedTill']) < new Date(Date.now()),
+                true,
+                'should be in the past'
+              );
+              response = _.omit(response, 'lockedTill');
+              toMatch = _.omit(toMatch, 'lockedTill');
+
+              // pin
+              assert.deepEqual(response.pin, {
+                type: 'Point',
+                coordinates: toMatch.pin
+              });
+              response = _.omit(response, 'pin');
+              toMatch = _.omit(toMatch, 'pin');
+
+              // lockedBy
+              assert.equal(response['lockedBy'], null);
+              response = _.omit(response, 'lockedBy');
+              toMatch = _.omit(toMatch, 'lockedBy');
+
+              // project_id
+              assert.equal(response['project_id'], variedData.id);
+              response = _.omit(response, 'project_id');
+              toMatch = _.omit(toMatch, 'project_id');
+
+              // sort
+              response = _.omit(response, 'sort');
+              toMatch = _.omit(toMatch, 'sort');
+            }
+            assert.end();
           });
       });
   }
