@@ -2218,6 +2218,8 @@ test(
               // sort
               response = _.omit(response, 'sort');
               toMatch = _.omit(toMatch, 'sort');
+              // deep equal anything left
+              assert.deepEqual(response, toMatch);
             }
             assert.end();
           });
