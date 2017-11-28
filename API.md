@@ -236,48 +236,6 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
 }
 ```
 
-### get-quadkeys
-
-Returns a list of quadkeys with priority and item count data.
-The use-case is, for eg:
-
--   Give me data for all quadkeys at z8 within this z4 tile, with counts
-     for items that have a status=open
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** URL parameters
-    -   `params.project` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Project ID
--   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** query parameters
-    -   `query.within` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to search within
-    -   `query.zoom_level` **integer** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
-    -   `query.item_status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** item status to filter by for item counts
-    -   `query.item_tags` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** item tags (comma separated) to filter by for item counts
-    -   `query.item_lock` **(`"locked"` \| `"unlocked"`)?** The item's lock status, must be 'locked' or 'unlocked'
-
-**Examples**
-
-```javascript
-curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
- [
-   {
-     quadkey: '0011000',
-     item_count: 243,
-     max_priority: 0.004
-   },
-   {
-     quadkey: '00111001',
-     item_count: 12,
-     max_priority: 0.002
-   },
-   ...
- ]
-```
-
-Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** array of quadkey objects with the following keys:  -   `quadkey`: quadkey value at zoom_level requested
--   `item_count`: number of items within quadkey (after applying filters)
--   `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
-
 ### create-project-tag
 
 Create a project tag.
@@ -305,6 +263,50 @@ curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://
   createdAt: '2017-10-20T00:00:00.000Z'
 }
 ```
+
+### get-quadkeys
+
+Returns a list of quadkeys with priority and item count data.
+The use-case is, for eg:
+
+-   Give me data for all quadkeys at z8 within this z4 tile, with counts
+     for items that have a status=open
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** URL parameters
+    -   `params.project` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Project ID
+-   `query` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** query parameters
+    -   `query.within` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to search within
+    -   `query.zoom_level` **integer** The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+    -   `query.item_status` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** item status to filter by for item counts
+    -   `query.item_tags` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** item tags (comma separated) to filter by for item counts
+    -   `query.item_lock` **(`"locked"` \| `"unlocked"`)?** The item's lock status, must be 'locked' or 'unlocked'
+    -   `query.item_from` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** From date of items, valid ISO8601 date string
+    -   `query.item_to` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** To date of items, valid ISO8601 date string
+
+**Examples**
+
+```javascript
+curl https://host/v1/quadkeys?within=0011&zoom_level=7&item_status=open
+ [
+   {
+     quadkey: '0011000',
+     item_count: 243,
+     max_priority: 0.004
+   },
+   {
+     quadkey: '00111001',
+     item_count: 12,
+     max_priority: 0.002
+   },
+   ...
+ ]
+```
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** array of quadkey objects with the following keys:  -   `quadkey`: quadkey value at zoom_level requested
+-   `item_count`: number of items within quadkey (after applying filters)
+-   `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
 
 ### create-comment
 

@@ -62,11 +62,13 @@ const projectFixture = [
     items: [
       {
         id: '01',
-        pin: [-179.94, 85.05]
+        pin: [-179.94, 85.05],
+        createdAt: new Date('2017-11-04')
       },
       {
         id: '02',
         pin: [-179.98, 85.046],
+        createdAt: new Date('2017-11-07'),
         lockedBy: 'userone',
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
@@ -144,6 +146,81 @@ test(
         .expect(200, (err, res) => {
           assert.ifError(err, 'get filtered quadkeys does not error');
           assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by date',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_from=2017-11-01&item_to=2017-11-10'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get filtered by date does not error');
+          assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by item_to',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_to=2017-11-05'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get filtered by date does not error');
+          assert.equal(res.body[0].item_count, 1, '1 item returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by item_from',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_from=2017-11-05'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get filtered by date does not error');
+          assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data invalid param for item_from',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_from=foobar'
+        )
+        .set('authorization', token)
+        .expect(400, err => {
+          assert.ifError(err, 'get filtered by invalid date does not error');
           assert.end();
         });
     });
