@@ -1,14 +1,11 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-const _ = require('lodash');
 const db = require('../database/index');
-const Item = db.Item;
 const Quadkey = db.Quadkey;
 const validator = require('validator');
 const Sequelize = require('sequelize');
-const Op = Sequelize.Op;
-const constants = require('../lib/constants');
 const validateBody = require('../lib/helper/validateBody');
 const getQuadkeyPriorities = require('../lib/helper/get-quadkey-priorities');
+const getQuadkeysQuery = require('../lib/helper/get-quadkeys-query');
 const isValidQuadkey = require('../lib/helper/is-valid-quadkey');
 const validateQuadkeysQuery = require('../lib/helper/validate-query-params')
   .validateQuadkeysQuery;
@@ -98,65 +95,30 @@ function getQuadkeys(req, res, next) {
   }
   const zoomLevel = Number(req.query.zoom_level);
   const within = req.query.within;
-  let where = {
-    project_id: projectId,
-    quadkey: {
-      [Op.like]: `${within}%`
-    }
-  };
-  if (req.query.item_lock) {
-    const locked = req.query.lock === constants.LOCKED;
-    where.lockedTill = {
-      [locked ? Op.gt : Op.lt]: new Date()
-    };
-  }
-  if (req.query.item_status) {
-    where.status = req.query.item_status;
-  }
-  if (req.query.item_from || req.query.item_to) {
-    where.createdAt = _.pickBy({
-      [Op.gt]: req.query.item_from,
-      [Op.lt]: req.query.item_to
-    });
-  }
-  const search = {
-    attributes: [
-      [
-        Sequelize.fn(
-          'COUNT',
-          Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)
-        ),
-        'item_count'
-      ],
-      [
-        Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel),
-        'quadkey'
-      ]
-    ],
-    where: where,
-    group: [Sequelize.fn('substring', Sequelize.col('quadkey'), 1, zoomLevel)]
-  };
-  const queryProm1 = Item.findAll(search);
+
+  const queryProm1 = getQuadkeysQuery(projectId, zoomLevel, within, req.query);
   const queryProm2 = getQuadkeyPriorities(projectId, zoomLevel, within);
-  Promise.all([queryProm1, queryProm2]).then(results => {
-    const itemCounts = results[0];
-    const priorities = results[1];
-    const priorityMap = priorities.reduce((memo, val) => {
-      memo[val.dataValues.quadkey] = val.dataValues.max_priority;
-      return memo;
-    }, {});
-    const response = itemCounts.map(itemCount => {
-      const maxPriority = priorityMap.hasOwnProperty(itemCount.quadkey)
-        ? priorityMap[itemCount.quadkey]
-        : -1;
-      return {
-        quadkey: itemCount.quadkey,
-        item_count: Number(itemCount.dataValues.item_count),
-        max_priority: maxPriority
-      };
-    });
-    return res.json(response);
-  });
+  Promise.all([queryProm1, queryProm2])
+    .then(results => {
+      const itemCounts = results[0];
+      const priorities = results[1];
+      const priorityMap = priorities.reduce((memo, val) => {
+        memo[val.dataValues.quadkey] = val.dataValues.max_priority;
+        return memo;
+      }, {});
+      const response = itemCounts.map(itemCount => {
+        const maxPriority = priorityMap.hasOwnProperty(itemCount.quadkey)
+          ? priorityMap[itemCount.quadkey]
+          : -1;
+        return {
+          quadkey: itemCount.quadkey,
+          item_count: Number(itemCount.item_count),
+          max_priority: maxPriority
+        };
+      });
+      return res.json(response);
+    })
+    .catch(next);
 }
 
 /**
