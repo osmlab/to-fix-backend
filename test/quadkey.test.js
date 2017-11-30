@@ -59,10 +59,21 @@ const projectFixture = [
   {
     id: '00000000-0000-0000-0000-000000000000',
     name: 'Project 0',
+    tags: [
+      {
+        id: '11111111-1111-1111-1111-111111111111',
+        name: 'My Tag'
+      },
+      {
+        id: '22222222-2222-2222-2222-222222222222',
+        name: 'Other Tag'
+      }
+    ],
     items: [
       {
         id: '01',
         pin: [-179.94, 85.05],
+        tags: ['My Tag'],
         createdAt: new Date('2017-11-04')
       },
       {
@@ -70,6 +81,7 @@ const projectFixture = [
         pin: [-179.98, 85.046],
         createdAt: new Date('2017-11-07'),
         lockedBy: 'userone',
+        tags: ['Other Tag'],
         lockedTill: new Date(Date.now() + 2 * 1000 * 15 * 60)
       },
       {
@@ -203,6 +215,43 @@ test(
         .expect(200, (err, res) => {
           assert.ifError(err, 'get filtered by date does not error');
           assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtered by multiple tags',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_tags=11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'filtering by multiple tags does not error');
+          assert.equal(res.body[0].item_count, 2, '2 items returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtered by invalid tag',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_tags=foobar'
+        )
+        .set('authorization', token)
+        .expect(400, err => {
+          assert.ifError(err, 'filtering by invalid tag does not error');
           assert.end();
         });
     });
