@@ -165,6 +165,25 @@ test(
 );
 
 test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by item_lock=locked',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get(
+          '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=0000&zoom_level=8&item_lock=locked'
+        )
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get filtered quadkeys does not error');
+          assert.equal(res.body[0].item_count, 1, '1 item returned');
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
   'GET /:version/projects/:project/quadkeys - GET quadkeys data filtering items by date',
   projectFixture,
   (assert, token) => {
