@@ -64,16 +64,15 @@ function getProjects(req, res, next) {
  *
  * {
  *   "total": 3,
- *   "status": {
- *     "closed": 1,
- *     "open": 2
- *   },
  *   "tags": {
- *     "foo": 2,
- *     "bar": 2,
- *     "baz": 1
+ *     "tag1": {
+ *        "open": 1,
+ *        "closed": 1
+ *      },
+ *      "tag2": {
+ *        "open": 1
+ *      }
  *   }
- * }
  */
 function getProjectStats(req, res, next) {
   const projectId = req.params.project;
@@ -82,14 +81,6 @@ function getProjectStats(req, res, next) {
       where: {
         project_id: projectId
       }
-    }),
-    db.Item.findAll({
-      attributes: ['status', Sequelize.fn('COUNT', Sequelize.col('status'))],
-      where: {
-        project_id: projectId
-      },
-      group: ['status'],
-      raw: true
     }),
     db.Item.findAll({
       includeIgnoreAttributes: false,
@@ -104,12 +95,13 @@ function getProjectStats(req, res, next) {
       ],
       attributes: [
         'tags.name',
+        'status',
         Sequelize.fn('COUNT', Sequelize.col('item.id'))
       ],
       where: {
         project_id: projectId
       },
-      group: ['tags.name'],
+      group: ['status', 'tags.name'],
       distinct: true,
       raw: true
     })
@@ -117,17 +109,17 @@ function getProjectStats(req, res, next) {
   Promise.all(countPromises)
     .then(results => {
       const total = results[0];
-      const status = results[1].reduce((memo, value) => {
-        memo[value.status] = Number(value.count);
-        return memo;
-      }, {});
-      const tags = results[2].reduce((memo, value) => {
-        memo[value.name] = Number(value.count);
+      const tags = results[1].reduce((memo, value) => {
+        const tagName = value.name;
+        if (!memo.hasOwnProperty(tagName)) {
+          memo[tagName] = {};
+        }
+        const status = value.status;
+        memo[tagName][status] = value.count;
         return memo;
       }, {});
       return res.json({
         total: total,
-        status: status,
         tags: tags
       });
     })
