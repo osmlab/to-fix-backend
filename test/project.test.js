@@ -104,12 +104,24 @@ test(
       .expect(200, (err, res) => {
         assert.ifError(err, 'project stats should not error');
         const stats = res.body;
-        assert.equal(stats.total, 3, 'total is correct');
-        assert.equal(stats.tags.foo, 2, 'tag foo has correct count');
-        assert.equal(stats.tags.bar, 2, 'tag bar has correct count');
-        assert.equal(stats.tags.baz, 1, 'tag baz has correct count');
-        assert.equal(stats.status.open, 2, 'status open has correct count');
-        assert.equal(stats.status.closed, 1, 'status closed has correct count');
+        const expectedTags = {
+          bar: {
+            closed: '1',
+            open: '1'
+          },
+          baz: {
+            open: '1'
+          },
+          foo: {
+            open: '2'
+          }
+        };
+        assert.deepEqual(
+          stats.tags,
+          expectedTags,
+          'project tags stats as expected'
+        );
+        assert.equal(stats.total, 3, 'project stats total is correct');
         assert.end();
       });
   }
