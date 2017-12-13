@@ -18,7 +18,7 @@ module.exports = {
 
 /**
  * Gets priority value for a quadkey+project. If quadkey does not exist, will return a priority of -1
- * 
+ *
  * @name get-quadkey-priority
  * @param {Object} params - Request URL parameters
  * @param {string} params.quadkey - Quadkey to request priority for
@@ -52,20 +52,20 @@ function getQuadkey(req, res, next) {
  * Returns a list of quadkeys with priority and item count data.
  * The use-case is, for eg:
  *   - Give me data for all quadkeys at z8 within this z4 tile, with counts
- *      for items that have a status=open 
+ *      for items that have a status=open
  *
  * @name get-quadkeys
  * @param {Object} params - URL parameters
  * @param {Object} params.project - Project ID
  * @param {Object} query - query parameters
- * @param {string} query.within - Quadkey to search within
- * @param {integer} query.zoom_level - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
+ * @param {string} [query.within] - Quadkey to search within, defaults to the whole world
+ * @param {integer} [query.zoom_level] - The zoom level you want results in (can be max 4 greater than zoom level of `within` quadkey param)
  * @param {string} [query.item_status] - item status to filter by for item counts
  * @param {string} [query.item_tags] - item tags (comma separated) to filter by for item counts
  * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.item_from] - From date of items, valid ISO8601 date string
  * @param {string} [query.item_to] - To date of items, valid ISO8601 date string
- * @return {Array<Object>} array of quadkey objects with the following keys:  
+ * @return {Array<Object>} array of quadkey objects with the following keys:
  *   - `quadkey`: quadkey value at zoom_level requested
  *   - `item_count`: number of items within quadkey (after applying filters)
  *   - `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
@@ -89,6 +89,13 @@ function getQuadkey(req, res, next) {
 //eslint-disable-next-line no-unused-vars
 function getQuadkeys(req, res, next) {
   const projectId = req.params.project;
+
+  // default within param to empty string
+  req.query.within = req.query.within || '';
+
+  // default zoom_level param to length of within param + 4 (4 z-levels deep)
+  req.query.zoom_level =
+    req.query.zoom_level || (req.query.within.length + 4).toString();
   const validationErrors = validateQuadkeysQuery(req.query);
   if (validationErrors) {
     return next(new ErrorHTTP(validationErrors, 400));

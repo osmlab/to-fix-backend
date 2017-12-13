@@ -98,6 +98,31 @@ const projectFixture = [
 ];
 
 test(
+  'GET /:version/projects/:project/quadkeys - GET quadkeys data for default within + zoom',
+  projectFixture,
+  (assert, token) => {
+    createQuadkeys(quadkeysz13Fixture).then(() => {
+      assert.app
+        .get('/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys')
+        .set('authorization', token)
+        .expect(200, (err, res) => {
+          assert.ifError(err, 'get quadkeys with no params does not error');
+          const expected = [
+            { quadkey: '0000', item_count: 3, max_priority: 0.6 },
+            { quadkey: '1010', item_count: 1, max_priority: 1 }
+          ];
+          assert.deepEqual(
+            res.body,
+            expected,
+            'searching for empty within gives expected result'
+          );
+          assert.end();
+        });
+    });
+  }
+);
+
+test(
   'GET /:version/projects/:project/quadkeys - GET quadkeys data for a project with within param',
   projectFixture,
   (assert, token) => {
@@ -296,14 +321,21 @@ test(
 );
 
 test(
-  'GET /:version/projects/:project/quadkeys - GET quadkeys should error with required params not supplied',
-  projectFixture,
+  'GET /:version/quadkeys/:quadkey?within=00&zoom_level=12',
+  [],
   (assert, token) => {
     assert.app
-      .get('/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys')
+      .get(
+        '/v1/projects/00000000-0000-0000-0000-000000000000/quadkeys?within=00&zoom_level=12'
+      )
       .set('authorization', token)
-      .expect(400, err => {
+      .expect(400, (err, res) => {
         assert.ifError(err);
+        assert.equal(
+          res.body.message[0],
+          'zoom_level must be 4 or less zoom levels greater than zoom level of within parameter',
+          'correct error message'
+        );
         assert.end();
       });
   }
