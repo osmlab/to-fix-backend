@@ -1,4 +1,4 @@
-var db = require('../database/index');
+var db = require('../models/index');
 const logDriver = require('../lib/log-driver')('setup-database');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);

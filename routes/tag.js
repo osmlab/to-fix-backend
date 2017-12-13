@@ -1,6 +1,6 @@
 'use strict';
 
-const db = require('../database/index');
+const db = require('../models/index');
 const Tag = db.Tag;
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const validateBody = require('../lib/helper/validateBody');
@@ -411,8 +411,9 @@ function deleteItemTag(req, res, next) {
     .then(data => {
       if (!data)
         throw new ErrorHTTP(
-          `Tag ID ${req.params.tag} was not associated with item ${req.params
-            .item}`,
+          `Tag ID ${req.params.tag} was not associated with item ${
+            req.params.item
+          }`,
           400
         );
       return Item.findOne({ whereItem });

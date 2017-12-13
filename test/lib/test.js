@@ -8,7 +8,7 @@ const app = supertest(server);
 const jwt = require('jwt-simple');
 const path = require('path');
 const exec = require('child_process').execSync;
-const db = require('../../database/index');
+const db = require('../../models/index');
 const getQuadkeyForPoint = require('../../lib/helper/get-quadkey-for-point');
 const _ = require('lodash');
 
@@ -77,12 +77,11 @@ function setup(fixture) {
   }
   return Promise.all(
     fixture.map(function(project) {
-      return db.Project
-        .create({
-          id: project.id,
-          name: project.name,
-          metadata: project.metadata || {}
-        })
+      return db.Project.create({
+        id: project.id,
+        name: project.name,
+        metadata: project.metadata || {}
+      })
         .then(function(createdProject) {
           store.createdProject = createdProject;
           var tags = project.tags || [];

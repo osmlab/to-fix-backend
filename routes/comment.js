@@ -1,5 +1,5 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-const db = require('../database/index');
+const db = require('../models/index');
 const validateBody = require('../lib/helper/validateBody');
 const geojsonhint = require('@mapbox/geojsonhint');
 const logDriver = require('../lib/log-driver')('routes/comment');
@@ -57,13 +57,12 @@ const logEvent = 'commentAction';
 function getItemComments(req, res, next) {
   const projectId = req.params.project;
   const itemId = req.params.item;
-  db.Item
-    .findOne({
-      where: {
-        id: itemId,
-        project_id: projectId
-      }
-    })
+  db.Item.findOne({
+    where: {
+      id: itemId,
+      project_id: projectId
+    }
+  })
     .then(item => {
       return item.getComments();
     })
@@ -138,13 +137,12 @@ function createItemComment(req, res, next) {
   }
   values.body = req.body.body;
   values.createdBy = req.user.username;
-  db.Item
-    .findOne({
-      where: {
-        project_id: projectId,
-        id: itemId
-      }
-    })
+  db.Item.findOne({
+    where: {
+      project_id: projectId,
+      id: itemId
+    }
+  })
     .then(item => {
       return db.Comment.create({
         itemAutoId: item.auto_id,
@@ -203,13 +201,12 @@ function deleteItemComment(req, res, next) {
   const projectId = req.params.project;
   const itemId = req.params.item;
   const commentId = req.params.comment;
-  db.Item
-    .findOne({
-      where: {
-        id: itemId,
-        project_id: projectId
-      }
-    })
+  db.Item.findOne({
+    where: {
+      id: itemId,
+      project_id: projectId
+    }
+  })
     .then(item => {
       return db.Comment.findOne({
         where: {

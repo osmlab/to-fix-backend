@@ -4,7 +4,7 @@ const proxyquire = require('proxyquire');
 const supertest = require('supertest');
 const tape = require('tape');
 const test = require('./lib/test');
-const db = require('../database/index');
+const db = require('../models/index');
 const sinon = require('sinon');
 
 test('GET / - db connection success', [], assert => {

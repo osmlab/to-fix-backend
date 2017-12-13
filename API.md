@@ -224,44 +224,15 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/stats
 
 {
   "total": 3,
-  "status": {
-    "closed": 1,
-    "open": 2
-  },
   "tags": {
-    "foo": 2,
-    "bar": 2,
-    "baz": 1
+    "tag1": {
+       "open": 1,
+       "closed": 1
+     },
+     "tag2": {
+       "open": 1
+     }
   }
-}
-```
-
-### create-project-tag
-
-Create a project tag.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
-    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag name
-    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The tag metadata (optional, default `{}`)
-
-**Examples**
-
-```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags
-
-{
-  id: '33333333-3333-3333-3333-333333333333',
-  metadata: {},
-  name: 'My Tag',
-  project_id: '00000000-0000-0000-0000-000000000000',
-  updatedAt: '2017-10-20T00:00:00.000Z',
-  createdAt: '2017-10-20T00:00:00.000Z'
-}
 ```
 
 ### get-quadkeys
@@ -308,6 +279,34 @@ Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refere
 -   `item_count`: number of items within quadkey (after applying filters)
 -   `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation
 
+### create-project-tag
+
+Create a project tag.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
+    -   `body.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag name
+    -   `body.metadata` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The tag metadata (optional, default `{}`)
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"name":"My Tag"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags
+
+{
+  id: '33333333-3333-3333-3333-333333333333',
+  metadata: {},
+  name: 'My Tag',
+  project_id: '00000000-0000-0000-0000-000000000000',
+  updatedAt: '2017-10-20T00:00:00.000Z',
+  createdAt: '2017-10-20T00:00:00.000Z'
+}
+```
+
 ### create-comment
 
 Create a comment
@@ -349,6 +348,19 @@ curl -X POST -H "Content-Type: application/json" -d '{"body":"i like this item",
 If there are items, return them. If there are not items, confirm that the
 project exists. If the project doesn't exist, return 404 Not Found. Otherwise,
 return empty array.
+
+### post-quadkey-priority
+
+Write priority values for a quadkey (optionally tied to project)
+The backend will handle either INSERTing or UPDATEing as appropriate
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
+    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
+-   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
+    -   `body.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID or null
+    -   `body.priority` **float** Priority value for Quadkey
 
 ### get-project-tag
 
@@ -400,19 +412,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"name":"My Project"}' http
   createdAt: '2017-10-19T00:00:00.000Z'
 }
 ```
-
-### post-quadkey-priority
-
-Write priority values for a quadkey (optionally tied to project)
-The backend will handle either INSERTing or UPDATEing as appropriate
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request URL parameters
-    -   `params.quadkey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Quadkey to POST
--   `body` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Request body
-    -   `body.set_id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Quadkey Set ID or null
-    -   `body.priority` **float** Priority value for Quadkey
 
 ### create-item
 
@@ -545,25 +544,6 @@ curl -X DELETE -H https://host/v1/projects/00000000-0000-0000-0000-000000000000/
 }
 ```
 
-### delete-project-tag
-
-Delete a project tag.
-
-**Parameters**
-
--   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
-
-**Examples**
-
-```javascript
-curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
-
-{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
-```
-
 ### update-project
 
 Update a project.
@@ -591,6 +571,25 @@ curl -X PUT -H "Content-Type: application/json" -d '{"metadata":{"key":"value"}}
   createdAt: '2017-10-18T00:00:00.000Z',
   updatedAt: '2017-10-18T00:00:00.000Z'
 }
+```
+
+### delete-project-tag
+
+Delete a project tag.
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+    -   `params.version` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+    -   `params.project` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+    -   `params.tag` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000/tags/11111111-1111-1111-1111-111111111111
+
+{ message: 'Succesfully deleted tag 11111111-1111-1111-1111-111111111111' }
 ```
 
 ### delete-project

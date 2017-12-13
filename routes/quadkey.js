@@ -1,5 +1,5 @@
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
-const db = require('../database/index');
+const db = require('../models/index');
 const Quadkey = db.Quadkey;
 const validator = require('validator');
 const Sequelize = require('sequelize');
@@ -18,7 +18,7 @@ module.exports = {
 
 /**
  * Gets priority value for a quadkey+project. If quadkey does not exist, will return a priority of -1
- * 
+ *
  * @name get-quadkey-priority
  * @param {Object} params - Request URL parameters
  * @param {string} params.quadkey - Quadkey to request priority for
@@ -52,7 +52,7 @@ function getQuadkey(req, res, next) {
  * Returns a list of quadkeys with priority and item count data.
  * The use-case is, for eg:
  *   - Give me data for all quadkeys at z8 within this z4 tile, with counts
- *      for items that have a status=open 
+ *      for items that have a status=open
  *
  * @name get-quadkeys
  * @param {Object} params - URL parameters
@@ -65,7 +65,7 @@ function getQuadkey(req, res, next) {
  * @param {('locked'|'unlocked')} [query.item_lock] - The item's lock status, must be 'locked' or 'unlocked'
  * @param {string} [query.item_from] - From date of items, valid ISO8601 date string
  * @param {string} [query.item_to] - To date of items, valid ISO8601 date string
- * @return {Array<Object>} array of quadkey objects with the following keys:  
+ * @return {Array<Object>} array of quadkey objects with the following keys:
  *   - `quadkey`: quadkey value at zoom_level requested
  *   - `item_count`: number of items within quadkey (after applying filters)
  *   - `max_priority`: max priority of `constants.DEFAULT_ZOOM` tile within aggregation

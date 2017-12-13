@@ -1,4 +1,4 @@
-const db = require('../../database/index');
+const db = require('../../models/index');
 const Quadkey = db.Quadkey;
 
 module.exports = {

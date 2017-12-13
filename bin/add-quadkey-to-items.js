@@ -1,5 +1,5 @@
 const getQuadkeyForPoint = require('../lib/helper/get-quadkey-for-point');
-const db = require('../database/index');
+const db = require('../models/index');
 const Item = db.Item;
 const pMap = require('p-map');
 

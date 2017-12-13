@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const ErrorHTTP = require('mapbox-error').ErrorHTTP;
 const Sequelize = require('sequelize');
-const db = require('../database/index');
+const db = require('../models/index');
 const Project = db.Project;
 const validateBody = require('../lib/helper/validateBody');
 
