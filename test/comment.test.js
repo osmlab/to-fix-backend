@@ -136,7 +136,9 @@ test(
         const comment1id = res.body[0].id;
         assert.app
           .delete(
-            `/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1id}`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${
+              comment1id
+            }`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
