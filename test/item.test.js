@@ -1366,6 +1366,51 @@ test(
 );
 
 test(
+  'PUT /:version/projects/:id/items:id - add escalated status',
+  projectWithOneItemLockedByUserOne,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/00000000-0000-0000-0000-000000000000/items/30')
+      .set('authorization', token)
+      .send({ status: 'escalated' })
+      .expect(200, function(err, res) {
+        if (err) return assert.end(err);
+        assert.equal(res.body.status, 'escalated', 'the right status');
+        assert.equal(
+          res.body.lockedBy,
+          null,
+          'the lock was released because it was moved to a complete status'
+        );
+        assert.ok(checkLock.unlocked(res.body), 'is unlocked');
+        assert.app
+          .put('/v1/projects/00000000-0000-0000-0000-000000000000/items/30')
+          .set('authorization', token)
+          .send({ lock: 'locked' })
+          .expect(200, function(err, res) {
+            if (err) return assert.end(err);
+            assert.equal(res.body.lockedBy, 'test-user');
+            assert.ok(checkLock.locked(res.body), 'locked');
+            assert.app
+              .put('/v1/projects/00000000-0000-0000-0000-000000000000/items/30')
+              .set('authorization', token)
+              .send({ status: 'fixed' })
+              .expect(200, function(err, res) {
+                if (err) return assert.end(err);
+                assert.equal(res.body.status, 'fixed', 'the right status');
+                assert.equal(
+                  res.body.lockedBy,
+                  null,
+                  'the lock was released because it was moved to a complete status'
+                );
+                assert.ok(checkLock.unlocked(res.body), 'is unlocked');
+                assert.end();
+              });
+          });
+      });
+  }
+);
+
+test(
   'PUT /:version/projects/:id/items:id - an active lock cannot be changed by a non-locking user',
   projectWithOneItemLockedByUserTwo,
   (assert, token) => {
@@ -1495,6 +1540,23 @@ test(
       .send({
         ids: ['30'],
         status: 'fixed'
+      })
+      .expect(200, () => {
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PUT /:version/projects/:project/items - valid body array',
+  getItemsFixture,
+  (assert, token) => {
+    assert.app
+      .put('/v1/projects/11111111-1111-1111-1111-111111111111/items')
+      .set('authorization', token)
+      .send({
+        ids: ['30'],
+        status: 'escalated'
       })
       .expect(200, () => {
         assert.end();

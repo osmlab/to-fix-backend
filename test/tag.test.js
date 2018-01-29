@@ -450,8 +450,9 @@ test('GET /:version/projects/:project/tags/:tag', oneTag, (assert, token) => {
       assert.ifError(err, 'should not error');
       assert.app
         .get(
-          `/v1/projects/00000000-0000-0000-0000-000000000000/tags/${res.body[0]
-            .id}`
+          `/v1/projects/00000000-0000-0000-0000-000000000000/tags/${
+            res.body[0].id
+          }`
         )
         .set('authorization', token)
         .expect(200, (err, res) => {
