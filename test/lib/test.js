@@ -77,11 +77,12 @@ function setup(fixture) {
   }
   return Promise.all(
     fixture.map(function(project) {
-      return db.Project.create({
-        id: project.id,
-        name: project.name,
-        metadata: project.metadata || {}
-      })
+      return db.Project
+        .create({
+          id: project.id,
+          name: project.name,
+          metadata: project.metadata || {}
+        })
         .then(function(createdProject) {
           store.createdProject = createdProject;
           var tags = project.tags || [];
@@ -145,6 +146,7 @@ function setup(fixture) {
                 item.comments.forEach(comment => {
                   aggregated.push({
                     itemAutoId: createdItem.auto_id,
+                    id: comment.id,
                     createdBy: comment.createdBy || 'userone',
                     body: comment.body || 'test',
                     pin: {
