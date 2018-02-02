@@ -28,6 +28,30 @@ const itemFixture = [
   }
 ];
 
+const itemWithCommentsFixture = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '00000000-0000-0000-0000-000000000000',
+        pin: [77, 77],
+        comments: [
+          {
+            id: '00000000-0000-0000-0000-000000000000',
+            createdBy: 'userone',
+            body: 'lorem ipsum',
+            pin: null,
+            metadata: {},
+            createdAt: '2017-10-23T17:13:25.585Z',
+            updatedAt: '2017-10-23T17:13:25.585Z'
+          }
+        ]
+      }
+    ]
+  }
+];
+
 test(
   'GET /:version/projects/:project/items/:item/comments - get comments for item',
   itemFixture,
@@ -122,6 +146,25 @@ test(
 );
 
 test(
+  'PUT /:version/projects/:project/items/:item/comments - update a comment',
+  itemWithCommentsFixture,
+  (assert, token) => {
+    const fakeUUID = '00000000-0000-0000-0000-000000000000';
+    const updatedCommentText = 'I updated this comment';
+
+    assert.app
+      .put(`/v1/projects/${fakeUUID}/items/${fakeUUID}/comments/${fakeUUID}`)
+      .set('authorization', token)
+      .send({ body: updatedCommentText })
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'update comment does not error');
+        assert.deepEqual(res.body.body, updatedCommentText);
+        assert.end();
+      });
+  }
+);
+
+test(
   'DELETE /:version/projects/:project/items/:item/comments/:comment - delete a comment',
   itemFixture,
   (assert, token) => {
@@ -136,9 +179,7 @@ test(
         const comment1id = res.body[0].id;
         assert.app
           .delete(
-            `/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${
-              comment1id
-            }`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/${comment1id}`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
