@@ -184,7 +184,7 @@ function createItemComment(req, res, next) {
  * @param {Object} body - The request body
  * @param {string} body.body - Comment body
  * @example
- * curl -X PUT -H "Content-Type: application/json" -d '{"body":"I updated this comment"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/abcd-1234-abcd-1234
+ * curl -X PATCH -H "Content-Type: application/json" -d '{"body":"I updated this comment"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/abcd-1234-abcd-1234
  *
  * {
  *   "id": "abcd-1234-abcd-1234",

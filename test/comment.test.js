@@ -146,19 +146,19 @@ test(
 );
 
 test(
-  'PUT /:version/projects/:project/items/:item/comments - update a comment',
+  'PATCH /:version/projects/:project/items/:item/comments - update a comment',
   itemWithCommentsFixture,
   (assert, token) => {
     const fakeUUID = '00000000-0000-0000-0000-000000000000';
     const updatedCommentText = 'I updated this comment';
 
     assert.app
-      .put(`/v1/projects/${fakeUUID}/items/${fakeUUID}/comments/${fakeUUID}`)
+      .patch(`/v1/projects/${fakeUUID}/items/${fakeUUID}/comments/${fakeUUID}`)
       .set('authorization', token)
       .send({ body: updatedCommentText })
       .expect(200, (err, res) => {
         assert.ifError(err, 'update comment does not error');
-        assert.deepEqual(res.body.body, updatedCommentText);
+        assert.equal(res.body.body, updatedCommentText);
         assert.end();
       });
   }
