@@ -236,7 +236,8 @@ function updateItemComment(req, res, next) {
           exportLog: true
         }
       );
-    });
+    })
+    .catch(next);
 }
 
 /**
