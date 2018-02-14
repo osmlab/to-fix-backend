@@ -45,6 +45,18 @@ PG_PORT=database-port
 
 The sequelize CLI is configured from these environment variables in the file `sequelize-config.js`.
 
+**Trusted Client**
+
+If you want to restrict your deployment to users of a trusted frontend client app, you can wrap the
+JWT authentication token in another JWT token that is signed with a secret you share between
+this backend and your trusted client app.
+
+You will need to add that shared secret to the environment:
+
+```
+JWT_TRUSTED_CLIENT_SECRET=your super-duper s3cret
+```
+
 **Running tests**
 
 `npm test`
