@@ -10,6 +10,20 @@ Go to: `https://host/auth/openstreetmap`. You will be forwarded to the OpenStree
 
 If you need to use this token for automated scripts, export it from the frontend and setup your scripts to send it in an `Authorization` header as described above.
 
+
+If you want to restrict your deployment to users of a trusted client app, you can wrap the JWT authentication token in another JWT token that is signed with a **secret** you share between the server and your trusted client app.
+
+You will need to add that shared secret to the environment:
+JWT_TRUSTED_CLIENT_SECRET=your super-duper s3cret
+
+Now on your trusted client, you will need to encode your tofix `accessToken` with the `trustedClientSecret` key.
+
+```Javascript
+const jwt = require('jwt-simple');
+
+accessToken =  jwt.encode(accessToken, trustedClientSecret);
+```
+
 ## Schema validation
 
 There are detailed rules around what we will and will not accept as part of Item FeatureCollections. These docs can be found at [GEOJSON_SCHEMA.md](GEOJSON_SCHEMA.md)
