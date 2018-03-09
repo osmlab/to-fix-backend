@@ -1,9 +1,9 @@
-const Sequelize = require('sequelize');
-const _ = require('lodash');
+const Sequelize = require("sequelize");
+const _ = require("lodash");
 
 module.exports = function(db) {
   var Item = db.define(
-    'item',
+    "item",
     {
       auto_id: {
         type: Sequelize.INTEGER,
@@ -13,15 +13,15 @@ module.exports = function(db) {
       id: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: 'projectItemId'
+        unique: "projectItemId"
       },
       project_id: {
         type: Sequelize.UUID,
         allowNull: false,
-        unique: 'projectItemId'
+        unique: "projectItemId"
       },
       pin: {
-        type: Sequelize.GEOMETRY('POINT', 4326),
+        type: Sequelize.GEOMETRY("POINT", 4326),
         allowNull: false
       },
       quadkey: {
@@ -43,7 +43,7 @@ module.exports = function(db) {
       status: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 'open'
+        defaultValue: "open"
       },
       lockedTill: {
         type: Sequelize.DATE,
@@ -66,31 +66,39 @@ module.exports = function(db) {
       is_archived: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
+      },
+      lastModifiedBy: {
+        type: Sequelize.STRING,
+        defaultValue: ""
+      },
+      lastModifiedDate: {
+        type: Sequelize.STRING,
+        defaultValue: ""
       }
     },
     {
       indexes: [
         {
-          fields: ['status']
+          fields: ["status"]
         },
         {
-          fields: ['lockedTill']
+          fields: ["lockedTill"]
         },
         {
-          fields: ['createdAt']
+          fields: ["createdAt"]
         },
         {
-          fields: ['quadkey']
+          fields: ["quadkey"]
         },
         {
-          fields: ['is_archived']
+          fields: ["is_archived"]
         },
         {
-          fields: ['pin'],
-          using: 'gist'
+          fields: ["pin"],
+          using: "gist"
         },
         {
-          fields: ['id', 'project_id'],
+          fields: ["id", "project_id"],
           unique: true
         }
       ]
@@ -98,7 +106,7 @@ module.exports = function(db) {
   );
 
   Item.prototype.toJSON = function() {
-    return _.omit(this.dataValues, 'auto_id', 'is_archived');
+    return _.omit(this.dataValues, "auto_id", "is_archived");
   };
 
   /**
@@ -110,7 +118,7 @@ module.exports = function(db) {
   */
   Item.beforeSave(model => {
     if (!model.pin.crs) {
-      model.pin.crs = { type: 'name', properties: { name: 'EPSG:4326' } };
+      model.pin.crs = { type: "name", properties: { name: "EPSG:4326" } };
     }
   });
 
