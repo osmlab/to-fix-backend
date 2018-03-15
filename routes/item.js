@@ -1,13 +1,13 @@
-const ErrorHTTP = require("mapbox-error").ErrorHTTP;
-const paginateSearch = require("../lib/helper/paginateSearch");
-const Sequelize = require("sequelize");
+const ErrorHTTP = require('mapbox-error').ErrorHTTP;
+const paginateSearch = require('../lib/helper/paginateSearch');
+const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const db = require("../database/index");
+const db = require('../database/index');
 const Item = db.Item;
 const Project = db.Project;
-const getQuadkeyForPin = require("../lib/helper/get-quadkey-for-pin");
-const _ = require("lodash");
-const logDriver = require("../lib/log-driver")("routes/item");
+const getQuadkeyForPin = require('../lib/helper/get-quadkey-for-pin');
+const _ = require('lodash');
+const logDriver = require('../lib/log-driver')('routes/item');
 const {
   blankFC,
   getLockedTill,
@@ -23,7 +23,7 @@ const {
   validateUpdateAllItemsBody,
   validateAndProcessLock,
   validateAndUpdateItem
-} = require("../lib/helper/item-route-validators");
+} = require('../lib/helper/item-route-validators');
 
 module.exports = {
   getItems,
@@ -99,7 +99,7 @@ function getItems(req, res, next) {
       offset,
       where: _.pickBy(where, value => !_.isNil(value)), // removes any undefined values
       attributes: {
-        exclude: ["featureCollection"] // for performance
+        exclude: ['featureCollection'] // for performance
       }
     };
 
@@ -107,10 +107,10 @@ function getItems(req, res, next) {
       search.include = [
         {
           model: db.Tag,
-          as: "tags",
+          as: 'tags',
           where: {
             id: {
-              [Op.in]: tags.split(",")
+              [Op.in]: tags.split(',')
             }
           }
         }
@@ -186,7 +186,7 @@ function createItem(req, res, next) {
 
     const id = validateAlphanumeric(body.id);
     const instructions = validateInstructions(body.instructions);
-    const point = validatePoint({ type: "Point", coordinates: body.pin });
+    const point = validatePoint({ type: 'Point', coordinates: body.pin });
     const quadkey = getQuadkeyForPin(body.pin);
 
     const { lockedBy, lockedTill, status } = validateAndProcessLock(
@@ -227,14 +227,14 @@ function createItem(req, res, next) {
             projectId: project
           },
           {
-            event: "itemCreate",
+            event: 'itemCreate',
             exportLog: true
           }
         );
       })
       .catch(err => {
         if (err instanceof Sequelize.UniqueConstraintError) {
-          return next(new ErrorHTTP("Item with this id already exists", 400));
+          return next(new ErrorHTTP('Item with this id already exists', 400));
         } else {
           return next(err);
         }
@@ -339,7 +339,7 @@ function updateItem(req, res, next) {
     );
 
     const point =
-      body.pin && validatePoint({ type: "Point", coordinates: body.pin });
+      body.pin && validatePoint({ type: 'Point', coordinates: body.pin });
 
     const quadkey = body.pin && getQuadkeyForPin(body.pin);
 
@@ -382,7 +382,7 @@ function updateItem(req, res, next) {
           projectId: values.project_id
         },
         {
-          event: "itemLock",
+          event: 'itemLock',
           exportLog: true
         }
       ]);
@@ -399,7 +399,7 @@ function updateItem(req, res, next) {
           lastModifiedDate
         },
         {
-          event: "itemStatus",
+          event: 'itemStatus',
           exportLog: true
         }
       ]);
@@ -412,7 +412,7 @@ function updateItem(req, res, next) {
           projectId: project_id
         },
         {
-          event: "itemUpdate",
+          event: 'itemUpdate',
           exportLog: true
         }
       ]);
@@ -459,7 +459,7 @@ function deleteItem(req, res, next) {
     .then(updated => {
       const updatedCount = updated[0];
       if (updatedCount === 0) {
-        return next(new ErrorHTTP("Item not found", 404));
+        return next(new ErrorHTTP('Item not found', 404));
       }
       return res.json({
         id: itemId,
@@ -542,7 +542,7 @@ function updateAllItems(req, res, next) {
     Item.findAll(search)
       .then(data => {
         if (data.length !== itemIds.length) {
-          throw new ErrorHTTP("item ids were not found in database");
+          throw new ErrorHTTP('item ids were not found in database');
         }
         const oldItems = data
           .map(item => item.dataValues)
@@ -590,7 +590,7 @@ function updateAllItems(req, res, next) {
               itemId,
               projectId: project_id
             };
-            logEvent = "itemStatus";
+            logEvent = 'itemStatus';
           } else {
             itemLog = {
               userAction: body.lock,
@@ -598,7 +598,7 @@ function updateAllItems(req, res, next) {
               itemId,
               projectId: project_id
             };
-            logEvent = "itemLock";
+            logEvent = 'itemLock';
           }
           logDriver.info(itemLog, {
             event: logEvent,
