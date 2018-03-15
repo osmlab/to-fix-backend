@@ -364,7 +364,9 @@ function updateItem(req, res, next) {
       project_id,
       quadkey,
       status,
-      user: username
+      user: username,
+      lastModifiedBy,
+      lastModifiedDate
     });
 
     // validateAndUpdateItem needs `lockedBy` and `lockedTill` when merging to overwrite the entry in db.
