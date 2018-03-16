@@ -916,6 +916,8 @@ test(
           status: 'open',
           lockedBy: null,
           metadata: {},
+          lastModifiedBy: '',
+          lastModifiedDate: '',
           sort: 0,
           item_tag: {
             itemAutoId: 1,
@@ -1021,6 +1023,8 @@ test(
             status: 'open',
             lockedBy: null,
             metadata: {},
+            lastModifiedBy: '',
+            lastModifiedDate: '',
             sort: 0
           },
           'should return expected message'

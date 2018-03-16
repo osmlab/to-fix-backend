@@ -22,7 +22,10 @@ const originalToken = jwt.encode(
   },
   process.env.APP_SECRET
 );
-const testToken = jwt.encode(originalToken, process.env.JWT_TRUSTED_CLIENT_SECRET);
+const testToken = jwt.encode(
+  originalToken,
+  process.env.JWT_TRUSTED_CLIENT_SECRET
+);
 
 module.exports = function(testName, fixture, cb) {
   pendingTests++;
