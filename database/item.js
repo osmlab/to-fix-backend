@@ -66,6 +66,14 @@ module.exports = function(db) {
       is_archived: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
+      },
+      lastModifiedBy: {
+        type: Sequelize.STRING,
+        defaultValue: ''
+      },
+      lastModifiedDate: {
+        type: Sequelize.STRING,
+        defaultValue: ''
       }
     },
     {

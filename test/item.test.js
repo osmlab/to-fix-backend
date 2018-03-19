@@ -690,9 +690,7 @@ test(
         const tagId = filterTag[0].id;
         assert.app
           .get(
-            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${
-              tagId
-            }`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${tagId}`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
@@ -724,9 +722,7 @@ test(
           .join(',');
         assert.app
           .get(
-            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${
-              tagIds
-            }`
+            `/v1/projects/00000000-0000-0000-0000-000000000000/items?tags=${tagIds}`
           )
           .set('authorization', token)
           .expect(200, (err, res) => {
@@ -1006,6 +1002,8 @@ test(
           instructions: 'Fix this item',
           featureCollection: { type: 'FeatureCollection', features: [] },
           createdBy: 'test-user',
+          lastModifiedBy: '',
+          lastModifiedDate: '',
           lockedBy: null,
           sort: 0
         });
@@ -1162,7 +1160,9 @@ test(
           },
           createdBy: 'userone',
           instructions: 'created via the tests',
-          sort: 0
+          sort: 0,
+          lastModifiedBy: '',
+          lastModifiedDate: ''
         });
         assert.end();
       });
@@ -2099,6 +2099,14 @@ test(
         response = _.omit(response, 'updatedAt');
         toMatch = _.omit(toMatch, 'updatedAt');
 
+        //lastModifiedBy
+        response = _.omit(response, 'lastModifiedBy');
+        toMatch = _.omit(toMatch, 'lastModifiedBy');
+
+        //lastModifiedDate
+        response = _.omit(response, 'lastModifiedDate');
+        toMatch = _.omit(toMatch, 'lastModifiedDate');
+
         // lockedTill
         assert.equal(
           new Date(response['lockedTill']) <
@@ -2177,6 +2185,14 @@ test(
             response = _.omit(response, 'updatedAt');
             toMatch = _.omit(toMatch, 'updatedAt');
 
+            //lastModifiedBy
+            response = _.omit(response, 'lastModifiedBy');
+            toMatch = _.omit(toMatch, 'lastModifiedBy');
+
+            //lastModifiedDate
+            response = _.omit(response, 'lastModifiedDate');
+            toMatch = _.omit(toMatch, 'lastModifiedDate');
+
             // lockedTill
             assert.equal(
               new Date(response['lockedTill']) < new Date(Date.now()),
@@ -2249,6 +2265,14 @@ test(
             assert.equal(!!response['createdAt'], true);
             response = _.omit(response, 'createdAt');
             toMatch = _.omit(toMatch, 'createdAt');
+
+            //lastModifiedBy
+            response = _.omit(response, 'lastModifiedBy');
+            toMatch = _.omit(toMatch, 'lastModifiedBy');
+
+            //lastModifiedDate
+            response = _.omit(response, 'lastModifiedDate');
+            toMatch = _.omit(toMatch, 'lastModifiedDate');
 
             // updatedAt
             assert.equal(!!response['updatedAt'], true);

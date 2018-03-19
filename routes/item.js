@@ -352,6 +352,9 @@ function updateItem(req, res, next) {
 
     const metadata = body.metadata;
 
+    const lastModifiedBy = body.lastModifiedBy;
+    const lastModifiedDate = body.lastModifiedDate;
+
     const values = _.pickBy({
       featureCollection,
       id: item,
@@ -361,7 +364,9 @@ function updateItem(req, res, next) {
       project_id,
       quadkey,
       status,
-      user: username
+      user: username,
+      lastModifiedBy,
+      lastModifiedDate
     });
 
     // validateAndUpdateItem needs `lockedBy` and `lockedTill` when merging to overwrite the entry in db.
@@ -389,7 +394,9 @@ function updateItem(req, res, next) {
           status: body.status,
           username,
           itemId: item,
-          projectId: project_id
+          projectId: project_id,
+          lastModifiedBy,
+          lastModifiedDate
         },
         {
           event: 'itemStatus',
