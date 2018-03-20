@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "prestart": "npm run db:migrate",
     "precommit": "lint-staged",
     "test": "npm run lint && NODE_ENV=test tape test/*.test.js",
     "lint": "eslint .",

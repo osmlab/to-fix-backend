@@ -1,7 +1,7 @@
 const tape = require('tape');
 process.env.PG_DATABASE = 'tofix_test';
 process.env.APP_SECRET = 'fakesecret';
-process.env.trustedUsers = '[123]';
+process.env.JWT_TRUSTED_CLIENT_SECRET = 's3cret';
 const server = require('../../lib/server');
 const supertest = require('supertest');
 const app = supertest(server);
@@ -14,13 +14,17 @@ const _ = require('lodash');
 
 var pendingTests = 0;
 
-const testToken = jwt.encode(
+const originalToken = jwt.encode(
   {
     id: 123,
     username: 'test-user',
     image: 'https://gravatar.com/awesome/image'
   },
   process.env.APP_SECRET
+);
+const testToken = jwt.encode(
+  originalToken,
+  process.env.JWT_TRUSTED_CLIENT_SECRET
 );
 
 module.exports = function(testName, fixture, cb) {
@@ -77,12 +81,11 @@ function setup(fixture) {
   }
   return Promise.all(
     fixture.map(function(project) {
-      return db.Project
-        .create({
-          id: project.id,
-          name: project.name,
-          metadata: project.metadata || {}
-        })
+      return db.Project.create({
+        id: project.id,
+        name: project.name,
+        metadata: project.metadata || {}
+      })
         .then(function(createdProject) {
           store.createdProject = createdProject;
           var tags = project.tags || [];

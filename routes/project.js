@@ -217,7 +217,7 @@ function getProject(req, res, next) {
  * }
  */
 function updateProject(req, res, next) {
-  const validBodyAttrs = ['name', 'quadkey_set_id', 'metadata'];
+  const validBodyAttrs = ['name', 'quadkey_set_id', 'metadata', 'is_archived'];
   const validationError = validateBody(req.body, validBodyAttrs);
   if (validationError) return next(new ErrorHTTP(validationError, 400));
 
