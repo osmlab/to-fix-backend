@@ -1,9 +1,8 @@
-const Sequelize = require('sequelize');
+'use strict';
 
-module.exports = function(db) {
-  var ItemTag = db.define(
-    'item_tag',
-    {
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.createTable('ItemTag', {
       id: {
         type: Sequelize.UUID,
         primaryKey: true,
@@ -22,11 +21,10 @@ module.exports = function(db) {
         type: Sequelize.DATE,
         field: 'updatedAt'
       }
-    },
-    {
-      timestamps: true
-    }
-  );
+    });
+  },
 
-  return ItemTag;
+  down: queryInterface => {
+    return queryInterface.dropTable('ItemTag');
+  }
 };
