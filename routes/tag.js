@@ -276,6 +276,7 @@ function deleteProjectTag(req, res, next) {
 function getItemTags(req, res, next) {
   const whereProject = { id: req.params.project };
   const whereItem = { project_id: req.params.project, id: req.params.item };
+  // const whereTagAuthor = {res};
 
   Project.findOne({ where: whereProject })
     .then(data => {
@@ -411,8 +412,9 @@ function deleteItemTag(req, res, next) {
     .then(data => {
       if (!data)
         throw new ErrorHTTP(
-          `Tag ID ${req.params.tag} was not associated with item ${req.params
-            .item}`,
+          `Tag ID ${req.params.tag} was not associated with item ${
+            req.params.item
+          }`,
           400
         );
       return Item.findOne({ whereItem });

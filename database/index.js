@@ -26,6 +26,7 @@ var Comment = (module.exports.Comment = require('./comment')(db));
 var Tag = (module.exports.Tag = require('./tag')(db));
 var Stat = (module.exports.Stat = require('./stat')(db));
 var Quadkey = (module.exports.Quadkey = require('./quadkey')(db));
+var ItemTag = (module.exports.ItemTag = require('./itemtag')(db));
 
 Item.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
 Tag.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
@@ -35,5 +36,5 @@ Quadkey.belongsTo(Project, { foreignKey: 'project_id', targetKey: 'id' });
 // Comment.belongsTo(Item, { foreignKey: 'item_id', targetKey: 'auto_id' });
 Item.hasMany(Comment);
 
-Item.belongsToMany(Tag, { through: 'item_tag' });
-Tag.belongsToMany(Item, { through: 'item_tag' });
+Item.belongsToMany(Tag, { through: ItemTag });
+Tag.belongsToMany(Item, { through: ItemTag });
