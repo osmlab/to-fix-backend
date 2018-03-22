@@ -4,11 +4,6 @@ module.exports = function(db) {
   var ItemTag = db.define(
     'item_tag',
     {
-      id: {
-        type: Sequelize.UUID,
-        primaryKey: true,
-        allowNull: false
-      },
       tag_author: {
         type: Sequelize.STRING,
         allowNull: false,
