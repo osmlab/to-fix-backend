@@ -342,7 +342,9 @@ function createItemTag(req, res, next) {
       if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
       store.tag = data;
       tagName = data.name;
-      return store.item.addTag(data);
+      return store.item.addTag(data, {
+        through: { authorName: req.user.username, authorId: req.user.id }
+      });
     })
     .then(() => {
       return store.tag.getItems({ where: { id: req.params.item } });
@@ -437,3 +439,5 @@ function deleteItemTag(req, res, next) {
     })
     .catch(next);
 }
+
+// Failed to start debugger. Exit code was ENOENT which indicates that the node executable could not be found. Try specifying an explicit path in your atom config file using the node-debugger.nodePath configuration setting.

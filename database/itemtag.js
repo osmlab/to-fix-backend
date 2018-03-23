@@ -4,10 +4,15 @@ module.exports = function(db) {
   var ItemTag = db.define(
     'item_tag',
     {
-      tag_author: {
+      authorName: {
         type: Sequelize.STRING,
         allowNull: false,
-        primaryKey: true
+        field: 'authorName'
+      },
+      authorId: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        field: 'authorId'
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -19,7 +24,9 @@ module.exports = function(db) {
       }
     },
     {
-      timestamps: true
+      timestamps: true,
+      freezeTableName: true,
+      tableName: 'item_tag'
     }
   );
 
