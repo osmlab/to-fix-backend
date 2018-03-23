@@ -650,7 +650,9 @@ curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/t
       createdAt: '2017-10-20T00:00:00.000Z',
       updatedAt: '2017-10-20T00:00:00.000Z',
       itemAutoId: 1,
-      tagId: '22222222-2222-2222-2222-222222222222'
+      tagId: '22222222-2222-2222-2222-222222222222',
+      authorName: 'osm-user',
+      authorId: '0001'
     }
   }
 ]
@@ -723,7 +725,9 @@ curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-
       createdAt: '2017-10-20T00:00:00.000Z',
       updatedAt: '2017-10-20T00:00:00.000Z',
       itemAutoId: 1,
-      tagId: '22222222-2222-2222-2222-222222222222'
+      tagId: '22222222-2222-2222-2222-222222222222',
+      authorName: 'osm-user',
+      authorId: '00001'
     }
   }
 ]
