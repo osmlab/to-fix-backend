@@ -622,42 +622,6 @@ curl -X DELETE https://host/v1/projects/00000000-0000-0000-0000-000000000000
 {"id": "00000000-0000-0000-0000-000000000000"}
 ```
 
-### get-item-tags
-
-Get all tags for an item.
-
-**Parameters**
-
-* `params` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
-  * `params.version` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
-  * `params.project` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
-  * `params.item` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-
-**Examples**
-
-```javascript
-curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
-
-[
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    project_id: '00000000-0000-0000-0000-000000000000',
-    name: 'My Tag',
-    metadata: {},
-    createdAt: '2017-10-20T00:00:00.000Z',
-    updatedAt: '2017-10-20T00:00:00.000Z',
-    item_tag: {
-      createdAt: '2017-10-20T00:00:00.000Z',
-      updatedAt: '2017-10-20T00:00:00.000Z',
-      itemAutoId: 1,
-      tagId: '22222222-2222-2222-2222-222222222222',
-      authorName: 'osm-user',
-      authorId: '0001'
-    }
-  }
-]
-```
-
 ### get-item
 
 Get an item for a project.
@@ -695,9 +659,9 @@ curl https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/405270
 }
 ```
 
-### create-item-tag
+### get-item-tags
 
-Add a tag to an item.
+Get all tags for an item.
 
 **Parameters**
 
@@ -705,13 +669,11 @@ Add a tag to an item.
   * `params.version` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
   * `params.project` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
   * `params.item` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
-* `body` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
-  * `body.tag` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
 
 **Examples**
 
 ```javascript
-curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-2222-222222222222"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+curl http://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
 
 [
   {
@@ -727,7 +689,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-
       itemAutoId: 1,
       tagId: '22222222-2222-2222-2222-222222222222',
       authorName: 'osm-user',
-      authorId: '00001'
+      authorId: '0001'
     }
   }
 ]
@@ -775,6 +737,44 @@ curl -X PUT -H "Content-Type: application/json" -d '{"instructions":"Different i
   createdAt: '2017-10-19T00:00:00.000Z',
   lockedBy: null
 }
+```
+
+### create-item-tag
+
+Add a tag to an item.
+
+**Parameters**
+
+* `params` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request URL parameters
+  * `params.version` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The API version
+  * `params.project` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The project ID
+  * `params.item` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The item ID
+* `body` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The request payload
+  * `body.tag` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The tag ID
+
+**Examples**
+
+```javascript
+curl -X POST -H "Content-Type: application/json" -d '{"tag":"22222222-2222-2222-2222-222222222222"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/111111/tags
+
+[
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    project_id: '00000000-0000-0000-0000-000000000000',
+    name: 'My Tag',
+    metadata: {},
+    createdAt: '2017-10-20T00:00:00.000Z',
+    updatedAt: '2017-10-20T00:00:00.000Z',
+    item_tag: {
+      createdAt: '2017-10-20T00:00:00.000Z',
+      updatedAt: '2017-10-20T00:00:00.000Z',
+      itemAutoId: 1,
+      tagId: '22222222-2222-2222-2222-222222222222',
+      authorName: 'osm-user',
+      authorId: '0001'
+    }
+  }
+]
 ```
 
 ### delete-item-tag
