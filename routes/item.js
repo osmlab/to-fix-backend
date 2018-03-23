@@ -224,7 +224,9 @@ function createItem(req, res, next) {
           {
             username,
             itemId: id,
-            projectId: project
+            projectId: project,
+            quadkey,
+            pin: point
           },
           {
             event: 'itemCreate',
@@ -379,7 +381,9 @@ function updateItem(req, res, next) {
           userAction: body.lock,
           username: req.user.username,
           itemId: values.id,
-          projectId: values.project_id
+          projectId: values.project_id,
+          quadkey,
+          pin: point
         },
         {
           event: 'itemLock',
@@ -396,7 +400,9 @@ function updateItem(req, res, next) {
           itemId: item,
           projectId: project_id,
           lastModifiedBy,
-          lastModifiedDate
+          lastModifiedDate,
+          quadkey,
+          pin: point
         },
         {
           event: 'itemStatus',
@@ -409,7 +415,9 @@ function updateItem(req, res, next) {
         {
           username: username,
           itemId: item,
-          projectId: project_id
+          projectId: project_id,
+          quadkey,
+          pin: point
         },
         {
           event: 'itemUpdate',
@@ -574,37 +582,42 @@ function updateAllItems(req, res, next) {
         return Item.update(
           keysToUpdate,
           Object.assign({}, search, { returning: true })
-        );
-      })
-      .then(data => {
-        res.json(data[1]);
-      })
-      .then(() => {
-        itemIds.forEach(itemId => {
-          let itemLog, logEvent;
-          const isStatusUpdate = !!body.status;
-          if (isStatusUpdate) {
-            itemLog = {
-              status: body.status,
-              username,
-              itemId,
-              projectId: project_id
-            };
-            logEvent = 'itemStatus';
-          } else {
-            itemLog = {
-              userAction: body.lock,
-              username,
-              itemId,
-              projectId: project_id
-            };
-            logEvent = 'itemLock';
-          }
-          logDriver.info(itemLog, {
-            event: logEvent,
-            exportLog: true
+        )
+        .then(data => {
+          res.json(data[1]);
+        })
+        .then(() => {
+          itemIds.forEach(itemId => {
+            let itemLog, logEvent;
+            let { pin, quadkey } = oldItems[itemId];
+            const isStatusUpdate = !!body.status;
+            if (isStatusUpdate) {
+              itemLog = {
+                status: body.status,
+                username,
+                itemId,
+                projectId: project_id,
+                quadkey,
+                pin
+              };
+              logEvent = 'itemStatus';
+            } else {
+              itemLog = {
+                userAction: body.lock,
+                username,
+                itemId,
+                projectId: project_id,
+                quadkey,
+                pin
+              };
+              logEvent = 'itemLock';
+            }
+            logDriver.info(itemLog, {
+              event: logEvent,
+              exportLog: true
+            });
           });
-        });
+        })
       })
       .catch(next);
   } catch (err) {
