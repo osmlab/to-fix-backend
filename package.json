@@ -10,11 +10,9 @@
     "test": "npm run lint && NODE_ENV=test tape test/*.test.js",
     "lint": "eslint .",
     "format": "prettier --single-quote --write \"{,test/**/}*.{js,json}\"",
-    "api-docs":
-      "documentation readme ./routes -f md --readme-file API.md --section Endpoints --shallow",
+    "api-docs": "documentation readme ./routes -f md --readme-file API.md --section Endpoints --shallow",
     "setup-database": "node bin/setup-database.js",
-    "sequelize":
-      "node node_modules/.bin/sequelize --config sequelize-config.js",
+    "sequelize": "node node_modules/.bin/sequelize --config sequelize-config.js",
     "migration:create": "sequelize migration:create --name ",
     "db:migrate": "npm run sequelize db:migrate",
     "db:migrate:undo": "npm run sequelize db:migrate:undo"
@@ -39,6 +37,7 @@
     "mapbox-data-team": "^1.4.11",
     "mapbox-error": "^2.2.0",
     "memory-cache": "^0.2.0",
+    "moment": "^2.21.0",
     "oauth": "^0.9.15",
     "ohauth": "^1.0.0",
     "p-map": "^1.2.0",
@@ -67,7 +66,10 @@
     "tape": "^4.6.2"
   },
   "lint-staged": {
-    "*.json": ["prettier --single-quote --write", "git add"],
+    "*.json": [
+      "prettier --single-quote --write",
+      "git add"
+    ],
     "*.js": [
       "eslint .",
       "prettier --single-quote --write",
