@@ -8,12 +8,12 @@ module.exports = {
         {
           authorName: {
             type: Sequelize.STRING,
-            allowNull: false,
+            allowNull: true,
             field: 'authorName'
           },
           authorId: {
             type: Sequelize.STRING,
-            allowNull: false,
+            allowNull: true,
             field: 'authorId'
           },
           createdAt: {

@@ -941,7 +941,9 @@ test(
           sort: 0,
           item_tag: {
             itemAutoId: 1,
-            tagId: '11111111-1111-1111-1111-111111111111'
+            tagId: '11111111-1111-1111-1111-111111111111',
+            authorName: 'test-user',
+            authorId: '123'
           }
         });
         assert.end();
