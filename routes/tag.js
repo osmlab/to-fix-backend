@@ -278,7 +278,6 @@ function deleteProjectTag(req, res, next) {
 function getItemTags(req, res, next) {
   const whereProject = { id: req.params.project };
   const whereItem = { project_id: req.params.project, id: req.params.item };
-  // const whereTagAuthor = {res};
 
   Project.findOne({ where: whereProject })
     .then(data => {
