@@ -20,7 +20,9 @@ const oneTag = [
     tags: [
       {
         id: '11111111-1111-1111-1111-111111111111',
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -33,6 +35,8 @@ const oneTagMetadata = [
       {
         id: '11111111-1111-1111-1111-111111111111',
         name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001',
         metadata: { key: 'value' }
       }
     ]
@@ -44,10 +48,14 @@ const twoTags = [
     name: 'Project 0',
     tags: [
       {
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       },
       {
-        name: 'My Other Tag'
+        name: 'My Other Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -65,7 +73,9 @@ const itemOneTag = [
     ],
     tags: [
       {
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -83,10 +93,14 @@ const itemTwoTags = [
     ],
     tags: [
       {
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       },
       {
-        name: 'My Other Tag'
+        name: 'My Other Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -104,7 +118,9 @@ const itemNoTags = [
     tags: [
       {
         id: '11111111-1111-1111-1111-111111111111',
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -122,7 +138,9 @@ const itemNotAssociatedWithTag = [
     tags: [
       {
         id: '22222222-2222-2222-2222-222222222222',
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -141,7 +159,9 @@ const itemToDeleteTagFrom = [
     tags: [
       {
         id: '22222222-2222-2222-2222-222222222222',
-        name: 'My Tag'
+        name: 'My Tag',
+        authorName: 'User',
+        authorId: '0001'
       }
     ]
   }
@@ -921,7 +941,9 @@ test(
           sort: 0,
           item_tag: {
             itemAutoId: 1,
-            tagId: '11111111-1111-1111-1111-111111111111'
+            tagId: '11111111-1111-1111-1111-111111111111',
+            authorName: 'test-user',
+            authorId: '123'
           }
         });
         assert.end();
