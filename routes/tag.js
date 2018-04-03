@@ -268,9 +268,7 @@ function deleteProjectTag(req, res, next) {
  *       createdAt: '2017-10-20T00:00:00.000Z',
  *       updatedAt: '2017-10-20T00:00:00.000Z',
  *       itemAutoId: 1,
- *       tagId: '22222222-2222-2222-2222-222222222222',
- *       authorName: 'osm-user',
- *       authorId: '0001'
+ *       tagId: '22222222-2222-2222-2222-222222222222'
  *     }
  *   }
  * ]
@@ -318,9 +316,7 @@ function getItemTags(req, res, next) {
  *       createdAt: '2017-10-20T00:00:00.000Z',
  *       updatedAt: '2017-10-20T00:00:00.000Z',
  *       itemAutoId: 1,
- *       tagId: '22222222-2222-2222-2222-222222222222',
- *       authorName: 'osm-user',
- *       authorId: '0001'
+ *       tagId: '22222222-2222-2222-2222-222222222222'
  *     }
  *   }
  * ]
@@ -345,9 +341,7 @@ function createItemTag(req, res, next) {
       if (!data) throw new ErrorHTTP('Invalid tag ID', 400);
       store.tag = data;
       tagName = data.name;
-      return store.item.addTag(data, {
-        through: { authorName: req.user.username, authorId: req.user.id }
-      });
+      return store.item.addTag(data);
     })
     .then(() => {
       return store.tag.getItems({ where: { id: req.params.item } });
@@ -417,9 +411,8 @@ function deleteItemTag(req, res, next) {
     .then(data => {
       if (!data)
         throw new ErrorHTTP(
-          `Tag ID ${req.params.tag} was not associated with item ${
-            req.params.item
-          }`,
+          `Tag ID ${req.params.tag} was not associated with item ${req.params
+            .item}`,
           400
         );
       return Item.findOne({ whereItem });
@@ -442,5 +435,3 @@ function deleteItemTag(req, res, next) {
     })
     .catch(next);
 }
-
-// Failed to start debugger. Exit code was ENOENT which indicates that the node executable could not be found. Try specifying an explicit path in your atom config file using the node-debugger.nodePath configuration setting.

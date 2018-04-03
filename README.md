@@ -3,18 +3,17 @@
 The server component of to-fix which provides the API that interacts with the front end. You can find the front end at https://github.com/osmlab/to-fix.
 
 ## API
-
 For API documentation can be found in [API.md](https://github.com/osmlab/to-fix-backend/blob/master/API.md)
+- The API address lies here: `https://build-to-fix-production.mapbox.com`.
+- The docs of API  address lies here: `https://build-to-fix-production.mapbox.com/docs`
 
-* The API address lies here: `https://build-to-fix-production.mapbox.com`.
-* The docs of API address lies here: `https://build-to-fix-production.mapbox.com/docs`
 
 ## Requirements
 
-* node >= 6.9.1
-* npm >= 5.3.0
-* postgres >= 9.6
-* postgis >= 2.4.1
+- node >= 6.9.1
+- npm >= 5.3.0
+- postgres >= 9.6
+- postgis >= 2.4.1
 
 ## Development and Setup
 
@@ -34,7 +33,7 @@ If you want a non-test database locally, run `node ./bin/setup-database.js` to c
 
 This project uses [dotenv](https://www.npmjs.com/package/dotenv) to load environment variable from a `.env` file.
 
-Copy the below example into a `.env` file and fill it out with your information. When running `to-fix-backend` on a server, these are the variables you'll want to exposed to the server's environment.
+Copy the below example into a `.env` file and fill it out with your information. When running `to-fix-backend` on a server, these are the vairables you'll want to exposed to the server's enviornment.
 
 ```
 PG_USER=username
@@ -67,8 +66,7 @@ JWT_TRUSTED_CLIENT_SECRET=your super-duper s3cret
 `npm start`
 
 ## Database migrations
-
-Create a new database migration by running the command `npm run migration:create YOUR_MIGRATION_NAME`. This will make a skeleton migration file as described in the [sequelize migration tutorial](http://docs.sequelizejs.com/manual/tutorial/migrations.html).
+Create a new database migration by running the command `npm run migration:create YOUR_MIGRATION_NAME`.  This will make a skeleton migration file as described in the [sequelize migration tutorial](http://docs.sequelizejs.com/manual/tutorial/migrations.html).
 
 Run created migrations by running the command `npm run db:migrate`
 
