@@ -260,14 +260,10 @@ const itemsWithTags = [
     ],
     tags: [
       {
-        name: 'My Tag',
-        authorName: 'User',
-        authorId: '0001'
+        name: 'My Tag'
       },
       {
-        name: 'My Other Tag',
-        authorName: 'User',
-        authorId: '0001'
+        name: 'My Other Tag'
       }
     ]
   }
