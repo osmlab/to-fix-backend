@@ -7,6 +7,7 @@ const logDriver = require('../lib/log-driver')('routes/comment');
 module.exports = {
   getItemComments: getItemComments,
   createItemComment: createItemComment,
+  updateItemComment: updateItemComment,
   deleteItemComment: deleteItemComment
 };
 
@@ -171,6 +172,72 @@ function createItemComment(req, res, next) {
     .catch(err => {
       next(err);
     });
+}
+
+/**
+ * Update a comment
+ * @name update-comment
+ * @param {Object} params - The request URL parameters
+ * @param {string} params.project - The project ID
+ * @param {string} params.item - The item ID
+ * @param {string} params.comment - The comment ID
+ * @param {Object} body - The request body
+ * @param {string} body.body - Comment body
+ * @example
+ * curl -X PATCH -H "Content-Type: application/json" -d '{"body":"I updated this comment"}' https://host/v1/projects/00000000-0000-0000-0000-000000000000/items/77/comments/abcd-1234-abcd-1234
+ *
+ * {
+ *   "id": "abcd-1234-abcd-1234",
+ *   "createdBy": "userone",
+ *   "body": "I updated this comment",
+ *   "pin": {
+ *     "type": "Point",
+ *     "coordinates": [
+ *       0,
+ *       0
+ *     ]
+ *   },
+ *   "metadata": {},
+ *   "createdAt": "2017-10-23T17:13:25.585Z",
+ *   "updatedAt": "2017-10-23T17:13:25.585Z"
+ * }
+ */
+function updateItemComment(req, res, next) {
+  const commentId = req.params.comment;
+  const validBodyAttrs = ['body'];
+  const requiredBodyAttrs = ['body'];
+  const validationError = validateBody(
+    req.body,
+    validBodyAttrs,
+    requiredBodyAttrs
+  );
+
+  if (validationError) {
+    return next(new ErrorHTTP(validationError, 400));
+  }
+
+  db.Comment
+    .findOne({
+      where: {
+        id: commentId
+      }
+    })
+    .then(comment => comment.update({ body: req.body.body }))
+    .then(comment => res.json(comment))
+    .then(() => {
+      logDriver.info(
+        {
+          username: req.user.username,
+          action: 'update',
+          commentId: commentId
+        },
+        {
+          event: logEvent,
+          exportLog: true
+        }
+      );
+    })
+    .catch(next);
 }
 
 /**

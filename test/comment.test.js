@@ -28,6 +28,30 @@ const itemFixture = [
   }
 ];
 
+const itemWithCommentsFixture = [
+  {
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Project 0',
+    items: [
+      {
+        id: '00000000-0000-0000-0000-000000000000',
+        pin: [77, 77],
+        comments: [
+          {
+            id: '00000000-0000-0000-0000-000000000000',
+            createdBy: 'userone',
+            body: 'lorem ipsum',
+            pin: null,
+            metadata: {},
+            createdAt: '2017-10-23T17:13:25.585Z',
+            updatedAt: '2017-10-23T17:13:25.585Z'
+          }
+        ]
+      }
+    ]
+  }
+];
+
 test(
   'GET /:version/projects/:project/items/:item/comments - get comments for item',
   itemFixture,
@@ -116,6 +140,25 @@ test(
       })
       .expect(400, err => {
         assert.ifError(err, 'POSTing comment with invalid pin did not error');
+        assert.end();
+      });
+  }
+);
+
+test(
+  'PATCH /:version/projects/:project/items/:item/comments - update a comment',
+  itemWithCommentsFixture,
+  (assert, token) => {
+    const fakeUUID = '00000000-0000-0000-0000-000000000000';
+    const updatedCommentText = 'I updated this comment';
+
+    assert.app
+      .patch(`/v1/projects/${fakeUUID}/items/${fakeUUID}/comments/${fakeUUID}`)
+      .set('authorization', token)
+      .send({ body: updatedCommentText })
+      .expect(200, (err, res) => {
+        assert.ifError(err, 'update comment does not error');
+        assert.equal(res.body.body, updatedCommentText);
         assert.end();
       });
   }
