@@ -280,7 +280,8 @@ function getItem(req, res, next) {
   Item.findOne({
     where: {
       id: req.params.item,
-      project_id: req.params.project
+      project_id: req.params.project,
+      is_archived: false
     }
   })
     .then(function(data) {
@@ -583,41 +584,41 @@ function updateAllItems(req, res, next) {
           keysToUpdate,
           Object.assign({}, search, { returning: true })
         )
-        .then(data => {
-          res.json(data[1]);
-        })
-        .then(() => {
-          itemIds.forEach(itemId => {
-            let itemLog, logEvent;
-            let { pin, quadkey } = oldItems[itemId];
-            const isStatusUpdate = !!body.status;
-            if (isStatusUpdate) {
-              itemLog = {
-                status: body.status,
-                username,
-                itemId,
-                projectId: project_id,
-                quadkey,
-                pin
-              };
-              logEvent = 'itemStatus';
-            } else {
-              itemLog = {
-                userAction: body.lock,
-                username,
-                itemId,
-                projectId: project_id,
-                quadkey,
-                pin
-              };
-              logEvent = 'itemLock';
-            }
-            logDriver.info(itemLog, {
-              event: logEvent,
-              exportLog: true
+          .then(data => {
+            res.json(data[1]);
+          })
+          .then(() => {
+            itemIds.forEach(itemId => {
+              let itemLog, logEvent;
+              let { pin, quadkey } = oldItems[itemId];
+              const isStatusUpdate = !!body.status;
+              if (isStatusUpdate) {
+                itemLog = {
+                  status: body.status,
+                  username,
+                  itemId,
+                  projectId: project_id,
+                  quadkey,
+                  pin
+                };
+                logEvent = 'itemStatus';
+              } else {
+                itemLog = {
+                  userAction: body.lock,
+                  username,
+                  itemId,
+                  projectId: project_id,
+                  quadkey,
+                  pin
+                };
+                logEvent = 'itemLock';
+              }
+              logDriver.info(itemLog, {
+                event: logEvent,
+                exportLog: true
+              });
             });
           });
-        })
       })
       .catch(next);
   } catch (err) {
