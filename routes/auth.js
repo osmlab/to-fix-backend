@@ -19,7 +19,8 @@ const osmOauth = new OAuth(
 
 module.exports = {
   redirectOsmAuth: redirectOsmAuth,
-  handleOSMCallback: handleOSMCallback
+  handleOSMCallback: handleOSMCallback,
+  authJOSM: authJOSM
 };
 
 // Redirects the user to the OSM login URL
@@ -92,5 +93,20 @@ function handleOSMCallback(req, res, next) {
     );
   } else {
     res.redirect('/auth/openstreetmap'); // Redirect to login page
+  }
+}
+
+function authJOSM(req, res) {
+  if (JSON.stringify(req.query).length > 2) {
+    const user = {
+      id: req.query.id,
+      username: req.query.name,
+      image: req.query.image
+    };
+    res.json(
+      _.merge(user, { tfx_token: jwt.encode(user, process.env.APP_SECRET) })
+    );
+  } else {
+    res.json({ msg: 'Authentication Failure!' });
   }
 }

@@ -48,6 +48,8 @@ module.exports = {
  * @param {string} [query.tags] - Comma-separated list of tag ids
  * @param {string} [query.from] - From date to filter by (must be a valid ISO 8601 date string)
  * @param {string} [query.to] - To date to filter by (must be a valid ISO 8601 date string)
+ * @param {string} [query.fc] - include featureCollection (fc=true)
+ * @param {string} [query.random] - Get randomly then items (random=true)
  * @example
  * curl https://host/v1/projects/:project/items
  *
@@ -99,9 +101,13 @@ function getItems(req, res, next) {
       offset,
       where: _.pickBy(where, value => !_.isNil(value)), // removes any undefined values
       attributes: {
-        exclude: ['featureCollection'] // for performance
+        exclude: req.query.fc === 'true' ? null : ['featureCollection'] // for performance
       }
     };
+
+    if (req.query.random === 'true') {
+      search.order = [Sequelize.fn('RANDOM')];
+    }
 
     if (tags) {
       search.include = [
